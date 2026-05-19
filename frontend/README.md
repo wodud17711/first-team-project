@@ -28,7 +28,7 @@ npm run dev
 ## 📁 폴더 구조
 
 ```
-fe/
+frontend/
 ├─ src/
 │  ├─ main.jsx          # 앱 진입점
 │  ├─ App.jsx           # 라우터 설정
