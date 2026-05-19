@@ -1,0 +1,509 @@
+// ============================================================
+// 반려견 산책 라이프 플랫폼 ERD v1.2
+// 작성일: 2026-05-19
+// 형식: DBML (dbdiagram.io)
+// 테이블: 24개
+//
+// 사용법:
+//   1. https://dbdiagram.io/d 접속
+//   2. 이 파일 내용 전체를 좌측 에디터에 붙여넣기
+//   3. 우측에 다이어그램 자동 생성됨
+//
+// 주의: FK ON DELETE 정책은 SQL 파일(be/src/main/resources/schema.sql)에 있습니다.
+// DBML은 관계선만 표시하므로 다이어그램에는 안 보임.
+// ============================================================
+
+// -------------------- ENUMS --------------------
+
+Enum gender_type {
+  M
+  F
+}
+
+Enum size_type {
+  소형
+  중형
+  대형
+}
+
+Enum activity_type {
+  저
+  중
+  고
+}
+
+Enum coat_type {
+  장모
+  단모
+}
+
+Enum risk_level {
+  안전
+  주의
+  위험
+}
+
+Enum difficulty_level {
+  초보
+  중수
+  고수
+}
+
+Enum season_type {
+  봄
+  여름
+  가을
+  겨울
+}
+
+Enum companion_status {
+  대기
+  수락
+  거절
+  취소
+}
+
+// -------------------- TABLES --------------------
+
+Table users {
+  id bigint [pk, increment]
+  email varchar(100) [not null, unique]
+  password varchar(255) [not null, note: 'BCrypt 해시']
+  nickname varchar(50) [not null]
+  profile_image_url varchar(500)
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime [note: '소프트 삭제']
+
+  indexes {
+    email [name: 'idx_users_email']
+  }
+
+  Note: '사용자 계정'
+}
+
+Table dog_breeds {
+  id bigint [pk, increment]
+  name_kr varchar(50) [not null]
+  name_en varchar(50)
+  size size_type
+  avg_weight_min decimal(5,2)
+  avg_weight_max decimal(5,2)
+  required_activity activity_type
+  coat_type coat_type
+  avg_lifespan int
+  is_brachycephalic boolean [default: false, note: '단두종 여부']
+  heat_tolerance tinyint [note: '더위 내성 1~5']
+  cold_tolerance tinyint [note: '추위 내성 1~5']
+
+  Note: '견종 마스터'
+}
+
+Table dogs {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  breed_id bigint [ref: > dog_breeds.id]
+  name varchar(50) [not null]
+  birth_date date
+  weight decimal(5,2)
+  gender gender_type
+  is_neutered boolean [default: false]
+  activity_level activity_type
+  health_notes text
+  profile_image_url varchar(500)
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime
+
+  indexes {
+    user_id [name: 'idx_dogs_user_id']
+    breed_id [name: 'idx_dogs_breed_id']
+  }
+
+  Note: '반려견 프로필'
+}
+
+Table weather_snapshots {
+  id bigint [pk, increment]
+  location_lat decimal(10,7)
+  location_lng decimal(10,7)
+  temperature decimal(4,1) [note: '기온 °C']
+  humidity int
+  ground_temperature decimal(4,1) [note: '지면온도 (발바닥 화상 판단)']
+  wind_speed decimal(4,1)
+  feels_like decimal(4,1)
+  pm10 int
+  pm25 int
+  precipitation decimal(4,1)
+  weather_condition varchar(30)
+  recorded_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    recorded_at [name: 'idx_weather_recorded_at']
+    (location_lat, location_lng) [name: 'idx_weather_location']
+  }
+
+  Note: '기상청 날씨 스냅샷'
+}
+
+Table walk_routes {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  description text
+  latitude decimal(10,7)
+  longitude decimal(10,7)
+  distance_km decimal(5,2)
+  path_coordinates json [note: '경로 좌표 [{lat,lng},...]']
+  difficulty difficulty_level
+  has_shade boolean [default: false]
+  average_rating decimal(2,1) [note: '캐시']
+  review_count int [default: 0, note: '캐시']
+  created_by_user_id bigint [ref: > users.id]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime
+
+  indexes {
+    (latitude, longitude) [name: 'idx_walk_routes_location']
+    created_by_user_id [name: 'idx_walk_routes_created_by']
+  }
+
+  Note: '산책로'
+}
+
+Table walks {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  dog_id bigint [not null, ref: > dogs.id]
+  walk_route_id bigint [ref: > walk_routes.id]
+  start_time datetime [not null]
+  end_time datetime
+  duration_minutes int
+  distance_km decimal(5,2)
+  user_feedback text [note: 'AI 개선용 피드백']
+  memo text
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime
+
+  indexes {
+    user_id [name: 'idx_walks_user_id']
+    dog_id [name: 'idx_walks_dog_id']
+    start_time [name: 'idx_walks_start_time']
+  }
+
+  Note: '산책 기록'
+}
+
+Table walk_locations {
+  id bigint [pk, increment]
+  walk_id bigint [not null, ref: > walks.id]
+  latitude decimal(10,7) [not null]
+  longitude decimal(10,7) [not null]
+  recorded_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    walk_id [name: 'idx_walk_locations_walk_id']
+  }
+
+  Note: '산책 중 GPS 좌표 기록'
+}
+
+Table walk_scores {
+  id bigint [pk, increment]
+  walk_id bigint [ref: > walks.id, note: '산책 전 조회만 한 경우 NULL']
+  dog_id bigint [not null, ref: > dogs.id]
+  weather_snapshot_id bigint [ref: > weather_snapshots.id]
+  score int [note: '0~100']
+  level risk_level
+  reason text
+  measured_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    dog_id [name: 'idx_walk_scores_dog_id']
+    measured_at [name: 'idx_walk_scores_measured_at']
+  }
+
+  Note: '산책 위험도 점수 이력'
+}
+
+Table walk_route_reviews {
+  id bigint [pk, increment]
+  walk_route_id bigint [not null, ref: > walk_routes.id]
+  user_id bigint [not null, ref: > users.id]
+  rating int [note: '1~5']
+  season season_type
+  content text
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime
+
+  indexes {
+    (walk_route_id, user_id) [unique, name: 'uk_route_user']
+    walk_route_id [name: 'idx_walk_route_reviews_route_id']
+    user_id [name: 'idx_walk_route_reviews_user_id']
+  }
+
+  Note: '산책로 리뷰'
+}
+
+Table categories {
+  id bigint [pk, increment]
+  name varchar(30) [not null, unique]
+  display_order int [default: 0]
+
+  Note: '게시판 카테고리'
+}
+
+Table posts {
+  id bigint [pk, increment]
+  user_id bigint [ref: > users.id, note: '탈퇴 시 NULL']
+  category_id bigint [not null, ref: > categories.id]
+  title varchar(200) [not null]
+  content text
+  view_count int [default: 0]
+  like_count int [default: 0, note: '캐시']
+  comment_count int [default: 0, note: '캐시']
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime
+
+  indexes {
+    category_id [name: 'idx_posts_category_id']
+    created_at [name: 'idx_posts_created_at']
+    user_id [name: 'idx_posts_user_id']
+  }
+
+  Note: '게시글'
+}
+
+Table comments {
+  id bigint [pk, increment]
+  post_id bigint [not null, ref: > posts.id]
+  user_id bigint [ref: > users.id]
+  parent_comment_id bigint [ref: > comments.id, note: '대댓글 부모 ID']
+  content text [not null]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+  deleted_at datetime
+
+  indexes {
+    post_id [name: 'idx_comments_post_id']
+    user_id [name: 'idx_comments_user_id']
+    parent_comment_id [name: 'idx_comments_parent_id']
+  }
+
+  Note: '댓글 (1단계 대댓글)'
+}
+
+Table post_likes {
+  user_id bigint [ref: > users.id]
+  post_id bigint [ref: > posts.id]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, post_id) [pk]
+    post_id [name: 'idx_post_likes_post_id']
+  }
+
+  Note: '게시글 좋아요'
+}
+
+Table post_images {
+  id bigint [pk, increment]
+  post_id bigint [not null, ref: > posts.id]
+  image_url varchar(500) [not null]
+  display_order int [default: 0]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    post_id [name: 'idx_post_images_post_id']
+  }
+
+  Note: '게시글 첨부 이미지'
+}
+
+Table walking_companions {
+  id bigint [pk, increment]
+  post_id bigint [not null, ref: > posts.id]
+  user_id bigint [not null, ref: > users.id]
+  status companion_status [default: '대기']
+  joined_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (post_id, user_id) [unique, name: 'uk_post_user']
+    user_id [name: 'idx_companions_user']
+  }
+
+  Note: '동반 산책 참여자'
+}
+
+Table badges {
+  id bigint [pk, increment]
+  name varchar(50) [not null]
+  description text
+  icon_url varchar(500)
+  condition_type varchar(30) [note: 'walk_count/walk_distance/mission_complete']
+  condition_value int
+
+  Note: '배지 마스터'
+}
+
+Table user_badges {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  badge_id bigint [not null, ref: > badges.id]
+  earned_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, badge_id) [unique, name: 'uk_user_badge']
+    user_id [name: 'idx_user_badges_user_id']
+    badge_id [name: 'idx_user_badges_badge_id']
+  }
+
+  Note: '회원이 획득한 배지'
+}
+
+Table achievements {
+  id bigint [pk, increment]
+  name varchar(50) [not null]
+  description text
+  icon_url varchar(500)
+  metric_type varchar(30) [note: 'total_distance/total_time/total_walks']
+  target_value int
+
+  Note: '업적 마스터'
+}
+
+Table user_achievements {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  achievement_id bigint [not null, ref: > achievements.id]
+  current_value int [default: 0]
+  is_completed boolean [default: false]
+  completed_at datetime
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, achievement_id) [unique, name: 'uk_user_achievement']
+    user_id [name: 'idx_user_achievements_user_id']
+    achievement_id [name: 'idx_user_achievements_achievement_id']
+  }
+
+  Note: '회원 업적 진행 현황'
+}
+
+Table daily_missions {
+  id bigint [pk, increment]
+  name varchar(100) [not null, note: '예: 쓰레기 줍기']
+  description text
+  reward_points int [default: 0]
+  icon_url varchar(500)
+  is_active boolean [default: true]
+
+  Note: '산책 미션 마스터'
+}
+
+Table walk_missions {
+  id bigint [pk, increment]
+  walk_id bigint [not null, ref: > walks.id]
+  mission_id bigint [not null, ref: > daily_missions.id]
+  is_completed boolean [default: false]
+  completed_at datetime
+
+  indexes {
+    (walk_id, mission_id) [unique, name: 'uk_walk_mission']
+    walk_id [name: 'idx_walk_missions_walk_id']
+  }
+
+  Note: '산책별 미션 수행 기록'
+}
+
+Table notifications {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  type varchar(30) [note: 'BADGE_EARNED / COMMENT / COMPANION_REQUEST']
+  title varchar(200)
+  content text
+  link_url varchar(500)
+  is_read boolean [default: false]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, is_read) [name: 'idx_notifications_user_unread']
+    created_at [name: 'idx_notifications_created_at']
+  }
+
+  Note: '사용자 알림'
+}
+
+Table qna_history {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  dog_id bigint [ref: > dogs.id]
+  question text [not null]
+  answer text
+  tokens_used int [note: 'OpenAI 토큰 사용량']
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'idx_qna_user_id']
+    created_at [name: 'idx_qna_created_at']
+  }
+
+  Note: 'OpenAI Q&A 이력'
+}
+
+Table user_walk_stats {
+  user_id bigint [pk, ref: > users.id]
+  total_walks int [default: 0]
+  total_distance_km decimal(8,2) [default: 0]
+  total_duration_minutes int [default: 0]
+  avg_walks_per_week decimal(4,2)
+  favorite_time_slot varchar(20) [note: '예: 18-20시']
+  user_type varchar(30) [note: '새벽형/저녁형/주말형/꾸준형']
+  last_calculated_at datetime
+
+  Note: '사용자 산책 통계 (배치 집계)'
+}
+
+// -------------------- TABLE GROUPS (시각적 그룹화) --------------------
+
+TableGroup 사용자_반려견 {
+  users
+  dog_breeds
+  dogs
+  user_walk_stats
+}
+
+TableGroup 산책 {
+  walks
+  walk_locations
+  walk_routes
+  walk_route_reviews
+  walk_scores
+  weather_snapshots
+}
+
+TableGroup 커뮤니티 {
+  categories
+  posts
+  comments
+  post_likes
+  post_images
+  walking_companions
+}
+
+TableGroup 보상_미션 {
+  badges
+  user_badges
+  achievements
+  user_achievements
+  daily_missions
+  walk_missions
+}
+
+TableGroup AI_알림 {
+  qna_history
+  notifications
+}
