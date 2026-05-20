@@ -51,8 +51,10 @@
 
 | 작업 | 우선 참조 문서 |
 | --- | --- |
+| **이번 주 할 일 / 일정** | `docs/weekly-roadmap.md` |
 | **새 기능 구현** | `docs/02-features.md` → `docs/06-api-spec.md` |
-| **DB 작업 / 엔티티** | `docs/05-database.md` |
+| **백엔드 코드 작성** | `docs/10-backend-coding-guide.md` |
+| **DB 작업 / 엔티티** | `docs/05-database.md` + `backend/schema.sql` (v1.3) |
 | **API 추가/수정** | `docs/06-api-spec.md` |
 | **외부 API 연동** | `docs/09-external-apis.md` |
 | **위험도 계산 로직** | `docs/08-risk-rules.md` |
@@ -143,12 +145,28 @@ fix/{도메인}-{작업}
 
 ---
 
-## 🎯 다음 작업 우선순위
+## 📅 주차별 로드맵 (6주, 2026-05-19 ~ 06-30)
 
-1. Spring Boot 프로젝트 초기 세팅
-2. React 프로젝트 초기 세팅
-3. 사용자 인증 (회원가입/로그인) 구현
-4. 반려견 프로필 CRUD 구현
-5. 외부 API 연동 (기상청)
-6. AI 서버 룰베이스 구현
-7. 산책 위험도 측정 API 통합
+상세: [`docs/weekly-roadmap.md`](./docs/weekly-roadmap.md)
+
+| 주차 | 기간 | 키 테마 |
+| --- | --- | --- |
+| **Week 1** | 5/19-5/25 | 환경 세팅 + 설계 매듭 (현재 진행) |
+| Week 2 | 5/26-6/1 | 인증 + 반려견 프로필 |
+| Week 3 | 6/2-6/8 | **AI 산책 위험도 (핵심 차별화)** |
+| Week 4 | 6/9-6/15 | 산책 기록 + 커뮤니티 |
+| Week 5 | 6/16-6/22 | 통계·캘린더·디자인 적용 |
+| Week 6 | 6/23-6/29 | QA + 배포 + 발표 |
+
+### MVP 범위 (Phase 분리)
+- **MVP (P0~P2)**: 인증 / 반려견 프로필 / AI 위험도 / 산책 기록 / 커뮤니티 / 통계
+- **Phase 2 (보류)**: 1:1 채팅 · 게이미피케이션 · 산책로 추천 · 견주 유형 · OpenAI Q&A
+- **Phase 3 (모바일)**: 실시간 GPS 트래킹
+
+### 주요 결정 사항 (기록)
+- 폴더명: `backend/`, `frontend/` (be/fe에서 rename됨)
+- 프론트 언어: **JavaScript** (TS 점진 도입 가능)
+- 지도: **카카오 Maps SDK** (1차)
+- DB 스키마: **v1.3** (24테이블, 카테고리 5개 + sub_tag 시스템)
+- 커뮤니티 카테고리: 사료·간식 / 병원·영양제 / 산책로 추천 / 반려견 자랑 / 산책 메이트 찾기
+- **미결정**: AI 처리 구조 (백엔드 통합 vs FastAPI), backend/schema.sql 최종 위치
