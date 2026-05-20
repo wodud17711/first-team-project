@@ -1,0 +1,84 @@
+{
+  "documents": [
+    {
+      "address_name": "서울 중구 태평로1가 54-3",
+      "category_group_code": "",
+      "category_group_name": "",
+      "category_name": "여행 > 공원 > 도시근린공원",
+      "distance": "92",
+      "id": "7940285",
+      "phone": "",
+      "place_name": "서울광장",
+      "place_url": "http://place.map.kakao.com/7940285",
+      "road_address_name": "",
+      "x": "126.977968926957",
+      "y": "37.5656726042805"
+    },
+    {
+      "address_name": "서울 중구 태평로1가 1",
+      "category_group_code": "",
+      "category_group_name": "",
+      "category_name": "여행 > 공원 > 도시근린공원",
+      "distance": "287",
+      "id": "11512319",
+      "phone": "",
+      "place_name": "청계광장",
+      "place_url": "http://place.map.kakao.com/11512319",
+      "road_address_name": "",
+      "x": "126.97759212096156",
+      "y": "37.569074693516065"
+    },
+    {
+      "address_name": "서울 중구 삼각동 118",
+      "category_group_code": "",
+      "category_group_name": "",
+      "category_name": "여행 > 공원",
+      "distance": "647",
+      "id": "24974768",
+      "phone": "",
+      "place_name": "청계천한빛공원",
+      "place_url": "http://place.map.kakao.com/24974768",
+      "road_address_name": "",
+      "x": "126.985067655744",
+      "y": "37.5680487407066"
+    },
+    {
+      "address_name": "서울 종로구 종로2가 38-1",
+      "category_group_code": "",
+      "category_group_name": "",
+      "category_name": "여행 > 공원 > 도시근린공원",
+      "distance": "1050",
+      "id": "8625328",
+      "phone": "02-2148-2842",
+      "place_name": "탑골공원",
+      "place_url": "http://place.map.kakao.com/8625328",
+      "road_address_name": "서울 종로구 종로 99",
+      "x": "126.988345222457",
+      "y": "37.5711665541042"
+    },
+    {
+      "address_name": "서울 중구 태평로1가 68-2",
+      "category_group_code": "",
+      "category_group_name": "",
+      "category_name": "여행 > 공원",
+      "distance": "288",
+      "id": "1293426985",
+      "phone": "",
+      "place_name": "광화문원표공원",
+      "place_url": "http://place.map.kakao.com/1293426985",
+      "road_address_name": "",
+      "x": "126.976645884677",
+      "y": "37.568865479155"
+    }
+  ],
+  "meta": {
+    "is_end": false,
+    "pageable_count": 45,
+    "same_name": {
+      "keyword": "공원",
+      "region": [],
+      "selected_region": ""
+    },
+    "total_count": 161
+  }
+}

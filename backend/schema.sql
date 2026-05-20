@@ -1,9 +1,15 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.2
+-- 반려견 산책 라이프 플랫폼 ERD v1.3
 -- 작성일: 2026-05-19
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
--- 테이블: 24개 (v1.1 15개 + 신규 9개)
+-- 테이블: 24개
+--
+-- 변경 사항 (v1.2 → v1.3)
+--  • categories: sub_tags JSON 컬럼 추가 (서브태그 정의)
+--  • categories 시드 데이터 5개 갱신 (사료·간식 / 병원·영양제 / 산책로 추천 / 반려견 자랑 / 산책 메이트 찾기)
+--  • posts: sub_tag VARCHAR(20) 컬럼 추가 (글 작성 시 선택)
+--  • posts 인덱스 (category_id, sub_tag, created_at) 추가 - 필터 쿼리 최적화
 --
 -- 변경 사항 (v1.1 → v1.2)
 --  • UNIQUE 제약 추가 (중복 방지)
@@ -231,15 +237,16 @@ CREATE TABLE walk_route_reviews (
 CREATE TABLE categories (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(30) NOT NULL UNIQUE COMMENT '카테고리명',
+    sub_tags JSON COMMENT '선택 가능한 서브태그 목록 ["사료", "간식"] 형태, NULL이면 서브태그 없음',
     display_order INT DEFAULT 0 COMMENT '표시 순서'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시판 카테고리';
 
-INSERT INTO categories (name, display_order) VALUES
-('사료/간식', 1),
-('병원후기', 2),
-('산책로후기', 3),
-('반려견자랑', 4),
-('동반산책모집', 5);
+INSERT INTO categories (name, sub_tags, display_order) VALUES
+('사료·간식',      JSON_ARRAY('사료', '간식'),   1),
+('병원·영양제',    JSON_ARRAY('병원', '영양제'), 2),
+('산책로 추천',    NULL,                          3),
+('반려견 자랑',    NULL,                          4),
+('산책 메이트 찾기', NULL,                          5);
 
 -- ============================================================
 -- 11. 게시글 (posts)
@@ -248,6 +255,7 @@ CREATE TABLE posts (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT COMMENT '작성자 (탈퇴 시 NULL)',
     category_id BIGINT NOT NULL,
+    sub_tag VARCHAR(20) COMMENT '서브태그 (예: 사료, 간식, 병원, 영양제). NULL 허용 - 카테고리에 서브태그 없는 경우',
     title VARCHAR(200) NOT NULL,
     content TEXT,
     view_count INT DEFAULT 0 COMMENT '조회수',
@@ -259,6 +267,7 @@ CREATE TABLE posts (
     INDEX idx_posts_category_id (category_id),
     INDEX idx_posts_created_at (created_at),
     INDEX idx_posts_user_id (user_id),
+    INDEX idx_posts_category_subtag (category_id, sub_tag, created_at) COMMENT '서브태그 필터 + 최신순 쿼리 최적화',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글';
@@ -460,5 +469,5 @@ CREATE TABLE user_walk_stats (
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
--- 끝. 총 24개 테이블 생성 완료
+-- 끝. 총 24개 테이블 생성 완료 (v1.3)
 -- ============================================================
