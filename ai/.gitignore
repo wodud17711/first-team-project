@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# 데이터 파일 (Kaggle CSV·이미지는 용량 커서 커밋 금지)
+data/
+*.csv
+*.zip
