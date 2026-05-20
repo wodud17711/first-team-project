@@ -1,9 +1,13 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.3
--- 작성일: 2026-05-19
+-- 반려견 산책 라이프 플랫폼 ERD v1.4
+-- 작성일: 2026-05-19 (v1.4: 2026-05-20)
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
--- 테이블: 24개
+-- 테이블: 25개
+--
+-- 변경 사항 (v1.3 → v1.4) — API 명세서 v3.1 인증 지원
+--  • users: role 컬럼 추가 (USER / ADMIN)
+--  • refresh_tokens 테이블 신규 (RT 서버 저장, HttpOnly 쿠키 인증 / 단일 세션)
 --
 -- 변경 사항 (v1.2 → v1.3)
 --  • categories: sub_tags JSON 컬럼 추가 (서브태그 정의)
@@ -49,6 +53,7 @@ DROP TABLE IF EXISTS walks;
 DROP TABLE IF EXISTS walk_routes;
 DROP TABLE IF EXISTS weather_snapshots;
 DROP TABLE IF EXISTS dogs;
+DROP TABLE IF EXISTS refresh_tokens;
 DROP TABLE IF EXISTS dog_breeds;
 DROP TABLE IF EXISTS users;
 
@@ -61,11 +66,26 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL COMMENT '비밀번호 (BCrypt 해시)',
     nickname VARCHAR(50) NOT NULL COMMENT '닉네임',
     profile_image_url VARCHAR(500) COMMENT '프로필 이미지 URL',
+    role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '권한 (USER / ADMIN)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL COMMENT '탈퇴일시 (소프트 삭제)',
     INDEX idx_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 계정';
+
+-- ============================================================
+-- 1-1. Refresh Token (refresh_tokens)  ⭐ v1.4 신규
+-- ============================================================
+CREATE TABLE refresh_tokens (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'RT ID',
+    user_id BIGINT NOT NULL COMMENT '사용자 ID',
+    token_hash VARCHAR(255) NOT NULL COMMENT 'Refresh Token 해시 (원문 미저장)',
+    expires_at DATETIME NOT NULL COMMENT '만료일시 (발급 +14일)',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '발급일시',
+    UNIQUE KEY uk_refresh_user_token (user_id, token_hash),
+    INDEX idx_refresh_tokens_user_id (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Refresh Token 관리 (단일 세션)';
 
 -- ============================================================
 -- 2. 견종 마스터 (dog_breeds)
