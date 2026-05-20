@@ -1,0 +1,92 @@
+
+============================================================
+1. 기본 구조
+============================================================
+dogs.csv  : 392행 x 37열
+world.csv : 159행 x 15열
+
+============================================================
+2. dogs.csv 결측치 점검
+============================================================
+전부 NULL인 컬럼 (5개, 무시 권장): ['Adaptability', 'All Around Friendliness', 'Health And Grooming Needs', 'Trainability', 'Physical Needs']
+부분 결측 컬럼: {'Height': 3, 'Weight': 7, 'Drooling Potential': 1, 'Prey Drive': 1, 'Tendency To Bark Or Howl': 1}
+world.csv 결측치 총합: 0 (0이면 깨끗)
+
+============================================================
+3. 더위/추위 내성 분포 (dogs.csv) - 룰베이스 직결
+============================================================
+Tolerates Hot Weather (heat_tolerance 후보):
+Tolerates Hot Weather
+1     23
+2     80
+3    177
+4    103
+5      9
+
+Tolerates Cold Weather (cold_tolerance 후보):
+Tolerates Cold Weather
+1     31
+2     70
+3    100
+4    134
+5     57
+
+더위 취약(≤2) 견종 예시: ['Afador', 'Akbash', 'Akita', 'Akita Chow', 'Alaskan Klee Kai', 'Alaskan Malamute', 'American Bulldog', 'Basset Fauve de Bretagne', 'Basset Hound', 'Beabull', 'Bernese Mountain Dog', 'Border Sheepdog', 'BoShih', 'Boston Terrier', 'Boston Terrier Pekingese Mix']
+
+============================================================
+4. 크기/체중 분포 (world.csv)
+============================================================
+Size 분포 (※ 7종으로 지저분 → 정제 필요):
+Size
+Medium          56
+Small           44
+Large           42
+Giant            7
+Small-Medium     6
+Toy              3
+Small-Large      1
+
+Average Weight (kg) → 숫자 변환 (파싱 실패 0건):
+count    159.000000
+mean      21.600629
+std       15.980683
+min        2.000000
+25%        8.000000
+50%       20.000000
+75%       29.500000
+max       78.000000
+
+============================================================
+5. 두 데이터셋 견종명 매칭
+============================================================
+dogs 고유: 392종
+world 고유: 159종
+교집합(이름 일치): 145종
+world에만: 14종
+dogs에만: 247종
+
+============================================================
+6. 단두종 후보 자동 추출 (is_brachycephalic)
+============================================================
+world.csv 단두종 후보 (20): ['Affenpinscher', 'American Bulldog', 'Boston Terrier', 'Boxer', 'Brussels Griffon', 'Bullmastiff', 'Cavalier King Charles Spaniel', 'Chow Chow', 'English Bulldog', 'French Bulldog', 'Japanese Chin', 'Lhasa Apso', 'Mastiff', 'Neapolitan Mastiff', 'Pekingese', 'Petit Basset Griffon Vendeen', 'Pug', 'Shih Tzu', 'Tibetan Mastiff', 'Wirehaired Pointing Griffon']
+dogs.csv  단두종 후보 (39): ['Affenpinscher', 'Akita Chow', 'American Bulldog', 'American Pugabull', 'Boston Boxer', 'Boston Terrier', 'Boston Terrier Pekingese Mix', 'Boxer', 'Boxerdoodle', 'Brussels Griffon', 'Bullboxer Pit', 'Bulldog', 'Bullmastiff', 'Catahoula Bulldog', 'Cavachon', 'Cavalier King Charles Spaniel', 'Chow Chow', 'Chow Shepherd', 'Dogue de Bordeaux', 'French Bulldog']
+⚠️ 키워드 기반 1차 추출 → 수동 검수 필요
+
+============================================================
+7. 정제 체크리스트 (가공 단계용)
+============================================================
+  [1] 견종명 한글 매핑 (둘 다 영문만)
+  [2] is_brachycephalic 수동 검수 (위 후보 + 누락분)
+  [3] dogs.csv 전부-NULL 컬럼 5개 제거
+  [4] dogs.csv Weight 텍스트('50 to 75 pounds') → 숫자 + kg 변환
+  [5] dogs.csv Size(1~5) → 소형/중형/대형 매핑
+  [6] world.csv Size(Small/Medium/Large) → 소형/중형/대형 매핑
+  [7] coat_type(장모/단모) 직접 컬럼 없음 → Shedding/Grooming 기반 추정 or 수동
+  [8] 두 CSV 병합 기준 결정 (heat/cold 내성은 dogs.csv에만 있음)
+
+============================================================
+완료
+============================================================
+차트 저장: C:\Users\ds\Desktop\teamproject\ai\notebooks\charts
+  - tolerance_dist.png (더위/추위 내성)
+  - size_weight_dist.png (크기/체중)
