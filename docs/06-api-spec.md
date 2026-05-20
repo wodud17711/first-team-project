@@ -2,7 +2,7 @@
 
 본 서비스의 REST API 명세입니다.
 
-- **Base URL**: `http://localhost:8080` (개발), `https://api.dogwalk.com` (운영, 예정)
+- **Base URL**: `http://localhost:8081` (개발), `https://api.dogwalk.com` (운영, 예정)
 - **인증**: JWT (Authorization 헤더)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
