@@ -137,6 +137,15 @@
 - 모바일 앱 출시 시점에 도입 예정
 - MVP에서는 산책 시작/종료 시각만 기록 (수동)
 
+### 만보기 / 걸음 수 측정 (Phase 3 - 모바일 앱)
+- 산책 중 견주의 걸음 수 측정 → 산책 활동량 지표 (펫피·비포펫 방식)
+- **웹은 불가** (걸음 수 API 없음, 가속도계 직접 구현은 부정확·배터리 부담)
+- **모바일은 쉬움**: 단말기 내장 걸음 센서 활용
+  - React Native: `expo-sensors` Pedometer / `react-native-health`(iOS) + Health Connect(Android)
+  - iOS Core Motion / Android Step Counter 센서 → 배터리 효율적
+- GPS 거리와 함께 측정 시 산책 데이터 풍부해짐 (같은 Phase 3 묶음)
+- DB 대비: `walks` 테이블에 `step_count` 컬럼 추가 (Phase 3 시점)
+
 ### 러닝 모드 (Phase 2)
 - 특정 코스 완주 시간 측정
 - 견주 간 기록 비교 / 랭킹
