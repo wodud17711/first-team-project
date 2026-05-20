@@ -8,11 +8,15 @@
 
 ## 📋 사용 API 목록
 
-| API | 제공처 | 용도 | 한도 |
-| --- | --- | --- | --- |
-| 단기예보 조회서비스 | 기상청 | 시간별 날씨 예보 | 1,000회/일 (개발) |
-| 생활기상지수 조회서비스 | 기상청 | 체감온도·자외선 등 | 1,000회/일 (개발) |
-| 에어코리아 대기오염정보 | 한국환경공단 | 미세먼지·초미세먼지 | 1,000회/일 (개발) |
+| API | 제공처 | 호출 위치 | 용도 | 한도 |
+| --- | --- | --- | --- | --- |
+| 단기예보 조회서비스 | 기상청 | 백엔드 | 시간별 날씨 예보 | 10,000회/일 (개발) |
+| 생활기상지수 조회서비스 | 기상청 | 백엔드 | 체감온도·자외선 등 | 10,000회/일 (개발) |
+| 에어코리아 대기오염정보 | 한국환경공단 | 백엔드 | 미세먼지·초미세먼지 | 10,000회/일 (개발) |
+| 지도 SDK (JavaScript) | 카카오 | **프론트** | 지도 표시·마커·경로선 | 300,000회/일 |
+| 로컬 API (REST) | 카카오 | 백엔드 | 주소↔좌표 변환, 장소 검색 | 100,000회/일 |
+
+> 💡 **카카오는 호출 위치 주의**: 지도 SDK는 프론트(JS 키), 로컬 API는 백엔드(REST 키). 키가 다릅니다.
 
 ---
 
@@ -293,6 +297,121 @@ public class WeatherApiClient {
 
 ---
 
+## 🗺️ 4. 카카오 지도 API
+
+카카오는 **두 가지로 나뉩니다**. 키와 호출 위치가 다르니 주의.
+
+### 4-1. 지도 SDK (JavaScript) — 프론트엔드
+
+> 지도 표시, 현재 위치 마커, 산책 경로(Polyline) 그리기
+
+**스크립트 로드** (`index.html` 또는 동적 로드)
+```html
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={JS_KEY}&autoload=false"></script>
+```
+
+**기본 지도 표시 (React)**
+```jsx
+useEffect(() => {
+  const script = document.createElement('script')
+  script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_KEY}&autoload=false`
+  document.head.appendChild(script)
+  script.onload = () => {
+    window.kakao.maps.load(() => {
+      const map = new window.kakao.maps.Map(
+        document.getElementById('map'),
+        { center: new window.kakao.maps.LatLng(37.5665, 126.978), level: 3 }
+      )
+    })
+  }
+}, [])
+```
+
+> ⚠️ **플랫폼 등록 필수**: 카카오 개발자 콘솔 → 앱 설정 → 플랫폼 → Web에 `http://localhost:5173` 등록 안 하면 지도가 회색 박스로만 보임.
+
+### 4-2. 로컬 API (REST) — 백엔드
+
+> 주소↔좌표 변환, 공원·장소 키워드 검색
+
+**인증 방식**: HTTP 헤더
+```
+Authorization: KakaoAK {REST_API_KEY}
+```
+
+**주요 엔드포인트**
+
+| 용도 | Endpoint |
+| --- | --- |
+| 주소 → 좌표 | `https://dapi.kakao.com/v2/local/search/address.json` |
+| 좌표 → 주소 | `https://dapi.kakao.com/v2/local/geo/coord2address.json` |
+| 키워드 검색 (공원 등) | `https://dapi.kakao.com/v2/local/search/keyword.json` |
+| 카테고리 검색 | `https://dapi.kakao.com/v2/local/search/category.json` |
+
+**키워드 검색 파라미터 (공원 찾기)**
+
+| 파라미터 | 설명 | 예시 |
+| --- | --- | --- |
+| `query` | 검색어 | 공원 |
+| `x` | 중심 경도(lng) | 126.978 |
+| `y` | 중심 위도(lat) | 37.5665 |
+| `radius` | 반경(m, 최대 20000) | 2000 |
+| `size` | 결과 수 (최대 15) | 15 |
+
+**호출 예시 (Spring WebClient)**
+```java
+@Service
+@RequiredArgsConstructor
+public class KakaoLocalClient {
+
+    @Value("${kakao.rest-api-key}")
+    private String restApiKey;
+
+    private final WebClient webClient = WebClient.builder()
+            .baseUrl("https://dapi.kakao.com")
+            .build();
+
+    public KakaoSearchResponse searchPlaces(String query, double lat, double lng, int radius) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/v2/local/search/keyword.json")
+                        .queryParam("query", query)
+                        .queryParam("x", lng)   // 경도
+                        .queryParam("y", lat)   // 위도
+                        .queryParam("radius", radius)
+                        .queryParam("size", 15)
+                        .build())
+                .header("Authorization", "KakaoAK " + restApiKey)
+                .retrieve()
+                .bodyToMono(KakaoSearchResponse.class)
+                .timeout(Duration.ofSeconds(3))
+                .block();
+    }
+}
+```
+
+**응답 주요 필드 (키워드 검색)**
+
+| 필드 | 의미 |
+| --- | --- |
+| `documents[].place_name` | 장소명 |
+| `documents[].address_name` | 지번 주소 |
+| `documents[].road_address_name` | 도로명 주소 |
+| `documents[].x` | 경도(lng) |
+| `documents[].y` | 위도(lat) |
+| `documents[].distance` | 중심으로부터 거리(m) |
+| `documents[].category_name` | 카테고리 |
+
+> 💡 **x=경도(lng), y=위도(lat)** — 헷갈리기 쉬움! 위경도와 순서 반대.
+
+### 4-3. 카카오 콘솔 설정 체크리스트
+- [ ] 앱 생성
+- [ ] JavaScript 키 → `VITE_KAKAO_MAP_KEY` (프론트)
+- [ ] REST API 키 → `KAKAO_REST_API_KEY` (백엔드)
+- [ ] 플랫폼 → Web → `http://localhost:5173` 등록
+- [ ] (지도만 쓸 거면 카카오 로그인 활성화 불필요)
+
+---
+
 ## 🔐 API 키 관리
 
 ### 환경변수 설정
@@ -313,13 +432,22 @@ living-weather:
   api:
     key: ${LIVING_WEATHER_API_KEY}
     base-url: http://apis.data.go.kr/1360000/LivingWthrIdxServiceV3
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
 ```
 
-**`.env` (Git 제외)**
+**백엔드 `.env` (Git 제외)**
 ```
 WEATHER_API_KEY=실제키값
 AIRQUALITY_API_KEY=실제키값
 LIVING_WEATHER_API_KEY=실제키값
+KAKAO_REST_API_KEY=실제키값
+```
+
+**프론트 `.env` (Git 제외)**
+```
+VITE_KAKAO_MAP_KEY=실제JS키값
 ```
 
 **`.gitignore`**
@@ -375,9 +503,19 @@ application-secret.yml
 
 ---
 
-## 🧪 테스트용 샘플 호출
+## 🧪 작동 테스트 가이드
 
-### 브라우저로 즉시 테스트
+각 API가 실제로 동작하는지 확인하는 순서입니다. **키 발급 후 제일 먼저** 이걸로 검증하세요.
+
+### ✅ 테스트 체크리스트
+
+- [ ] 기상청 단기예보 — 브라우저 URL 호출 → `resultCode: "00"` 확인
+- [ ] 에어코리아 — 브라우저 URL 호출 → `pm10Value` 값 확인
+- [ ] 카카오 로컬 — Postman/curl 헤더 인증 → `documents` 배열 확인
+- [ ] 카카오 지도 SDK — 로컬 페이지에서 지도 렌더링 확인
+- [ ] 받은 응답 JSON을 팀에 공유 (명세서 작성용)
+
+### 1) 기상청 단기예보 — 브라우저로 즉시 테스트
 ```
 http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst
 ?serviceKey={발급키}
@@ -389,11 +527,77 @@ http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst
 &nx=60
 &ny=127
 ```
+**성공 판단**: 응답에 `"resultCode": "00"` + `items` 배열에 데이터
+**실패 시**:
+- `SERVICE_KEY_IS_NOT_REGISTERED` → 키 미등록/오타
+- `NO_DATA` → base_time을 현재보다 이전 발표시각으로
+- `pageNo` 오타(`pageN`) 주의 — 헛 호출 차감!
 
-> ⚠️ 위 URL에서 `pageNo`를 절대 `pageN`으로 쓰지 말 것!
+### 2) 에어코리아 — 브라우저로 즉시 테스트
+```
+https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty
+?serviceKey={발급키}
+&returnType=json
+&sidoName=서울
+&ver=1.0
+```
+**성공 판단**: `items` 배열에 `pm10Value`, `pm25Value` 값 존재
 
-### Postman 컬렉션
-- `[기상청 API].postman_collection.json` 파일로 팀 공유 권장
+### 3) 카카오 로컬 API — curl / Postman (헤더 인증)
+```bash
+curl -G "https://dapi.kakao.com/v2/local/search/keyword.json" \
+  -H "Authorization: KakaoAK {REST_API_KEY}" \
+  --data-urlencode "query=공원" \
+  -d "x=126.978" -d "y=37.5665" -d "radius=2000" -d "size=5"
+```
+**성공 판단**: `documents` 배열에 장소 목록
+**실패 시**: `401` → 헤더 형식 확인 (`KakaoAK ` 뒤 공백 + REST 키)
+
+### 4) 카카오 지도 SDK — 프론트에서 확인
+1. `frontend/.env`에 `VITE_KAKAO_MAP_KEY` 설정
+2. 카카오 콘솔 → 플랫폼 → Web에 `http://localhost:5173` 등록
+3. `npm run dev` → 지도 페이지에서 **지도가 보이면 성공**
+4. 회색 박스만 보이면 → 플랫폼 도메인 미등록
+
+### 📎 받은 응답은 꼭 팀에 공유
+> 명세서 작성자가 우리 API 응답을 설계하려면 **실제 응답 JSON**이 필요합니다.
+> 위 4개 테스트의 응답을 복사해서 `docs/api-samples/` 또는 노션에 첨부하세요.
+> Postman 컬렉션(`*.postman_collection.json`)으로 공유하면 더 좋습니다.
+
+---
+
+## 🔗 외부 API → 우리 API 필드 매핑 (명세서 작성자 필독)
+
+외부 데이터가 **우리 백엔드 응답·DB에 어떻게 들어가는지** 정리한 표입니다.
+명세서(`06-api-spec.md`)의 `/api/walk/score` 응답 설계 시 이 표를 참고하세요.
+
+### 날씨 → `weather_snapshots` 테이블 / 위험도 계산
+
+| 외부 필드 | 출처 | 우리 컬럼/필드 | 비고 |
+| --- | --- | --- | --- |
+| `TMP` | 기상청 단기예보 | `temperature` | 1시간 기온 ℃ |
+| `REH` | 기상청 단기예보 | `humidity` | 습도 % |
+| `WSD` | 기상청 단기예보 | `wind_speed` | 풍속 m/s |
+| `PCP` | 기상청 단기예보 | `precipitation` | 강수량 mm |
+| `PTY` | 기상청 단기예보 | `weather_condition` | 강수형태 코드 → 문자열 변환 |
+| `SKY` | 기상청 단기예보 | `weather_condition` | 하늘상태 코드 → 문자열 변환 |
+| `POP` | 기상청 단기예보 | (준비물 추천) | 강수확률 → 우산 안내 |
+| 체감온도 | 생활기상지수 | `feels_like` | 체감온도 보강 |
+| (계산) | 기온+일사 추정 | `ground_temperature` | 지면온도 = 발바닥 화상 판단 |
+| `pm10Value` | 에어코리아 | `pm10` | 미세먼지 |
+| `pm25Value` | 에어코리아 | `pm25` | 초미세먼지 |
+
+### 위치 → `walk_routes` 테이블 / 산책로 검색
+
+| 외부 필드 | 출처 | 우리 컬럼/필드 | 비고 |
+| --- | --- | --- | --- |
+| `documents[].place_name` | 카카오 키워드검색 | `walk_routes.name` | 공원명 등 |
+| `documents[].y` | 카카오 | `walk_routes.latitude` | 위도 |
+| `documents[].x` | 카카오 | `walk_routes.longitude` | 경도 |
+| `road_address_name` | 카카오 | `walk_routes.description` | 주소 |
+| (사용자 GPS) | 브라우저 Geolocation | 검색 중심 좌표 | 내 주변 검색 |
+
+> 💡 **명세서 작성자에게**: `/api/walk/score` 응답에는 위 날씨 필드 + 위험도 점수/등급/사유가 들어갑니다. 외부 API 응답을 그대로 노출하지 말고, **우리 필드명으로 가공**해서 응답하세요 (외부 의존성 캡슐화).
 
 ---
 
@@ -403,6 +607,9 @@ http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst
 - [기상청 단기예보 API](https://www.data.go.kr/data/15084084/openapi.do)
 - [에어코리아 API](https://www.data.go.kr/data/15073861/openapi.do)
 - [기상청 생활기상지수 API](https://www.data.go.kr/data/15095099/openapi.do)
+- [카카오 지도 Web (JavaScript)](https://apis.map.kakao.com/web/)
+- [카카오 로컬 API](https://developers.kakao.com/docs/latest/ko/local/dev-guide)
+- [카카오 개발자 콘솔](https://developers.kakao.com/)
 
 ---
 
