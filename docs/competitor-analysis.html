@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>경쟁 서비스 비교 분석 · 반려견 산책 라이프 플랫폼</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brand: #ea580c;
+    --brand-light: #fff7ed;
+    --brand-dark: #c2410c;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --green-50: #ecfdf5;
+    --green-600: #059669;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+    --shadow: 0 4px 12px rgba(0,0,0,.08);
+  }
+  html, body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+                 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    line-height: 1.65;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 48px 24px;
+    background: linear-gradient(135deg, var(--brand-light) 0%, #ffedd5 100%);
+    border-radius: 24px;
+    margin-bottom: 48px;
+  }
+  .hero .badge {
+    display: inline-block;
+    background: white;
+    color: var(--brand);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    color: var(--gray-600);
+    font-size: 17px;
+  }
+
+  /* SECTION */
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .icon {
+    font-size: 28px;
+  }
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  p { margin-bottom: 10px; }
+
+  /* OVERVIEW TABLE */
+  .overview {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+  }
+  .overview table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .overview thead {
+    background: var(--gray-900);
+    color: white;
+  }
+  .overview th,
+  .overview td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .overview th {
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .overview tbody tr:last-child td { border-bottom: none; }
+  .overview tbody tr:hover { background: var(--gray-50); }
+  .overview .service-name {
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+  .overview .advantage {
+    background: var(--brand-light);
+    font-weight: 600;
+    color: var(--brand-dark);
+  }
+
+  /* SERVICE CARDS */
+  .services { display: grid; gap: 24px; }
+  .service-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+  }
+  .service-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gray-100);
+    margin-bottom: 24px;
+  }
+  .service-number {
+    background: var(--brand);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .service-header h3 {
+    margin-bottom: 0;
+    font-size: 22px;
+  }
+  .service-tagline {
+    color: var(--gray-400);
+    font-size: 14px;
+    margin-left: auto;
+    font-weight: 500;
+  }
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 720px) {
+    .comparison-grid { grid-template-columns: 1fr; }
+  }
+  .compare-block {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .compare-block.common { border-left: 4px solid var(--gray-400); }
+  .compare-block.diff   { border-left: 4px solid var(--brand); }
+  .compare-block h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-600);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .compare-block ul {
+    padding-left: 18px;
+  }
+  .compare-block li {
+    margin-bottom: 4px;
+    color: var(--gray-700);
+  }
+  .advantage-box {
+    background: linear-gradient(135deg, var(--brand-light), #fed7aa33);
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .advantage-box h4 {
+    color: var(--brand-dark);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .advantage-box .quote {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    border-left: 3px solid var(--brand);
+  }
+
+  /* DIFFERENTIATOR */
+  .diff-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .diff-grid { grid-template-columns: 1fr; }
+  }
+  .diff-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+  }
+  .diff-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand), #fb923c);
+  }
+  .diff-num {
+    display: inline-block;
+    background: var(--brand);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    text-align: center;
+    line-height: 40px;
+    font-weight: 800;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  .diff-card h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  .diff-card p {
+    color: var(--gray-700);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .diff-card .highlight {
+    display: block;
+    background: var(--brand-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 12px;
+    color: var(--brand-dark);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .diff-card ul {
+    padding-left: 18px;
+    color: var(--gray-700);
+    font-size: 14px;
+  }
+  .diff-card ul li { margin-bottom: 4px; }
+
+  /* CONCLUSION */
+  .conclusion {
+    background: var(--gray-900);
+    color: white;
+    border-radius: 24px;
+    padding: 48px;
+    text-align: center;
+  }
+  .conclusion h2 {
+    color: white;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .conclusion p {
+    color: var(--gray-200);
+    font-size: 17px;
+    margin-bottom: 24px;
+  }
+  .key-phrase {
+    background: linear-gradient(90deg, var(--brand), #fb923c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    font-size: 26px;
+    display: block;
+    margin: 16px 0;
+    line-height: 1.4;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 32px 0 0;
+    color: var(--gray-400);
+    font-size: 13px;
+  }
+
+  /* UTIL */
+  .tag {
+    display: inline-block;
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="badge">🔍 PM 산출물 · 경쟁 분석</span>
+    <h1>경쟁 서비스 비교 분석</h1>
+    <p>반려견 산책 라이프 플랫폼 — 시장 포지셔닝 & 차별화 전략</p>
+  </div>
+
+  <!-- 한눈에 보기 -->
+  <section>
+    <h2><span class="icon">📊</span> 한눈에 보는 비교</h2>
+    <div class="overview">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 12%;">서비스</th>
+            <th style="width: 25%;">핵심 기능</th>
+            <th style="width: 20%;">우리와 겹치는 영역</th>
+            <th style="width: 18%;">차별점</th>
+            <th style="width: 25%;">우리 서비스의 우위</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="service-name">펫피</td>
+            <td>산책 기록, 포인트 적립, 미션형 게이미피케이션</td>
+            <td>⑥ 게이미피케이션, 일부 산책 기록</td>
+            <td>"산책 자체의 재미" 중심</td>
+            <td class="advantage">AI 위험도 분석 + 맞춤 산책 추천</td>
+          </tr>
+          <tr>
+            <td class="service-name">비포펫</td>
+            <td>산책 다이어리, 기록 관리, 추억 저장</td>
+            <td>③ 산책 기록·통계, ⑧ 산책 기록 페이지</td>
+            <td>감성 기록·다이어리 중심</td>
+            <td class="advantage">날씨·건강 기반 데이터 분석 + 추천 시스템</td>
+          </tr>
+          <tr>
+            <td class="service-name">와요</td>
+            <td>산책 대행, 펫시터 매칭</td>
+            <td>산책 관련 서비스라는 점만 일부 유사</td>
+            <td>오프라인 대행 매칭 서비스 중심</td>
+            <td class="advantage">직접 산책하는 견주 대상 AI 플랫폼</td>
+          </tr>
+          <tr>
+            <td class="service-name">페오펫</td>
+            <td>견주 커뮤니티, 정보 공유</td>
+            <td>⑦ 커뮤니티 기능</td>
+            <td>커뮤니티 중심 서비스</td>
+            <td class="advantage">커뮤니티 + AI·산책 데이터·위치 기반 추천</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 서비스별 상세 -->
+  <section>
+    <h2><span class="icon">🔬</span> 서비스별 상세 비교</h2>
+    <div class="services">
+
+      <!-- 펫피 -->
+      <div class="service-card">
+        <div class="service-header">
+          <div class="service-number">1</div>
+          <h3>펫피 (PetP)</h3>
+          <span class="service-tagline">습관 형성 · 포인트 적립</span>
+        </div>
+        <div class="comparison-grid">
+          <div class="compare-block common">
+            <h4>✓ 공통점</h4>
+            <ul>
+              <li>산책 인증</li>
+              <li>산책 기록 저장</li>
+              <li>미션 / 보상 기반 기능</li>
+              <li>사용자 참여 유도</li>
+            </ul>
+          </div>
+          <div class="compare-block diff">
+            <h4>↔ 차이점</h4>
+            <p>펫피는 <strong>"산책을 꾸준히 하게 만드는 습관 앱"</strong>에 가까움.</p>
+            <p style="margin-top: 8px;">반면 우리 서비스는:</p>
+            <ul>
+              <li>산책 가능 여부 <strong>자체를 판단</strong></li>
+              <li>AI가 날씨·견종·건강 데이터 종합 분석</li>
+              <li>"오늘 몇 시에 산책하는 게 가장 안전한가?"까지 추천</li>
+            </ul>
+          </div>
+        </div>
+        <div class="advantage-box">
+          <h4>🏆 우리 서비스 핵심 우위</h4>
+          <p><strong>"재미" 중심</strong> → 펫피</p>
+          <p><strong>"안전 + 맞춤형 의사결정" 중심</strong> → 우리 서비스</p>
+          <div class="quote">즉, 우리는 <strong>반려견 건강관리 플랫폼</strong>에 더 가깝다.</div>
+        </div>
+      </div>
+
+      <!-- 비포펫 -->
+      <div class="service-card">
+        <div class="service-header">
+          <div class="service-number">2</div>
+          <h3>비포펫 (BeforPet)</h3>
+          <span class="service-tagline">다이어리 · 추억 저장</span>
+        </div>
+        <div class="comparison-grid">
+          <div class="compare-block common">
+            <h4>✓ 공통점</h4>
+            <ul>
+              <li>산책 기록</li>
+              <li>캘린더 / 통계</li>
+              <li>반려견 일상 저장</li>
+            </ul>
+          </div>
+          <div class="compare-block diff">
+            <h4>↔ 차이점</h4>
+            <p>비포펫은 <strong>기록형 SNS / 다이어리</strong> 성격이 강함.</p>
+            <p style="margin-top: 8px;">우리 서비스는 데이터 기반 기능이 핵심:</p>
+            <ul>
+              <li>날씨 위험도 분석</li>
+              <li>지면온도 기반 경고</li>
+              <li>견종별 취약도 반영</li>
+              <li>산책 시간 추천</li>
+              <li>AI 피드백 학습</li>
+            </ul>
+          </div>
+        </div>
+        <div class="advantage-box">
+          <h4>🏆 우리 서비스 핵심 우위</h4>
+          <p><strong>"기록"</strong>은 비포펫도 가능.<br>하지만 <strong>"예측·추천·분석"</strong>은 우리 서비스의 핵심 차별화.</p>
+          <p style="margin-top: 8px;">특히 실제 문제 해결성이 강함:</p>
+          <p>
+            <span class="tag">🌡 폭염</span>
+            <span class="tag">❄️ 한파</span>
+            <span class="tag">😷 미세먼지</span>
+            <span class="tag">🐶 단두종 위험</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- 와요 -->
+      <div class="service-card">
+        <div class="service-header">
+          <div class="service-number">3</div>
+          <h3>와요 (WAYO)</h3>
+          <span class="service-tagline">펫시터 매칭 · 대행 서비스</span>
+        </div>
+        <div class="comparison-grid">
+          <div class="compare-block common">
+            <h4>✓ 공통점</h4>
+            <ul>
+              <li>반려견 산책 관련 서비스</li>
+            </ul>
+          </div>
+          <div class="compare-block diff">
+            <h4>↔ 차이점</h4>
+            <p>와요는 <strong>"대신 해주는 서비스"</strong>:</p>
+            <ul>
+              <li>펫시터 연결</li>
+              <li>산책 대행</li>
+              <li>방문 돌봄</li>
+            </ul>
+            <p style="margin-top: 8px;">우리 서비스는 견주가 직접 산책:</p>
+            <ul>
+              <li>산책 안전성 분석</li>
+              <li>산책 습관 형성</li>
+              <li>커뮤니티·기록·게이미피케이션 결합</li>
+            </ul>
+          </div>
+        </div>
+        <div class="advantage-box">
+          <h4>🏆 우리 서비스 핵심 우위</h4>
+          <p>와요는 오프라인 인력 플랫폼이라 운영 비용이 큼.</p>
+          <p style="margin-top: 8px;">우리는 AI/데이터 기반이라:</p>
+          <ul style="padding-left: 18px; margin-top: 6px;">
+            <li><strong>확장성</strong>이 높음</li>
+            <li><strong>지역 제한</strong>이 적음</li>
+            <li><strong>운영 자동화</strong> 가능성이 큼</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 페오펫 -->
+      <div class="service-card">
+        <div class="service-header">
+          <div class="service-number">4</div>
+          <h3>페오펫</h3>
+          <span class="service-tagline">견주 커뮤니티 · 정보 공유</span>
+        </div>
+        <div class="comparison-grid">
+          <div class="compare-block common">
+            <h4>✓ 공통점</h4>
+            <ul>
+              <li>견주 커뮤니티</li>
+              <li>정보 공유</li>
+              <li>후기 콘텐츠</li>
+            </ul>
+          </div>
+          <div class="compare-block diff">
+            <h4>↔ 차이점</h4>
+            <p>페오펫은 <strong>커뮤니티 자체가 중심</strong>.</p>
+            <p style="margin-top: 8px;">우리 서비스는 커뮤니티 + AI 기능 결합:</p>
+            <ul>
+              <li>산책 데이터 기반 소통</li>
+              <li>지역 산책로 추천</li>
+              <li>러닝 기록 공유</li>
+              <li>견주 유형 분석</li>
+            </ul>
+            <p style="margin-top: 8px;">즉, 커뮤니티가 "부가 기능"이 아니라 <strong>실제 산책 데이터를 기반으로 연결</strong>됨.</p>
+          </div>
+        </div>
+        <div class="advantage-box">
+          <h4>🏆 우리 서비스 핵심 우위</h4>
+          <p>단순 게시판이 아니라 <strong>실시간 생활형 데이터 커뮤니티</strong>로 발전 가능:</p>
+          <div class="quote">"오늘 어디 산책 괜찮았나요?"</div>
+          <div class="quote" style="margin-top: 8px;">"이 날씨에 단두종 산책 가능?"</div>
+          <div class="quote" style="margin-top: 8px;">"지금 한강 러닝 코스 상태 어때요?"</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 핵심 차별화 -->
+  <section>
+    <h2><span class="icon">⭐</span> 경쟁 서비스 대비 우리 서비스 핵심 차별화</h2>
+    <div class="diff-grid">
+
+      <div class="diff-card">
+        <div class="diff-num">1</div>
+        <h3>AI 기반 "산책 위험도 진단"</h3>
+        <p>가장 강력한 차별점.</p>
+        <p style="margin-top: 8px;"><strong>기존 앱</strong>: 기록·인증·커뮤니티 중심</p>
+        <p style="margin-top: 8px;"><strong>우리</strong>: 기상 데이터 + 견종 데이터 + 건강 상태 + 활동량을 결합해 산책 가능 여부를 판단</p>
+        <span class="highlight">📌 "산책 이후 기록"이 아니라<br>"산책 전 의사결정"을 돕는 서비스</span>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-num">2</div>
+        <h3>초보 견주 문제 해결</h3>
+        <p>기존 서비스는 대부분 이미 반려 경험이 있는 사용자를 전제로 함.</p>
+        <p style="margin-top: 8px;">우리는 진입장벽을 낮춤:</p>
+        <ul>
+          <li>견종별 위험성 설명</li>
+          <li>날씨별 행동 가이드</li>
+          <li>준비물 추천</li>
+          <li>AI Q&amp;A</li>
+        </ul>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-num">3</div>
+        <h3>올인원 구조</h3>
+        <p>현재 경쟁 앱들은 기능이 분산되어 있음.</p>
+        <p style="margin-top: 8px;"><strong>분산된 시장</strong>:</p>
+        <ul>
+          <li>산책 기록 앱</li>
+          <li>커뮤니티 앱</li>
+          <li>펫시터 앱</li>
+          <li>날씨 앱</li>
+        </ul>
+        <span class="highlight">📌 우리는 "산책"이라는 핵심 행동 중심으로 <strong>모든 기능을 통합</strong></span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 결론 -->
+  <section>
+    <div class="conclusion">
+      <h2><span class="icon">🎯</span> 결론</h2>
+      <p>경쟁 서비스들은 <strong style="color: white;">"산책 이후"</strong>에 집중합니다.</p>
+      <span class="key-phrase">우리는 "산책 전 의사결정"부터<br>"산책 중 가치"까지 책임지는 올인원 플랫폼.</span>
+      <p>AI 기반 위험도 진단 + 위치 기반 추천 + 커뮤니티 + 게이미피케이션</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    📅 작성일: 2026-05-19 · 🐾 반려견 산책 라이프 플랫폼 · 4명 팀 프로젝트
+  </div>
+
+</div>
+</body>
+</html>
