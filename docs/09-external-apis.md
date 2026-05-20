@@ -571,21 +571,99 @@ curl -G "https://dapi.kakao.com/v2/local/search/keyword.json" \
 외부 데이터가 **우리 백엔드 응답·DB에 어떻게 들어가는지** 정리한 표입니다.
 명세서(`06-api-spec.md`)의 `/api/walk/score` 응답 설계 시 이 표를 참고하세요.
 
-### 날씨 → `weather_snapshots` 테이블 / 위험도 계산
+### 날씨 3단 매핑: 외부 API → DB → 룰베이스 입력
 
-| 외부 필드 | 출처 | 우리 컬럼/필드 | 비고 |
+`외부 API` → `weather_snapshots`(DB 저장) → `WeatherInfo`(룰베이스 입력, `ai/rules/walk_risk.py`) 흐름.
+
+| 룰베이스 입력 (WeatherInfo) | ← DB (weather_snapshots) | ← 외부 API 필드 | 가공 방법 |
 | --- | --- | --- | --- |
-| `TMP` | 기상청 단기예보 | `temperature` | 1시간 기온 ℃ |
-| `REH` | 기상청 단기예보 | `humidity` | 습도 % |
-| `WSD` | 기상청 단기예보 | `wind_speed` | 풍속 m/s |
-| `PCP` | 기상청 단기예보 | `precipitation` | 강수량 mm |
-| `PTY` | 기상청 단기예보 | `weather_condition` | 강수형태 코드 → 문자열 변환 |
-| `SKY` | 기상청 단기예보 | `weather_condition` | 하늘상태 코드 → 문자열 변환 |
-| `POP` | 기상청 단기예보 | (준비물 추천) | 강수확률 → 우산 안내 |
-| 체감온도 | 생활기상지수 | `feels_like` | 체감온도 보강 |
-| (계산) | 기온+일사 추정 | `ground_temperature` | 지면온도 = 발바닥 화상 판단 |
-| `pm10Value` | 에어코리아 | `pm10` | 미세먼지 |
-| `pm25Value` | 에어코리아 | `pm25` | 초미세먼지 |
+| `temperature` | `temperature` | `TMP` (기상청) | 그대로 (℃) |
+| `humidity` | `humidity` | `REH` (기상청) | 그대로 (%) |
+| `wind_speed` | `wind_speed` | `WSD` (기상청) | 그대로 (m/s) |
+| `feels_like` | `feels_like` | 생활기상지수 or 계산 | ↓ 체감온도 처리 참고 |
+| `ground_temperature` | `ground_temperature` | (계산) | ↓ 지면온도 추정식 참고 |
+| `pm10` | `pm10` | `pm10Value` (에어코리아) | 그대로 |
+| `pm25` | `pm25` | `pm25Value` (에어코리아) | 그대로 |
+| `precipitation_type` | `weather_condition` | `PTY` (기상청) | ↓ 코드 변환표 참고 |
+| (준비물 추천용) | — | `POP` (강수확률) | 50%↑ → 우산 안내 |
+| (참고 저장) | `precipitation` | `PCP` (강수량 mm) | 그대로 |
+
+> 💡 **백엔드 작업 순서**: 기상청·에어코리아 호출 → 가공(아래 추정식·변환표) → `weather_snapshots` 저장 → `WeatherInfo`로 변환 → `calculate_walk_risk()` 호출.
+
+---
+
+#### 🌡️ 지면온도(ground_temperature) 추정식
+
+기상청은 지면온도를 안 줘서 **기온 기반으로 추정**합니다. (발바닥 화상 판단 핵심 입력)
+
+```
+# 맑음(SKY=1) 기준 아스팔트 추정
+ground_temp = temperature + max(0, (temperature - 20)) * 2.5
+
+# 하늘상태·강수 보정
+if SKY == 3 (구름많음): ground_temp -= 5
+if SKY == 4 (흐림):     ground_temp -= 10
+if PTY != 0 (강수 중/직후): ground_temp -= 5
+```
+
+검증 (docs/08 추정 표와 대조):
+| 기온 | 추정 지면온도(맑음) | docs/08 표 |
+| --- | --- | --- |
+| 25℃ | 37.5℃ | 35~40 ✅ |
+| 30℃ | 55℃ | 50~55 ✅ |
+| 32℃ | 62℃ | 약 60 ✅ |
+| 35℃ | 72.5℃ | 65+ ✅ |
+
+> ⚠️ 어디까지나 근사식. 실측·일사량 데이터 확보 시 보정 예정.
+
+---
+
+#### 🤒 체감온도(feels_like) 처리
+
+**1순위: 생활기상지수 API 체감온도 사용** (신청·승인 시).
+미신청/실패 시 **fallback 계산**:
+
+```
+# 여름 (기온 ≥ 27℃): 간이 열지수 (습도 반영)
+if temperature >= 27:
+    feels_like = temperature + 0.05 * humidity - 1.5   # 근사
+
+# 겨울 (기온 ≤ 10℃ & 풍속 있음): 풍속냉각 (Wind Chill 근사)
+elif temperature <= 10 and wind_speed > 1.3:
+    v_kmh = wind_speed * 3.6
+    feels_like = 13.12 + 0.6215*temperature - 11.37*(v_kmh**0.16) \
+               + 0.3965*temperature*(v_kmh**0.16)
+
+# 그 외: 기온 그대로
+else:
+    feels_like = temperature
+```
+
+> 💡 정확도가 중요하면 생활기상지수 API를 신청해서 1순위로 쓰세요. fallback은 "그럭저럭" 수준.
+
+---
+
+#### 🔤 코드 → 문자열 변환 (PTY / SKY)
+
+`precipitation_type`(룰베이스 입력)과 `weather_condition`(표시용)으로 변환.
+
+**PTY (강수형태) → precipitation_type**
+| PTY 값 | precipitation_type | weather_condition |
+| --- | --- | --- |
+| 0 | `없음` | (SKY값 따름) |
+| 1 | `비` | 비 |
+| 2 | `비눈` | 비/눈 |
+| 3 | `눈` | 눈 |
+| 4 | `비` | 소나기 |
+
+**SKY (하늘상태) → weather_condition** (PTY=0일 때)
+| SKY 값 | weather_condition |
+| --- | --- |
+| 1 | 맑음 |
+| 3 | 구름많음 |
+| 4 | 흐림 |
+
+> 💡 룰베이스의 `precipitation_type`은 `없음/비/비눈/눈` 4종만 받음. `weather_condition`은 화면 표시용 문자열.
 
 ### 위치 → `walk_routes` 테이블 / 산책로 검색
 
