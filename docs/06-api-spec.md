@@ -3,10 +3,27 @@
 본 서비스의 REST API 명세입니다.
 
 - **Base URL**: `http://localhost:8081` (개발), `https://api.dogwalk.com` (운영, 예정)
-- **인증**: JWT (Authorization 헤더)
+- **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.0 (2026-05-20, 60개 엔드포인트, schema v1.3 매핑)
+- **버전**: v3.1 (2026-05-20, 59개 엔드포인트, schema v1.4 매핑)
+
+---
+
+## 🔐 인증 정책 (v3.1 확정)
+
+| 항목 | 결정 |
+| --- | --- |
+| AT (Access Token) 저장 | 프론트 메모리 → `Authorization: Bearer` 헤더로 전송 |
+| RT (Refresh Token) 저장 | HttpOnly + Secure + SameSite=Lax 쿠키 (Path=`/api/auth`, Max-Age=14d) |
+| AT 만료 시 | 첫 로드 시 `POST /api/auth/refresh` 호출하여 복구 (쿠키 자동 전송) |
+| 재발급 | `POST /api/auth/refresh` (Request Body 없음, 쿠키 RT를 서버가 읽음) |
+| 로그아웃 | DB의 RT 삭제 + 쿠키 만료(Max-Age=0) |
+| 서버 저장 | `refresh_tokens` 테이블 (단일 세션, schema v1.4) |
+| 로테이션 | 미적용 (MVP) |
+| dev 환경 | Vite `/api` → `:8081` 프록시 + axios `withCredentials: true` |
+
+> 모바일(네이티브 앱)은 쿠키 대신 헤더/바디 토큰 방식 병행 예정 (백엔드 모바일-레디 — 추후 반영)
 
 ---
 
@@ -65,38 +82,40 @@
 
 ---
 
-## 📋 API 목록 (총 60개)
+## 📋 API 목록 (총 59개)
 
-| 카테고리 | 개수 | 관련 테이블 |
-| --- | --- | --- |
-| 인증 | 5 | users |
-| 회원 | 3 | users |
-| 반려견 | 5 | dogs |
-| 견종 | 2 | dog_breeds |
-| 산책 점수 | 2 | walk_scores, weather_snapshots |
-| 산책 기록 | 7 | walks, walk_locations |
-| 산책로 | 5 | walk_routes, walk_route_reviews |
-| 게시판 | 10 | posts, comments, categories |
-| 좋아요 | 2 | post_likes |
-| 동반 산책 | 4 | walking_companions |
-| 배지/업적 | 4 | badges, achievements |
-| 미션 | 3 | daily_missions, walk_missions |
-| 알림 | 3 | notifications |
-| AI Q&A | 2 | qna_history |
-| 견주 유형 | 1 | user_walk_stats |
-| 랭킹 | 2 | user_walk_stats |
+| 카테고리 | 개수 | Phase | 관련 테이블 |
+| --- | --- | --- | --- |
+| 인증 | 4 | MVP | users, refresh_tokens |
+| 회원 | 3 | MVP | users |
+| 반려견 | 5 | MVP | dogs |
+| 견종 | 2 | MVP | dog_breeds |
+| 산책 점수 | 2 | MVP(1) + Phase 3(1) | walk_scores, weather_snapshots |
+| 산책 기록 | 7 | MVP(6) + Phase 3(1) | walks, walk_locations |
+| 산책로 | 5 | Phase 2 | walk_routes, walk_route_reviews |
+| 게시판 | 10 | MVP | posts, comments, categories |
+| 좋아요 | 2 | MVP | post_likes |
+| 동반 산책 | 4 | Phase 2 | walking_companions |
+| 배지/업적 | 4 | Phase 2 | badges, achievements |
+| 미션 | 3 | Phase 2 | daily_missions, walk_missions |
+| 알림 | 3 | MVP | notifications |
+| AI Q&A | 2 | Phase 2 | qna_history |
+| 견주 유형 | 1 | Phase 2 | user_walk_stats |
+| 랭킹 | 2 | Phase 2 | user_walk_stats |
+| **합계** | **59** | MVP 36 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
-### 🔐 Auth (인증) - 5개
+### 🔐 Auth (인증) - 4개
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
 | POST | `/api/auth/signup` | 회원가입 | ❌ |
-| POST | `/api/auth/login` | 로그인 | ❌ |
-| POST | `/api/auth/logout` | 로그아웃 | ✅ |
-| POST | `/api/auth/refresh` | 액세스 토큰 갱신 | ❌ |
-| GET | `/api/auth/me` | 내 정보 조회 | ✅ |
+| POST | `/api/auth/login` | 로그인 (RT는 Set-Cookie) | ❌ |
+| POST | `/api/auth/logout` | 로그아웃 (쿠키 만료 + DB RT 삭제) | ✅ |
+| POST | `/api/auth/refresh` | 액세스 토큰 갱신 (쿠키 RT 사용) | ❌ (쿠키 필요) |
+
+> 내 정보 조회는 `GET /api/users/me` 사용 (v3.1에서 `/api/auth/me` 삭제, 회원 영역과 통합)
 
 ### 👤 User (회원) - 3개
 
@@ -128,7 +147,7 @@
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
 | GET | `/api/walk/score` | 오늘의 산책 위험도 점수 | ✅ |
-| GET | `/api/walk/score/optimal-time` | 최적 산책 시간 추천 | ✅ |
+| GET | `/api/walk/score/optimal-time` | 최적 산책 시간 추천 (Phase 3) | ✅ |
 
 ### 🚶 Walk (산책 기록) - 7개
 
@@ -136,13 +155,13 @@
 | --- | --- | --- | --- |
 | POST | `/api/walks/start` | 산책 시작 | ✅ |
 | POST | `/api/walks/{walkId}/end` | 산책 종료 + 피드백 | ✅ |
-| POST | `/api/walks/{walkId}/locations` | 산책 중 GPS 좌표 기록 (러닝 모드) | ✅ |
+| POST | `/api/walks/{walkId}/locations` | 산책 중 GPS 좌표 기록 (러닝 모드, Phase 3) | ✅ |
 | GET | `/api/walks` | 산책 기록 목록 | ✅ |
 | GET | `/api/walks/{walkId}` | 산책 기록 상세 (GPS 경로 포함) | ✅ |
 | GET | `/api/walks/statistics` | 주간/월간 통계 | ✅ |
 | GET | `/api/walks/calendar` | 산책 캘린더 (월별) | ✅ |
 
-### 🌳 Routes (산책로) - 5개
+### 🌳 Routes (산책로) - 5개 (Phase 2)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -174,7 +193,7 @@
 | POST | `/api/posts/{postId}/likes` | 게시글 좋아요 | ✅ |
 | DELETE | `/api/posts/{postId}/likes` | 좋아요 취소 | ✅ |
 
-### 👥 Companions (동반 산책) - 4개
+### 👥 Companions (동반 산책) - 4개 (Phase 2)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -183,7 +202,7 @@
 | PATCH | `/api/companions/{companionId}/accept` | 신청 수락 | ✅ |
 | PATCH | `/api/companions/{companionId}/reject` | 신청 거절 | ✅ |
 
-### 🏆 Badges & Achievements (배지/업적) - 4개
+### 🏆 Badges & Achievements (배지/업적) - 4개 (Phase 2)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -192,7 +211,7 @@
 | GET | `/api/achievements` | 전체 업적 목록 + 내 진행도 | ✅ |
 | GET | `/api/achievements/me` | 내 업적 진행도만 | ✅ |
 
-### 🎯 Missions (미션) - 3개
+### 🎯 Missions (미션) - 3개 (Phase 2)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -215,13 +234,13 @@
 | POST | `/api/qna` | OpenAI에 질문 | ✅ |
 | GET | `/api/qna/history` | 내 Q&A 이력 | ✅ |
 
-### 📊 User Stats (견주 유형) - 1개
+### 📊 User Stats (견주 유형) - 1개 (Phase 2)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
 | GET | `/api/users/me/stats` | 내 견주 유형 + 산책 통계 | ✅ |
 
-### 🥇 Ranking (랭킹) - 2개
+### 🥇 Ranking (랭킹) - 2개 (Phase 2)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -287,12 +306,18 @@ POST /api/auth/login
 ```
 
 **Response 200**
+
+응답 헤더 — Refresh Token은 HttpOnly 쿠키로 전달:
+```
+Set-Cookie: refreshToken=eyJhbGc...; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=1209600
+```
+
+응답 바디 (refreshToken 필드 없음 — 쿠키로 전달):
 ```json
 {
   "success": true,
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "tokenType": "Bearer",
     "expiresIn": 3600,
     "user": {
@@ -303,8 +328,72 @@ POST /api/auth/login
 }
 ```
 
+**서버 동작**
+1. 이메일 + BCrypt 비밀번호 검증
+2. Access Token 생성 (1시간 만료)
+3. Refresh Token 생성 (14일) + `refresh_tokens` 테이블에 `token_hash` 저장
+4. Set-Cookie 헤더로 Refresh Token 전달 (HttpOnly → JS 접근 불가, XSS 방어)
+5. 응답 바디로 Access Token + 사용자 정보 반환
+
 **Error**
 - 401: 이메일 또는 비밀번호 불일치 (`INVALID_CREDENTIALS`)
+
+---
+
+### 🔐 토큰 재발급
+
+```
+POST /api/auth/refresh
+Cookie: refreshToken=...   (브라우저 자동 전송, Request Body 없음)
+```
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 3600
+  }
+}
+```
+
+**서버 동작**
+1. 쿠키에서 Refresh Token 읽기
+2. JWT 서명 검증 + 만료 확인
+3. DB `refresh_tokens`에서 `token_hash` 일치 확인
+4. 새 Access Token 발급 (로테이션 미적용 — RT는 갱신 안 함)
+
+**Error**
+- 401: 쿠키에 RT 없음 또는 만료 (`EXPIRED_TOKEN`)
+- 401: DB에 일치하는 토큰 없음 (`INVALID_TOKEN`)
+
+---
+
+### 🔐 로그아웃
+
+```
+POST /api/auth/logout
+Authorization: Bearer {accessToken}
+Cookie: refreshToken=...
+```
+
+**Response 200** — 쿠키 만료 처리:
+```
+Set-Cookie: refreshToken=; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=0
+```
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "로그아웃되었습니다"
+}
+```
+
+**서버 동작**
+1. 쿠키의 Refresh Token으로 `refresh_tokens`에서 해당 row 삭제
+2. Set-Cookie로 쿠키 만료 (Max-Age=0)
 
 ---
 
@@ -324,7 +413,7 @@ Authorization: Bearer {token}
   "weight": 3.2,
   "gender": "F",
   "isNeutered": true,
-  "activityLevel": "MEDIUM",
+  "activityLevel": "중",
   "healthNotes": "슬개골 탈구 1기",
   "profileImageUrl": "https://..."
 }
@@ -335,7 +424,7 @@ Authorization: Bearer {token}
 - breedId: 견종 마스터 ID (Mix는 NULL 허용)
 - weight: 0.1 ~ 100
 - gender: M / F
-- activityLevel: LOW / MEDIUM / HIGH
+- activityLevel: 저 / 중 / 고 (스키마 한글 ENUM과 일치)
 
 **Response 201**
 ```json
@@ -744,7 +833,9 @@ Authorization: Bearer {token}
 | `INVALID_SUB_TAG` | 400 | 카테고리에 없는 서브태그 |
 | `INVALID_CREDENTIALS` | 401 | 로그인 실패 |
 | `UNAUTHORIZED` | 401 | 인증 필요 |
-| `EXPIRED_TOKEN` | 401 | 토큰 만료 |
+| `EXPIRED_TOKEN` | 401 | Access Token 만료 |
+| `INVALID_TOKEN` | 401 | 유효하지 않은 토큰 |
+| `EXPIRED_REFRESH_TOKEN` | 401 | Refresh Token 만료 (재로그인 필요) |
 | `FORBIDDEN` | 403 | 권한 없음 |
 | `NOT_YOUR_DOG` | 403 | 본인 반려견 아님 |
 | `NOT_YOUR_POST` | 403 | 본인 글 아님 |
@@ -819,3 +910,4 @@ Authorization: Bearer {token}
 | v1.0 | 2026-05-19 | 초안 (22개 엔드포인트, MVP 중심) | 팀 공통 |
 | v2.0 | 2026-05-19 | 60개로 확장, 전체 기능 매핑 (노션 산출물) | 연수 |
 | v3.0 | 2026-05-20 | docs/06 공식 통합 (60개 + 표준 응답 포맷 + 서브태그 시스템) | 연수 |
+| v3.1 | 2026-05-20 | RT를 HttpOnly 쿠키로 / Phase 컬럼 / `/api/auth/me` 삭제(→`/users/me`, 59개) / activityLevel 한글 ENUM / refresh_tokens·role (schema v1.4) | 연수 |
