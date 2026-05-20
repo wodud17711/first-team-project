@@ -2,7 +2,7 @@
 -- 반려견 산책 라이프 플랫폼 ERD v1.2
 -- 작성일: 2026-05-19
 -- MySQL 8.0 기준
--- 저장 위치: be/src/main/resources/schema.sql
+-- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
 -- 테이블: 24개 (v1.1 15개 + 신규 9개)
 --
 -- 변경 사항 (v1.1 → v1.2)
