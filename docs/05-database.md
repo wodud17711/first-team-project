@@ -5,8 +5,8 @@
 - **DBMS**: MySQL 8.0
 - **문자셋**: utf8mb4 (이모지 지원)
 - **타임존**: Asia/Seoul
-- **테이블 수**: 24개
-- **버전**: v1.2 (2026-05-19)
+- **테이블 수**: 25개
+- **버전**: v1.4 (2026-05-20)
 
 ---
 
@@ -20,13 +20,14 @@
 
 ---
 
-## 🗂️ 테이블 한눈에 보기 (24개)
+## 🗂️ 테이블 한눈에 보기 (25개)
 
-### 👤 사용자 / 반려견 (4)
+### 👤 사용자 / 인증 / 반려견 (5)
 
 | 테이블 | 설명 |
 | --- | --- |
-| `users` | 사용자 계정 (이메일/BCrypt 비밀번호) |
+| `users` | 사용자 계정 (이메일/BCrypt 비밀번호 / `role`: USER·ADMIN) |
+| `refresh_tokens` | Refresh Token 관리 (해시 저장, HttpOnly 쿠키 인증 / 단일 세션) ⭐ v1.4 |
 | `dog_breeds` | 견종 마스터 (Kaggle 시드 데이터) |
 | `dogs` | 반려견 프로필 |
 | `user_walk_stats` | 사용자 산책 통계 (배치 집계 - 견주 유형 분석) |
@@ -93,6 +94,7 @@
 | `post_likes` | (user_id, post_id) PK | 무한 좋아요 |
 | `walking_companions` | (post_id, user_id) | 중복 참여 신청 |
 | `walk_missions` | (walk_id, mission_id) | 미션 중복 수행 |
+| `refresh_tokens` | (user_id, token_hash) | RT 중복 저장 |
 
 ### 4. FK ON DELETE 정책
 - `CASCADE`: 자식 함께 삭제 (예: 사용자 삭제 → dogs, walks 등)
