@@ -1,5 +1,7 @@
 package com.example.demo.auth;
 
+import com.example.demo.auth.dto.AuthResponse;
+import com.example.demo.auth.response.ApiResponse;
 import com.example.demo.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

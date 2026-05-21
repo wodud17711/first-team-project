@@ -1,4 +1,4 @@
-package com.example.demo.auth;
+package com.example.demo.auth.response;
 
 public record ApiResponse<T>(
         boolean success,
