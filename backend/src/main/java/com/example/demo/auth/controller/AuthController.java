@@ -3,7 +3,7 @@ package com.example.demo.auth.controller;
 import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.dto.SignupRequest;
-import com.example.demo.response.ApiResponse;
+import com.example.demo.global.response.ApiResponse;
 import com.example.demo.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

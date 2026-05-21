@@ -1,4 +1,4 @@
-package com.example.demo.response;
+package com.example.demo.global.response;
 
 public record ApiResponse<T>(
         boolean success,
