@@ -1,6 +1,7 @@
 package com.example.demo.auth;
 
 import com.example.demo.auth.dto.AuthResponse;
+import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.response.ApiResponse;
 import com.example.demo.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +22,7 @@ public class login {
             HttpServletResponse response
     ) {
 
-        LoginResult result =
+        AuthResponse result =
                 authService.login(
                         request.email(),
                         request.password()
@@ -31,7 +32,7 @@ public class login {
 
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        new AuthResponse(result.accessToken()),
+                        result.accessToken(),
                         "Login successful"
                 )
         );
@@ -51,6 +52,9 @@ public class login {
                 .maxAge(60 * 60 * 24 * 14)
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        response.addHeader(
+                "Set-Cookie",
+                cookie.toString()
+        );
     }
 }

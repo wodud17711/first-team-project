@@ -22,7 +22,7 @@ public class signup {
             HttpServletResponse response
     ) {
 
-        LoginResult result =
+        AuthResponse result =
                 authService.signup(
                         request.email(),
                         request.password()
@@ -32,7 +32,7 @@ public class signup {
 
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        new AuthResponse(result.accessToken()),
+                        result.accessToken(),
                         "Signup successful"
                 )
         );
@@ -52,6 +52,9 @@ public class signup {
                 .maxAge(60 * 60 * 24 * 14)
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        response.addHeader(
+                "Set-Cookie",
+                cookie.toString()
+        );
     }
 }

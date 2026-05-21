@@ -1,6 +1,5 @@
 package com.example.demo.auth;
 
-import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.response.ApiResponse;
 import com.example.demo.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -15,16 +14,19 @@ public class refresh {
 
     @PostMapping("/api/auth/refresh")
     public ResponseEntity<?> refresh(
-            @CookieValue(name = "refreshToken", required = false)
+            @CookieValue(
+                    name = "refreshToken",
+                    required = false
+            )
             String refreshToken
     ) {
 
-        String accessToken =
+        String newAccessToken =
                 authService.refresh(refreshToken);
 
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        new AuthResponse(accessToken),
+                        newAccessToken,
                         "Token refreshed"
                 )
         );
