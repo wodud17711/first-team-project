@@ -2,11 +2,13 @@ package com.example.demo.auth.service;
 
 import com.example.demo.auth.dto.*;
 import com.example.demo.auth.security.JwtProvider;
+import com.example.demo.global.exception.BusinessException;
+import com.example.demo.global.exception.ErrorCode;
 import com.example.demo.user.entity.RefreshToken;
+import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.RefreshTokenRepository;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import com.example.demo.user.entity.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,58 +21,63 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
 
+    // =========================
     // 회원가입
+    // =========================
     public AuthResponse signup(String email, String password) {
 
-        // 1. 이메일 중복 체크
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("EMAIL_ALREADY_EXISTS");
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        // 2. 유저 생성 ( User Entity 기반 인증 처리)
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
 
         userRepository.save(user);
 
-        // 3. 토큰 발급
         return issueTokens(user);
     }
 
+    // =========================
     // 로그인
+    // =========================
     public AuthResponse login(String email, String password) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("INVALID_PASSWORD");
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
         return issueTokens(user);
     }
 
+    // =========================
     // refresh
+    // =========================
     public String refresh(String refreshToken) {
 
         if (refreshToken == null) {
-            throw new RuntimeException("INVALID_REFRESH_TOKEN");
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         RefreshToken token =
                 refreshTokenRepository.findByTokenHash(hash(refreshToken))
                         .orElseThrow(() ->
-                                new RuntimeException("INVALID_REFRESH_TOKEN"));
+                                new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         if (token.isExpired()) {
-            throw new RuntimeException("REFRESH_TOKEN_EXPIRED");
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
         return jwtProvider.generateAccessToken(token.getUser().getId());
     }
 
+    // =========================
     // logout
+    // =========================
     public void logout(String refreshToken) {
 
         if (refreshToken == null) return;
@@ -79,9 +86,8 @@ public class AuthService {
     }
 
     // =========================
-    // 내부 공통 로직
+    // 내부 로직
     // =========================
-
     private AuthResponse issueTokens(User user) {
 
         String accessToken =
@@ -90,7 +96,6 @@ public class AuthService {
         String refreshToken =
                 generateRefreshToken();
 
-        // 기존 RT 제거 (단일 세션)
         refreshTokenRepository.deleteByUser_Id(user.getId());
 
         RefreshToken rt = new RefreshToken();
