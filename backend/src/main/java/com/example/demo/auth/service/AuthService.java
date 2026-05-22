@@ -2,8 +2,8 @@ package com.example.demo.auth.service;
 
 import com.example.demo.auth.dto.*;
 import com.example.demo.auth.security.JwtProvider;
-import com.example.demo.global.exception.BusinessException;
-import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.user.entity.RefreshToken;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.RefreshTokenRepository;
@@ -27,7 +27,7 @@ public class AuthService {
     public AuthResponse signup(String email, String password) {
 
         if (userRepository.existsByEmail(email)) {
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
 
         User user = new User();
@@ -48,7 +48,7 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         return issueTokens(user);
@@ -60,16 +60,16 @@ public class AuthService {
     public String refresh(String refreshToken) {
 
         if (refreshToken == null) {
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
         RefreshToken token =
                 refreshTokenRepository.findByTokenHash(hash(refreshToken))
                         .orElseThrow(() ->
-                                new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
+                                new BusinessException(ErrorCode.INVALID_TOKEN));
 
         if (token.isExpired()) {
-            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         }
 
         return jwtProvider.generateAccessToken(token.getUser().getId());
