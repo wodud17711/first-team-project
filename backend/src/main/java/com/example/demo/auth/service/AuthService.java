@@ -27,7 +27,7 @@ public class AuthService {
             throw new RuntimeException("EMAIL_ALREADY_EXISTS");
         }
 
-        // 2. 유저 생성 (다른 팀원이 Entity 만들었을 것)
+        // 2. 유저 생성 ( User Entity 기반 인증 처리)
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
