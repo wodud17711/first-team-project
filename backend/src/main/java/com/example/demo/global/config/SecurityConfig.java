@@ -31,29 +31,16 @@ public class SecurityConfig {
             throws Exception {
 
         http
-                // 🔥 CORS 연결 필수
                 .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
-
-                // CSRF disable (JWT 필수)
                 .csrf(csrf -> csrf.disable())
-
-                // 세션 안 씀
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                // 🔥 preflight 허용 (중요)
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-
-                // JWT 필터
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                .addFilterBefore(jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
