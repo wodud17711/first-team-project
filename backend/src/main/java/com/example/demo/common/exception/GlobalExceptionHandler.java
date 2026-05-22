@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         log.warn("BusinessException: {} - {}", code.name(), ex.getMessage());
         return ResponseEntity
                 .status(code.getStatus())
-                .body(ApiResponse.fail(ex.getMessage()));
+                .body(ApiResponse.fail(ex.getMessage(), code.name()));
     }
 
     /** {@code @Valid @RequestBody} 검증 실패. */
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
         log.warn("Validation failed: {}", message);
         return ResponseEntity
                 .badRequest()
-                .body(ApiResponse.fail(message));
+                .body(ApiResponse.fail(message, ErrorCode.INVALID_INPUT.name()));
     }
 
     /** 예상치 못한 모든 예외 → 500. 상세 사유는 서버 로그에만 남기고 응답에는 노출하지 않는다. */
@@ -49,6 +49,6 @@ public class GlobalExceptionHandler {
         log.error("Unexpected exception", ex);
         return ResponseEntity
                 .internalServerError()
-                .body(ApiResponse.fail("서버 오류가 발생했습니다"));
+                .body(ApiResponse.fail("서버 오류가 발생했습니다", "INTERNAL_ERROR"));
     }
 }
