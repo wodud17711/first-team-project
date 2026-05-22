@@ -19,6 +19,7 @@ public record ApiResponse<T>(
         );
     }
 
+    // 기존 fail 유지 (팀 스타일 선택 가능)
     public static <T> ApiResponse<T> fail(
             String message,
             String errorCode
@@ -28,6 +29,24 @@ public record ApiResponse<T>(
                 null,
                 message,
                 errorCode
+        );
+    }
+
+    // ⭐ 추가: GlobalExceptionHandler 호환용
+    public static <T> ApiResponse<T> error(
+            String message,
+            String errorCode
+    ) {
+        return fail(message, errorCode);
+    }
+
+    // ⭐ 추가: 단순 메시지 에러용 (지금 RuntimeException 대응)
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(
+                false,
+                null,
+                message,
+                null
         );
     }
 }
