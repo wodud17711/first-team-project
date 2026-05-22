@@ -31,4 +31,8 @@ jobs:
 
       - name: Build & Test (backend)
         working-directory: backend
+        env:
+          # 운영/실제 키가 아닌, CI 빌드(컨텍스트 로딩)용 주입.
+          # 값은 repo Settings > Secrets and variables > Actions 에 JWT_SECRET 으로 등록.
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: ./gradlew build --no-daemon
