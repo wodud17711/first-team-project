@@ -90,11 +90,23 @@ fix/{도메인}-{작업}
 - **Python**: PEP 8 + black (AI 작업 시)
 
 ### API 응답 형식 (필수 준수)
+
+**성공**
 ```json
 {
   "success": true,
   "data": { ... },
   "message": "..."
+}
+```
+
+**실패**
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "에러 메시지",
+  "errorCode": "ERROR_CODE"
 }
 ```
 
