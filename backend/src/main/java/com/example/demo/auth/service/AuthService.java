@@ -2,6 +2,9 @@ package com.example.demo.auth.service;
 
 import com.example.demo.auth.dto.*;
 import com.example.demo.auth.security.JwtProvider;
+import com.example.demo.user.entity.RefreshToken;
+import com.example.demo.user.repository.RefreshTokenRepository;
+import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.example.demo.user.entity.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -64,7 +67,7 @@ public class AuthService {
             throw new RuntimeException("REFRESH_TOKEN_EXPIRED");
         }
 
-        return jwtProvider.generateAccessToken(token.getUser());
+        return jwtProvider.generateAccessToken(token.getUser().getId());
     }
 
     // logout
@@ -82,13 +85,13 @@ public class AuthService {
     private AuthResponse issueTokens(User user) {
 
         String accessToken =
-                jwtProvider.generateAccessToken(user);
+                jwtProvider.generateAccessToken(user.getId());
 
         String refreshToken =
                 generateRefreshToken();
 
         // 기존 RT 제거 (단일 세션)
-        refreshTokenRepository.deleteByUserId(user.getId());
+        refreshTokenRepository.deleteByUser_Id(user.getId());
 
         RefreshToken rt = new RefreshToken();
         rt.setUser(user);

@@ -5,7 +5,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collections;
 import java.util.Date;
 
 @Component
@@ -75,5 +80,36 @@ public class JwtProvider {
 
             return false;
         }
+    }
+
+    public String resolveToken(HttpServletRequest request) {
+
+        String bearerToken = request.getHeader("Authorization");
+
+        if (bearerToken != null &&
+                bearerToken.startsWith("Bearer ")) {
+
+            return bearerToken.substring(7);
+        }
+
+        return null;
+    }
+
+    public Authentication getAuthentication(String token) {
+
+        Long userId = getUserId(token);
+
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .builder()
+                .username(String.valueOf(userId))
+                .password("")
+                .authorities(Collections.emptyList())
+                .build();
+
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                "",
+                userDetails.getAuthorities()
+        );
     }
 }
