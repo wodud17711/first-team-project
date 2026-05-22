@@ -3,12 +3,13 @@ package com.example.demo.auth.controller;
 import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.dto.SignupRequest;
-import com.example.demo.global.response.ApiResponse;
 import com.example.demo.auth.service.AuthService;
+import com.example.demo.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,8 +23,8 @@ public class AuthController {
     // 회원가입
     // =========================
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(
-            @RequestBody SignupRequest request,
+    public ResponseEntity<ApiResponse<String>> signup(
+            @Valid @RequestBody SignupRequest request,
             HttpServletResponse response
     ) {
 
@@ -47,8 +48,8 @@ public class AuthController {
     // 로그인
     // =========================
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody LoginRequest request,
+    public ResponseEntity<ApiResponse<String>> login(
+            @Valid @RequestBody LoginRequest request,
             HttpServletResponse response
     ) {
 
@@ -72,11 +73,8 @@ public class AuthController {
     // 토큰 재발급
     // =========================
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(
-            @CookieValue(
-                    name = "refreshToken",
-                    required = false
-            )
+    public ResponseEntity<ApiResponse<String>> refresh(
+            @CookieValue(name = "refreshToken", required = false)
             String refreshToken
     ) {
 
@@ -95,11 +93,8 @@ public class AuthController {
     // 로그아웃
     // =========================
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
-            @CookieValue(
-                    name = "refreshToken",
-                    required = false
-            )
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @CookieValue(name = "refreshToken", required = false)
             String refreshToken,
             HttpServletResponse response
     ) {
@@ -117,12 +112,9 @@ public class AuthController {
     }
 
     // =========================
-    // Refresh Token Cookie 설정
+    // Cookie 설정
     // =========================
-    private void setRefreshCookie(
-            HttpServletResponse response,
-            String refreshToken
-    ) {
+    private void setRefreshCookie(HttpServletResponse response, String refreshToken) {
 
         ResponseCookie cookie = ResponseCookie
                 .from("refreshToken", refreshToken)
@@ -133,18 +125,10 @@ public class AuthController {
                 .maxAge(60 * 60 * 24 * 14)
                 .build();
 
-        response.addHeader(
-                "Set-Cookie",
-                cookie.toString()
-        );
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
-    // =========================
-    // Refresh Token Cookie 삭제
-    // =========================
-    private void clearRefreshCookie(
-            HttpServletResponse response
-    ) {
+    private void clearRefreshCookie(HttpServletResponse response) {
 
         ResponseCookie cookie = ResponseCookie
                 .from("refreshToken", "")
@@ -155,9 +139,6 @@ public class AuthController {
                 .maxAge(0)
                 .build();
 
-        response.addHeader(
-                "Set-Cookie",
-                cookie.toString()
-        );
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }
