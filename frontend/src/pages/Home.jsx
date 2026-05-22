@@ -1,8 +1,5 @@
-// 아이콘 및 일러스트
-import locationIcon from '../assets/locationIcon.png'
-import weatherTest from '../assets/weatherTest.png'
-
 // 컴포넌트
+import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore'
 
 // 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
@@ -18,97 +15,61 @@ function Home() {
     <div className="space-y-6">
 
       {/* 최상단 */}
-      <section className="grid grid-cols-[2fr_1fr] gap-3">
+      <section className="grid grid-cols-[3fr_1fr] gap-4">
 
-        {/* 왼쪽 섹션 */}
-        {/* (코스 추천) + 코스 미리보기 + 산책 시작 + 오늘의 산책 지수 */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className='text-[24px] font-bold'>안녕하세요, 000님!</p>
-
-          <div className='flex'>
-
-            <div className='w-[200px] h-[323px] flex flex-col items-center bg-white rounded-lg shadow'>
-              <p className="text-[18px] font-bold mt-5">오늘의 산책지수</p>
-              <div className='mt-5'>
-                <WalkScore/>
+        {/* 왼쪽 섹션 - 날씨 + 산책 지수 */}
+        <div>
+          {/* 날씨 */}
+          <WeatherCard />
+          {/* 산책 지수 - 나중에 온클릭 해줄 것*/}
+          <div className='mt-4'>
+            <div className="flex mt-2">
+              <div className="
+                  flex items-center justify-between
+                  bg-white rounded-lg shadow p-5 w-full
+                  cursor-pointer
+                  hover:shadow-md
+                  hover:scale-[1.01]
+                  transition-all duration-200
+                ">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-2 self-stretch rounded-full bg-brand-300" />
+                  <p className="text-[14px] font-bold whitespace-nowrap">오늘의 산책지수</p>
+                  <div className="w-px h-4 bg-gray-300" />
+                  <WalkScore />
+                  <div className="w-px h-4 bg-gray-300" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] px-2 py-[2px] rounded-full bg-sky-100 text-sky-700 font-bold">
+                      최적 시간
+                    </span>
+                    <span className="text-[12px] text-gray-600">
+                      오후 6시 ~ 8시
+                    </span>
+                  </div>
+                  <span className="text-gray-400 text-[20px] mt-[-5px]">›</span>
+                </div>
               </div>
             </div>
-            
-            <div className=''>
-              산책 코스 추천
-            </div>
-
           </div>
-
-          
-
         </div>
-
-        {/* 오른쪽 섹션 - 날씨 + 산책적합도 */}
-        <div className="bg-[linear-gradient(to_bottom,#cccccc_0%,#ffffff_70%)] rounded-xl p-4 shadow-sm">
-
-          <div className='flex items-center mb-4 gap-2'>
-            <img src={locationIcon} alt="위치아이콘" className='w-5 h-5 object-cover'/>
-            <span className="text-[20px] font-bold">무슨시 무슨구</span>
-          </div>
-
-          <div className='flex items-end gap-1'>
-            <img src={weatherTest} alt='날씨아이콘자리' className='w-20 h-20 mr-2 object-cover'/>
-            <div>
-              <div className='flex items-end gap-2'>
-                <span className='text-[32px]'>17.6℃</span>
-                <span className='text-[14px]'>(체감 20.4℃)</span>
-              </div>
-              <div className='flex items-baseline ml-3 mt-1 gap-4'>
-                <span className='text-[14px]'>최저 16℃</span>
-                <span className='text-[14px]'>|</span>
-                <span className='text-[14px]'>최고 24℃</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 p-2 bg-[#E7FBBE] rounded-lg shadow">
-            <p className="text-[12px] text-gray-600">
-              지면온도 <span className="font-bold text-[#86D293]">00℃</span> (안전)
-            </p>
-          </div>
-
-          <div className="flex mt-2 gap-3">
-            <div className="flex flex-col items-center justify-center w-16 h-[60px] bg-white rounded-lg shadow">
-              <p className='text-[12px] text-gray-500'>습도</p>              
-              <p className='text-[16px] font-bold'>83%</p>              
-            </div>
-            <div className="flex flex-col items-center justify-center w-16 h-[60px] bg-white rounded-lg shadow">
-              <p className='text-[12px] text-gray-500'>풍속</p>
-              <p className='text-[16px] font-bold'>1.9m/s</p>  
-            </div>
-            <div className="flex flex-col items-center justify-center w-16 h-[60px] bg-white rounded-lg shadow">
-              <p className='text-[12px] text-gray-500'>자외선</p>
-              <p className='text-[16px] font-bold'>낮음</p>
-            </div>
-            <div className="flex flex-col items-center justify-center w-16 h-[60px] bg-white rounded-lg shadow">
-              <p className='text-[12px] text-gray-500'>미세먼지</p>
-              <p className='text-[16px] font-bold'>좋음</p>
-            </div>
-          </div>
-
-          <div className='mt-4 h-[100px] bg-white rounded-lg shadow'>
-            여기는 1시간 당 날씨 변화 들어올 공간
-          </div>
-
-
-          
-          
-      
-          
-          {/* <p>어제보다 2℃ 높아요</p> */}
-            
-        </div>
-
+        
         
 
+        {/* 오른쪽 섹션 - 로그인(사용자 인터페이스) */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <p className='text-[24px] font-bold'>로그인넣자</p>
+          <p className='text-[24px] font-bold'>안녕하세요, 00님!</p>
+          <div>
+            <p className='text-[12px]'>마이페이지</p>
+            <p className='text-[12px]'>반려견 프로필</p>
+          </div>
+          
+        </div>
+        
       </section>
 
+
+      {/* (코스 추천) + 코스 미리보기 + 산책 시작 + 오늘의 산책 지수 (이거는 2차긴 한데 일딴 보류)*/}
 
       <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
         <p className="text-sm text-brand-600 font-medium mb-1">오늘의 산책</p>

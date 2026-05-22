@@ -58,41 +58,82 @@
 
 
  // 날씨 적합도 점수(원모양) - 홈에 들어감
-function WalkScore() {
+// function WalkScore() {
 
-    const score = 91   // 현재 산책 점수 (나중에 실제 결과 도출로 나올 자리), 점수에 맞게 점수%만큼 원이 참
-    const radius = 75  // 원 크기
-    const stroke = 15  // 원 두께
+//     const score = 91   // 현재 산책 점수 (나중에 실제 결과 도출로 나올 자리), 점수에 맞게 점수%만큼 원이 참
+//     const radius = 75  // 원 크기
+//     const stroke = 15  // 원 두께
 
-    const normalizedRadius = radius - stroke / 2  // 실제 원 반지름 계산
-    const circumference = normalizedRadius * 2 * Math.PI  // 원 둘레 계산
+//     const normalizedRadius = radius - stroke / 2  // 실제 원 반지름 계산
+//     const circumference = normalizedRadius * 2 * Math.PI  // 원 둘레 계산
 
-    const strokeDashoffset = circumference - (score/100) * circumference  // 진행률 계산
+//     const strokeDashoffset = circumference - (score/100) * circumference  // 진행률 계산
+
+
+//   return (
+//     <div className="relative w-[150px] h-[150px] flex items-center justify-center">
+
+//         <svg height={radius*2} width={radius*2} className="rotate-[-90deg]">
+//             {/* 배경 원 */}
+//             <circle stroke="#E5E7EB" fill="transparent" strokeWidth={stroke} 
+//                     r={normalizedRadius} cx={radius} cy={radius}/>
+
+//             {/* 진행률 원 */}
+//             <circle stroke="#7BE27B" fill="transparent" strokeWidth={stroke}
+//                     strokeLinecap="round" strokeDasharray={circumference + ' ' + circumference}
+//                     strokeDashoffset={strokeDashoffset}
+//                     r={normalizedRadius} cx={radius} cy={radius}/>
+//         </svg>
+
+//         {/* 원 안 가운데 텍스트 */}
+//         <div className="absolute flex flex-col items-center">
+//             <h1 className="text-[32px] font-bold leading-none">91점</h1>
+//             <span className="text-[20px] text-gray-500">/100</span>
+//         </div>
+
+//     </div>
+//   )
+// }
+
+// export default WalkScore
+
+
+// 날씨 적합도 점수(막대 그래프)
+function WalkScore({score = 77}) {
+
+    // 점수에 따라 게이지 색 변하게 + 멘트 변하게
+    const getScoreMeta = (score) => {
+      if(score >= 70) return {color: "bg-success", label:"안전🟢"};
+      if(score >= 40) return {color: "bg-warning", label:"주의🟡"};
+      return {color: "bg-danger", label:"위험🔴"};
+    }
+
+    const {color, label} = getScoreMeta(score);
 
 
   return (
-    <div className="relative w-[150px] h-[150px] flex items-center justify-center">
+    <div className="flex items-center gap-3 flex-1">
 
-        <svg height={radius*2} width={radius*2} className="rotate-[-90deg]">
-            {/* 배경 원 */}
-            <circle stroke="#E5E7EB" fill="transparent" strokeWidth={stroke} 
-                    r={normalizedRadius} cx={radius} cy={radius}/>
+      {/* 바 */}
+      <div className="flex-1 h-[12px] bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${color} rounded-full transition-all duration-500`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
 
-            {/* 진행률 원 */}
-            <circle stroke="#7BE27B" fill="transparent" strokeWidth={stroke}
-                    strokeLinecap="round" strokeDasharray={circumference + ' ' + circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    r={normalizedRadius} cx={radius} cy={radius}/>
-        </svg>
-
-        {/* 원 안 가운데 텍스트 */}
-        <div className="absolute flex flex-col items-center">
-            <h1 className="text-[32px] font-bold leading-none">91점</h1>
-            <span className="text-[20px] text-gray-500">/100</span>
-        </div>
-
+      {/* 점수 */}
+      <div className="flex items-center gap-[2px]">
+        <span className="text-[16px] font-bold whitespace-nowrap">{score}점</span>
+        <span className="text-[14px] text-gray-500">/100</span>
+        <span className="text-[14px] font-bold ml-2">({label})</span>
+      </div>
+      
     </div>
+
   )
 }
 
 export default WalkScore
+
+
