@@ -18,39 +18,18 @@ function Home() {
       <section className="grid grid-cols-[3fr_1fr] gap-4">
 
         {/* 왼쪽 섹션 - 날씨 + 산책 지수 */}
-        <div>
+        <div className='flex flex-col gap-4'>
+          {/* 산책 지수 박스*/}
+          <div className="bg-white rounded-2xl shadow-sm p-6
+            hover:shadow-md hover:scale-[1.01]
+            transition-all duration-200 cursor-pointer"
+          >
+            {/* 산책지수 + 게이지 */}
+            <WalkScore />
+          </div>
+
           {/* 날씨 */}
           <WeatherCard />
-          {/* 산책 지수 - 나중에 온클릭 해줄 것*/}
-          <div className='mt-4'>
-            <div className="flex mt-2">
-              <div className="
-                  flex items-center justify-between
-                  bg-white rounded-lg shadow p-5 w-full
-                  cursor-pointer
-                  hover:shadow-md
-                  hover:scale-[1.01]
-                  transition-all duration-200
-                ">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-2 self-stretch rounded-full bg-brand-300" />
-                  <p className="text-[14px] font-bold whitespace-nowrap">오늘의 산책지수</p>
-                  <div className="w-px h-4 bg-gray-300" />
-                  <WalkScore />
-                  <div className="w-px h-4 bg-gray-300" />
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] px-2 py-[2px] rounded-full bg-sky-100 text-sky-700 font-bold">
-                      최적 시간
-                    </span>
-                    <span className="text-[12px] text-gray-600">
-                      오후 6시 ~ 8시
-                    </span>
-                  </div>
-                  <span className="text-gray-400 text-[20px] mt-[-5px]">›</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
         
         

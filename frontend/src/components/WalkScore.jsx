@@ -99,39 +99,103 @@
 
 
 // 날씨 적합도 점수(막대 그래프)
-function WalkScore({score = 77}) {
+function WalkScore({ score = 77 }) {
 
-    // 점수에 따라 게이지 색 변하게 + 멘트 변하게
-    const getScoreMeta = (score) => {
-      if(score >= 70) return {color: "bg-success", label:"안전🟢"};
-      if(score >= 40) return {color: "bg-warning", label:"주의🟡"};
-      return {color: "bg-danger", label:"위험🔴"};
+  const getScoreMeta = (score) => {
+    if (score >= 70) {
+      return {
+        color: "bg-success",
+        label: "안전🟢",
+        title: "산책하기 좋은 날씨예요 ☀️",
+        desc: "대부분 견종이 편안하게 산책할 수 있어요"
+      };
     }
 
-    const {color, label} = getScoreMeta(score);
+    if (score >= 40) {
+      return {
+        color: "bg-warning",
+        label: "주의🟡",
+        title: "짧은 산책을 추천드려요 🌥️",
+        desc: "더위에 약한 반려견은 주의가 필요해요"
+      };
+    }
 
+    return {
+      color: "bg-danger",
+      label: "위험🔴",
+      title: "산책을 되도록 피해주세요 🌧️",
+      desc: "지면온도와 날씨 상태가 산책하기 위험해요"
+    };
+  };
+
+  const { color, label, title, desc } = getScoreMeta(score);
 
   return (
-    <div className="flex items-center gap-3 flex-1">
+    <div className="w-full">
 
-      {/* 바 */}
-      <div className="flex-1 h-[12px] bg-gray-200 rounded-full overflow-hidden">
-        <div
-          className={`h-full ${color} rounded-full transition-all duration-500`}
-          style={{ width: `${score}%` }}
-        />
+      {/* 상단 */}
+      <div className="flex items-start justify-between">
+
+        <div>
+          <span className="
+            inline-flex items-center justify-center
+            px-3 py-1
+            text-[13px] font-bold
+            bg-brand-100 text-brand-700
+            rounded-full
+          ">
+            오늘의 산책지수
+          </span>
+
+          <h2 className="text-[28px] font-bold mt-2 tracking-[-0.02em]">
+            {title}
+          </h2>
+
+          <p className="text-[13px] text-gray-500 mt-1">
+            {desc}
+          </p>
+        </div>
+
+        <div className="
+          px-3 py-1.5
+          rounded-full
+          bg-sky-100 text-sky-700
+          text-[12px] font-bold
+          whitespace-nowrap
+        ">
+          오후 6시 ~ 8시 추천
+        </div>
+
       </div>
 
-      {/* 점수 */}
-      <div className="flex items-center gap-[2px]">
-        <span className="text-[16px] font-bold whitespace-nowrap">{score}점</span>
-        <span className="text-[14px] text-gray-500">/100</span>
-        <span className="text-[14px] font-bold ml-2">({label})</span>
+      {/* 게이지 */}
+      <div className="mt-5 flex items-center gap-3">
+
+        <div className="flex-1 h-[12px] bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${color} rounded-full transition-all duration-500`}
+            style={{ width: `${score}%` }}
+          />
+        </div>
+
+        <div className="flex items-center gap-1 whitespace-nowrap">
+          <span className="text-[18px] font-bold">
+            {score}
+          </span>
+
+          <span className="text-[13px] text-gray-500">
+            /100
+          </span>
+
+          <span className="text-[13px] font-bold ml-1">
+            {label}
+          </span>
+        </div>
+
       </div>
-      
+
     </div>
-
-  )
+  );
 }
 
 export default WalkScore
