@@ -126,7 +126,7 @@ function WeatherCard() {
             </div>
 
             {/* 시간별 날씨 */}
-            <div className="flex justify-center overflow-x-auto p-3">
+            <div className="flex justify-center overflow-x-auto px-3 pt-3">
                 {weatherData.map((weather, index) => (
                     <div
                         key={index}

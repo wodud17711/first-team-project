@@ -2,6 +2,9 @@
 import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore'
 
+// 강아지 테스트 사진
+import dogImg1 from '../assets/dogImg1.jpg'
+
 // 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
 // 폰트 적용은 나중에, 일단 배치부터
 // 색상 아직 미정, 일단 초록색 넣어본 것
@@ -36,13 +39,32 @@ function Home() {
 
         {/* 오른쪽 섹션 - 로그인(사용자 인터페이스) */}
         <div className="bg-white rounded-lg shadow p-4">
-          <p className='text-[24px] font-bold'>로그인넣자</p>
-          <p className='text-[24px] font-bold'>안녕하세요, 00님!</p>
-          <div>
-            <p className='text-[12px]'>마이페이지</p>
-            <p className='text-[12px]'>반려견 프로필</p>
+          <p className='text-[20px] font-bold'>안녕하세요, 00님!</p>
+
+          {/* 강아지 프로필 */}
+          <div className='flex bg-white rounded-lg shadow p-2 gap-3'>
+            <img src={dogImg1} alt='강아지사진' className='w-20 h-20 rounded-full object-cover'/>
+            <div>
+              <p className='text-[20px] font-bold'>멍멍이</p>
+              <p className='text-[12px]'>🎂 2023/01/01 (3살)</p>
+              <p className='text-[12px]'>🐶 리트리버 · 26kg</p>
+              <span className='
+                px-2 py-[2px]
+                rounded-full
+                bg-orange-100 text-orange-600
+                text-[11px] font-bold
+              '>
+                활동적
+              </span>
+
+            </div>
           </div>
-          
+
+          <div className='flex justify-center items-center gap-4'>
+            <p className='text-[14px]'>마이페이지</p>
+            <div className='w-px h-[14px] bg-gray-300 flex items-center'/>
+            <p className='text-[14px]'>반려견 프로필</p>
+          </div>
         </div>
         
       </section>
