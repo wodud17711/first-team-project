@@ -4,6 +4,7 @@ import WalkScore from '../components/WalkScore'
 
 // 강아지 테스트 사진
 import dogImg1 from '../assets/dogImg1.jpg'
+import dogImg2 from '../assets/dogImg2.jpeg'
 
 // 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
 // 폰트 적용은 나중에, 일단 배치부터
@@ -15,56 +16,105 @@ import dogImg1 from '../assets/dogImg1.jpg'
 
 function Home() {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 overflow-x-hidden">
+
+      {/* 산책지수 배경 */}
+      <div className="
+        absolute top-0 left-0
+        w-full h-[500px]
+        bg-brand-200
+      " />
+      {/* 산책 지수 */}
+      <section className="
+        relative
+        w-full min-h-[500px]
+        -ml-[140px] py-5
+      ">
+        <WalkScore />
+      </section>
 
       {/* 최상단 */}
-      <section className="grid grid-cols-[3fr_1fr] gap-4">
-
+      <section className="
+        relative -mt-[200px] z-10
+        w-full
+        mx-auto
+        px-6
+        grid grid-cols-[3fr_1fr] gap-4
+      ">
         {/* 왼쪽 섹션 - 날씨 + 산책 지수 */}
         <div className='flex flex-col gap-4'>
-          {/* 산책 지수 박스*/}
-          <div className="bg-white rounded-2xl shadow-sm p-6
-            hover:shadow-md hover:scale-[1.01]
-            transition-all duration-200 cursor-pointer"
-          >
-            {/* 산책지수 + 게이지 */}
-            <WalkScore />
-          </div>
-
           {/* 날씨 */}
           <WeatherCard />
         </div>
         
-        
-
+      
         {/* 오른쪽 섹션 - 로그인(사용자 인터페이스) */}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-xl shadow p-4 -mt-[220px]">
           <p className='text-[20px] font-bold'>안녕하세요, 00님!</p>
 
           {/* 강아지 프로필 */}
-          <div className='flex bg-white rounded-lg shadow p-2 gap-3'>
-            <img src={dogImg1} alt='강아지사진' className='w-20 h-20 rounded-full object-cover'/>
-            <div>
-              <p className='text-[20px] font-bold'>멍멍이</p>
-              <p className='text-[12px]'>🎂 2023/01/01 (3살)</p>
-              <p className='text-[12px]'>🐶 리트리버 · 26kg</p>
-              <span className='
-                px-2 py-[2px]
-                rounded-full
-                bg-orange-100 text-orange-600
-                text-[11px] font-bold
-              '>
-                활동적
-              </span>
-
+          <div className='flex flex-col gap-2'>
+            <div className='flex items-center bg-white rounded-lg shadow p-2 gap-3'>
+              <img src={dogImg1} alt='강아지사진' className='w-[78px] h-[78px] rounded-full object-cover'/>
+              <div>
+                <p className='text-[20px] font-bold'>멍멍일</p>
+                <p className='text-[12px]'>🎂 2023/01/01 (3살)</p>
+                <p className='text-[12px]'>🐶 리트리버 · 26kg</p>
+                <div className='flex gap-1 mt-1'>
+                  <span className='
+                  px-2 py-[2px]
+                  rounded-full
+                  bg-sun-200 text-sun-700
+                  text-[11px] font-bold
+                  '>
+                    활동적
+                  </span>
+                  <span className='
+                    px-2 py-[2px]
+                    rounded-full
+                    bg-sky-100 text-sky-700
+                    text-[11px] font-bold
+                  '>
+                    종일 산책형
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className='flex items-center bg-white rounded-lg shadow p-2 gap-3'>
+              <img src={dogImg2} alt='강아지사진' className='w-[78px] h-[78px] rounded-full object-cover'/>
+              <div>
+                <p className='text-[20px] font-bold'>멍멍이</p>
+                <p className='text-[12px]'>🎂 2021/01/01 (5살)</p>
+                <p className='text-[12px]'>🐶 사모예드 · 21kg</p>
+                <div className='flex gap-1 mt-1'>
+                  <span className='
+                  px-2 py-[2px]
+                  rounded-full
+                  bg-sun-200 text-sun-700
+                  text-[11px] font-bold
+                  '>
+                    내성적
+                  </span>
+                  <span className='
+                    px-2 py-[2px]
+                    rounded-full
+                    bg-sky-100 text-sky-700
+                    text-[11px] font-bold
+                  '>
+                    오전 산책형
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
+
 
           <div className='flex justify-center items-center gap-4'>
             <p className='text-[14px]'>마이페이지</p>
             <div className='w-px h-[14px] bg-gray-300 flex items-center'/>
             <p className='text-[14px]'>반려견 프로필</p>
           </div>
+          <button className='w-full p-2 bg-brand-500 rounded-xl'>로그아웃</button>
         </div>
         
       </section>

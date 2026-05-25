@@ -56,6 +56,9 @@
 
 // const score = calculateWalkScore()
 
+// 아이콘 및 일러스트
+import locationIcon from '../assets/locationIcon.png'
+import weatherTest from '../assets/weatherTest.png'
 
 
 // 날씨 적합도 점수(막대 그래프)
@@ -68,8 +71,8 @@ function WalkScore({ score = 77 }) {
     if (score >= 70) {
       return {
         color: "bg-success",
-        label: "안전🟢",
-        title: "산책하기 좋은 날씨예요 ☀️",
+        label: "안전해요🟢",
+        title: "산책하기 좋은 날이에요 ☀️",
         desc: "대부분 견종이 편안하게 산책할 수 있어요"
       };
     }
@@ -77,7 +80,7 @@ function WalkScore({ score = 77 }) {
     if (score >= 40) {
       return {
         color: "bg-warning",
-        label: "주의🟡",
+        label: "주의가 필요해요🟡",
         title: "짧은 산책을 추천드려요 🌥️",
         desc: "더위에 약한 반려견은 주의가 필요해요"
       };
@@ -85,7 +88,7 @@ function WalkScore({ score = 77 }) {
 
     return {
       color: "bg-danger",
-      label: "위험🔴",
+      label: "위험해요🔴",
       title: "산책을 되도록 피해주세요 🌧️",
       desc: "지면온도와 날씨 상태가 산책하기 위험해요"
     };
@@ -94,68 +97,163 @@ function WalkScore({ score = 77 }) {
   const { color, label, title, desc } = getScoreMeta(score);
 
   return (
-    <div className="w-full">
+    <div className="w-full px-[180px]">
 
       {/* 상단 */}
-      <div className="flex items-start justify-between">
-
-        <div>
-          <span className="
-            inline-flex items-center justify-center
-            px-3 py-1
-            text-[13px] font-bold
-            bg-brand-100 text-brand-700
-            rounded-full
-          ">
-            오늘의 산책지수
-          </span>
-
-          <h2 className="text-[28px] font-bold mt-2 tracking-[-0.02em]">
+      <div className="flex flex-col items-start justify-between">
+        {/* 사용자 위치 */}
+        <div className='flex items-center gap-2'>
+          <img src={locationIcon} alt="위치아이콘" className='w-4 h-4 object-cover'/>
+          <span className="text-[14px] text-txtcolor-500 font-bold">무슨시 무슨구</span>
+        </div>
+        {/* 점수별 멘트 */}
+        <div className='mt-2'>
+          <h2 className="text-[32px] text-txtcolor-900 font-bold mt-1 tracking-[-0.02em]">
             {title}
           </h2>
-
-          <p className="text-[13px] text-gray-500 mt-1">
+          <p className="text-[14px] text-txtcolor-500 ml-1 mt-1">
             {desc}
           </p>
         </div>
+      </div>
 
-        <div className="
-          px-3 py-1.5
-          rounded-full
-          bg-sky-100 text-sky-700
-          text-[12px] font-bold
-          whitespace-nowrap
+      {/* 오늘의 산책지수 */}
+      <div className="mt-5">
+        
+
+        {/* 제목 */}
+        <span className="
+          inline-flex items-center justify-center
+          px-3 py-1 mb-5 rounded-full
+          text-[13px] font-bold text-brand-700 bg-brand-100
         ">
-          오후 6시 ~ 8시 추천
+          오늘의 산책지수
+        </span>
+
+        {/* 아래 영역 */}
+        <div className="flex items-start gap-6">
+
+          {/* 왼쪽 - 점수 */}
+          <div className="
+            flex flex-col items-center
+            min-w-fit text-center whitespace-nowrap
+          ">
+            <div className="flex items-end gap-1">
+              <span className="text-[48px] font-bold leading-none">
+                {score}
+              </span>
+              <span className="text-[18px] text-gray-500 -mb-[2px]">
+                /100
+              </span>
+            </div>
+
+            <span className="
+              mt-1
+              text-[15px] font-bold text-green-600
+            ">
+              {label}
+            </span>
+
+          </div>
+
+          {/* 오른쪽 */}
+          <div className="flex-1">
+
+            {/* 게이지 */}
+            <div className="
+              h-[14px]
+              bg-gray-200
+              rounded-full
+              overflow-hidden
+            ">
+              <div
+                className={`
+                  h-full rounded-full
+                  transition-all duration-500
+                  ${color}
+                `}
+                style={{ width: `${score}%` }}
+              />
+            </div>
+
+            {/* 날씨 요소 */}
+            <div className="flex gap-3 mt-4">
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>날씨</p>
+                <img src={weatherTest} alt='날씨아이콘자리' className='w-4 h-4 mr-2 object-cover'/>
+                <p className='text-[16px] font-bold'>맑음</p>
+              </div>
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>기온</p>
+                <p className='text-[16px] font-bold'>17.6℃</p>
+              </div>
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>지면온도</p>
+                <p className='text-[16px] font-bold'>32℃</p>
+              </div>
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>습도</p>
+                <p className='text-[16px] font-bold'>83%</p>
+              </div>
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>미세먼지</p>
+                <p className='text-[16px] font-bold'>좋음</p>
+              </div>
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>바람</p>
+                <p className='text-[16px] font-bold'>약함</p>
+              </div>
+
+              <div className="
+                flex flex-col items-center justify-center
+                w-[82px] h-[68px]
+                bg-white rounded-2xl shadow-sm
+              ">
+                <p className='text-[12px] text-gray-400'>자외선</p>
+                <p className='text-[16px] font-bold'>낮음</p>
+              </div>
+              
+            </div>
+
+          </div>
+
         </div>
 
       </div>
+      
 
-      {/* 게이지 */}
-      <div className="mt-5 flex items-center gap-3">
-
-        <div className="flex-1 h-[12px] bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${color} rounded-full transition-all duration-500`}
-            style={{ width: `${score}%` }}
-          />
-        </div>
-
-        <div className="flex items-center gap-1 whitespace-nowrap">
-          <span className="text-[18px] font-bold">
-            {score}
-          </span>
-
-          <span className="text-[13px] text-gray-500">
-            /100
-          </span>
-
-          <span className="text-[13px] font-bold ml-1">
-            {label}
-          </span>
-        </div>
-
-      </div>
+      
+      
 
     </div>
   );
