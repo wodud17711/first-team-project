@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 
 
 function Login() {
@@ -40,7 +41,7 @@ function Login() {
                     <div className="flex-1 w-px h-3 bg-txtcolor-200"/>
                     <button>비밀번호 찾기</button>
                     <div className="flex-1 w-px h-3 bg-txtcolor-200"/>
-                    <button>회원가입</button>
+                    <Link to="/join">회원가입</Link>
                 </div>
             </div>
             

@@ -5,6 +5,7 @@ import WalkRecord from './pages/WalkRecord'
 import Community from './pages/Community'
 import Profile from './pages/Profile'
 import Login from './pages/Login'
+import Join from './pages/Join'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
 
           <Route path="/login" element={<Login />} />
+          <Route path="/join" element={<Join />} />
           
           <Route path="*" element={<NotFound />} />
         </Route>
