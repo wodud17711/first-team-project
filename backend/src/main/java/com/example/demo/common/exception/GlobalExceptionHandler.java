@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * 전역 예외 핸들러.
  *
- * <p>모든 예외를 표준 응답 포맷 {@code { success: false, data: null, message }}로 변환한다.
+ * <p>모든 예외를 표준 응답 포맷 {@code { success: false, data: null, message, errorCode }}로 변환한다.
  * Controller·Service에서 발생한 {@link BusinessException}은 정의된 HTTP 상태로,
  * 입력 검증 실패는 400으로, 그 외는 500으로 응답한다.
  */
@@ -49,6 +49,6 @@ public class GlobalExceptionHandler {
         log.error("Unexpected exception", ex);
         return ResponseEntity
                 .internalServerError()
-                .body(ApiResponse.fail("서버 오류가 발생했습니다", "INTERNAL_ERROR"));
+                .body(ApiResponse.fail(ErrorCode.INTERNAL_ERROR.getMessage(), ErrorCode.INTERNAL_ERROR.name()));
     }
 }
