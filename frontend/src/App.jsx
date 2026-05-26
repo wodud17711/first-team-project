@@ -16,7 +16,9 @@ function App() {
           <Route path="/walk" element={<WalkRecord />} />
           <Route path="/community" element={<Community />} />
           <Route path="/profile" element={<Profile />} />
+
           <Route path="/login" element={<Login />} />
+          
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
