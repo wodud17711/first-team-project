@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import WalkRecord from './pages/WalkRecord'
 import Community from './pages/Community'
 import Profile from './pages/Profile'
+import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/walk" element={<WalkRecord />} />
           <Route path="/community" element={<Community />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
