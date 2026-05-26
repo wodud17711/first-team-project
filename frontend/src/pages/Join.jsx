@@ -31,6 +31,26 @@ function Join() {
         console.log(form)   // 현재 입력된 값 전체 출력
     }
 
+
+
+    // input 코드(사용자 정보 입력란) 줄이기 위해 사용
+    const inputs = [
+        { name: "email", type: "text", placeholder: "이메일을 입력하세요" },
+        { name: "password", type: "password", placeholder: "비밀번호를 입력하세요" },
+        { name: "password2", type: "password", placeholder: "비밀번호를 다시 입력하세요" },
+        { name: "name", type: "text", placeholder: "이름(실명)을 입력하세요" },
+        { name: "birth", type: "text", placeholder: "생년월일(8자리)을 입력하세요" },
+        { name: "phone", type: "tel", placeholder: "휴대폰 번호를 입력하세요" },
+        { name: "nickname", type: "text", placeholder: "사용할 닉네임을 입력하세요" }
+    ]
+    // 견주 연차 선택 버튼 코드 줄이기 위해 사용
+    const careers = [
+        { value: "새싹보호자", icon: "🌱", title: "새싹", sub: "보호자", desc: "~1년" },
+        { value: "노련한보호자", icon: "🐕", title: "노련한", sub: "보호자", desc: "1년~5년" },
+        { value: "베테랑보호자", icon: "🏆", title: "베테랑", sub: "보호자", desc: "5년+" }
+    ]
+
+
   return (
     <div className="flex flex-col items-center space-y-6">
       
@@ -38,44 +58,55 @@ function Join() {
         
         <form onSubmit={handleSubmit} 
               className="flex flex-col items-center">
-            <h1 className="text-[24px] font-bold">회원가입</h1>
+            <h1 className="text-[24px] font-bold mb-6">회원가입</h1>
             <div>
 
             </div>
             {/* 사용자 정보 입력칸 */}
-            <div className="w-full mt-4 flex flex-col gap-2">
-                <input type="text" name="email" placeholder="이메일을 입력하세요"
-                             value={form.email} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="password" name="password" placeholder="비밀번호를 입력하세요"
-                             value={form.password} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="password" name="password2" placeholder="비밀번호를 다시 입력하세요"
-                             value={form.password2} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="text" name="name" placeholder="이름(실명)을 입력하세요"
-                             value={form.name} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="text" name="birth" inputMode="numeric" placeholder="생년월일(8자리)을 입력하세요"
-                             value={form.birth} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="tel" name="phone" placeholder="휴대폰 번호를 입력하세요"
-                             value={form.phone} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="text" name="nickname" placeholder="사용할 닉네임을 입력하세요"
-                             value={form.nickname} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
-                <input type="text" name="career" placeholder="견주 연차를 입력하세요"
-                             value={form.career} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
+            <div className="w-full mt-4 flex flex-col gap-3">
+                {inputs.map((item) => (
+                <input
+                    key={item.name}
+                    type={item.type}
+                    name={item.name}
+                    placeholder={item.placeholder}
+                    value={form[item.name]}
+                    onChange={handleChange}
+                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl text-[14px]
+                            focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+                />
+                ))}
+
+                {/* 견주 연차 선택 */}
+                <div className="w-full mt-2 flex flex-col gap-2">
+                    <p className="text-[14px] text-txtcolor-700 font-bold">견주 연차 선택</p>
+                    <div className="flex gap-2">
+                        {careers.map((c) => (
+                        <button
+                            key={c.value}
+                            type="button"
+                            onClick={() => setForm({ ...form, career: c.value })}
+                            className={`w-1/3 flex flex-col items-center justify-center
+                            px-3 py-3 rounded-xl border text-[14px] transition
+                            ${form.career === c.value
+                                ? "bg-brand-200 border-brand-500 hover:bg-brand-200"
+                                : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0] hover:border-txtcolor-200"
+                            }`}
+                        >
+                            <span className="text-[16px] text-txtcolor-400">{c.icon}</span>
+                            <span className="text-[14px] text-txtcolor-700">{c.title}</span>
+                            <span className="-mt-1 text-[14px] text-txtcolor-700">{c.sub}</span>
+                            <span className="text-[12px] text-txtcolor-400">({c.desc})</span>
+                        </button>
+                        ))}
+                    </div>
+
+                    {/* 버튼 밑 공지글 */}
+                    <div className="w-full flex items-center justify-center 
+                                    text-[12px] text-txtcolor-400">
+                        <p>보호자님의 반려생활 경험에 맞는 소통을 위해 사용됩니다</p>
+                    </div>
+                </div>
             </div>
             
             {/* 반려견 프로필 등록 버튼 */}
@@ -85,7 +116,7 @@ function Join() {
             </div>
             {/* 버튼 밑 공지글 */}
             <div className="w-full mt-2 flex items-center justify-center 
-                            text-[12px] text-txtcolor-400 gap-3">
+                            text-[12px] text-txtcolor-400">
                 <p>반려견 프로필 등록 후 회원가입이 완료됩니다!</p>
             </div>
 
