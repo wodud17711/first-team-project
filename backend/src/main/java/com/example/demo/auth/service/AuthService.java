@@ -1,6 +1,6 @@
 package com.example.demo.auth.service;
 
-import com.example.demo.auth.dto.*;
+import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.security.JwtProvider;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
@@ -24,7 +24,11 @@ public class AuthService {
     // =========================
     // 회원가입
     // =========================
-    public AuthResponse signup(String email, String password) {
+    public AuthResponse signup(
+            String email,
+            String password,
+            String nickname
+    ) {
 
         if (userRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
@@ -33,6 +37,8 @@ public class AuthService {
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setNickname(nickname);
+        user.setRole("USER");
 
         userRepository.save(user);
 
