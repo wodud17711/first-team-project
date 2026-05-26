@@ -161,11 +161,30 @@ RULES: list[Rule] = [
         lambda d, w: "비가 예보되어 있어요. 우산을 챙기세요",
     ),
 
-    # ── 노령견 ──
+    # ── 나이 (퍼피 1세 미만 / 노령견 8세 이상) ──
     Rule(
-        "SENIOR_EXTREME", 10,
-        lambda d, w: d.age_years >= 8 and (w.temperature >= 28 or w.temperature <= 0),
-        lambda d, w: "노령견은 극단적인 날씨에 더 주의가 필요합니다",
+        "PUPPY_EXTREME", 10,
+        lambda d, w: d.age_years < 1 and (w.temperature >= 28 or w.temperature <= 5),
+        lambda d, w: (
+            "어린 강아지는 더위에 약합니다"
+            if w.temperature >= 28
+            else "어린 강아지는 추위에 약합니다"
+        ),
+    ),
+    Rule(
+        "SENIOR_HEAT", 15,
+        lambda d, w: d.age_years >= 8 and w.temperature >= 28,
+        lambda d, w: "노령견은 더위에 약합니다",
+    ),
+    Rule(
+        "SENIOR_COLD", 15,
+        lambda d, w: d.age_years >= 8 and w.temperature <= 0,
+        lambda d, w: "노령견은 추위에 약합니다",
+    ),
+    Rule(
+        "SENIOR_BAD_AIR", 10,
+        lambda d, w: d.age_years >= 8 and w.pm10 >= 81,
+        lambda d, w: "노령견은 미세먼지에 취약합니다",
     ),
 
     # ── 강풍 ──
