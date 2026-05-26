@@ -118,9 +118,8 @@ function WalkScore({ score = 77 }) {
       </div>
 
       {/* 오늘의 산책지수 */}
-      <div className="mt-5">
+      <div className="mt-5 bg-white rounded-xl p-3 shadow-sm w-full">
         
-
         {/* 제목 */}
         <span className="
           inline-flex items-center justify-center
@@ -251,10 +250,6 @@ function WalkScore({ score = 77 }) {
 
       </div>
       
-
-      
-      
-
     </div>
   );
 }

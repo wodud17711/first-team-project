@@ -38,7 +38,6 @@ function Home() {
         relative -mt-[200px] z-10
         w-full
         mx-auto
-        px-6
         grid grid-cols-[3fr_1fr] gap-4
       ">
         {/* 왼쪽 섹션 - 날씨 + 산책 지수 */}
@@ -49,13 +48,13 @@ function Home() {
         
       
         {/* 오른쪽 섹션 - 로그인(사용자 인터페이스) */}
-        <div className="bg-white rounded-xl shadow p-4 -mt-[220px]">
+        <div className="bg-white rounded-xl shadow p-4 -mt-[180px]">
           <p className='text-[20px] font-bold'>안녕하세요, 00님!</p>
 
           {/* 강아지 프로필 */}
-          <div className='flex flex-col gap-2'>
-            <div className='flex items-center bg-white rounded-lg shadow p-2 gap-3'>
-              <img src={dogImg1} alt='강아지사진' className='w-[78px] h-[78px] rounded-full object-cover'/>
+          <div className='flex flex-col mt-2 gap-2'>
+            <div className='flex items-center bg-brand-100 rounded-lg shadow p-2 gap-3'>
+              <img src={dogImg1} alt='강아지사진' className='w-[78px] h-[78px] border-4 border-white shadow rounded-full object-cover'/>
               <div>
                 <p className='text-[20px] font-bold'>멍멍일</p>
                 <p className='text-[12px]'>🎂 2023/01/01 (3살)</p>
@@ -80,8 +79,8 @@ function Home() {
                 </div>
               </div>
             </div>
-            <div className='flex items-center bg-white rounded-lg shadow p-2 gap-3'>
-              <img src={dogImg2} alt='강아지사진' className='w-[78px] h-[78px] rounded-full object-cover'/>
+            <div className='flex items-center bg-brand-100 rounded-lg shadow p-2 gap-3'>
+              <img src={dogImg2} alt='강아지사진' className='w-[78px] h-[78px] border-4 border-white shadow rounded-full object-cover'/>
               <div>
                 <p className='text-[20px] font-bold'>멍멍이</p>
                 <p className='text-[12px]'>🎂 2021/01/01 (5살)</p>
