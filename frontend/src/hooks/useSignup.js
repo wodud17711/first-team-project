@@ -5,14 +5,25 @@ import { signup } from '../api/auth'
 /**
  * 회원가입 폼 로직 hook.
  *
- * 사용 (정선혜 Join.jsx):
+ * 사용 예 (정선혜 Join.jsx):
+ *   // 기본: 성공 시 "/" 로 이동
  *   const { form, handleChange, handleSubmit, loading, error } = useSignup()
  *
- * BE schema users 컬럼 = email + password + nickname (윤소윤 PR 머지 후) + role + timestamps
+ *   // 가입 후 반려견 등록 페이지로 (댕기온 회원가입 흐름)
+ *   const ... = useSignup({ redirectTo: '/dog-profile' })
+ *
+ *   // 완전 커스텀
+ *   const ... = useSignup({ onSuccess: () => navigate('/welcome') })
+ *
+ * BE schema users 컬럼 = email + password + nickname + role + timestamps
  * → form 도 그에 맞춰 4 필드 (password2 는 클라이언트 확인용).
  * → name/birth/phone/career 등은 schema 에 없으므로 Phase 2 마이페이지 추가 정보 단계로.
+ *
+ * @param {Object}   [options]
+ * @param {string}   [options.redirectTo='/']  성공 시 이동할 경로 (예: '/dog-profile')
+ * @param {Function} [options.onSuccess]       지정 시 navigate(redirectTo) 대신 이 콜백 호출
  */
-export function useSignup() {
+export function useSignup({ redirectTo = '/', onSuccess } = {}) {
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -45,15 +56,23 @@ export function useSignup() {
       setError('비밀번호는 8자 이상이어야 합니다.')
       return
     }
+    if (form.nickname.length < 2 || form.nickname.length > 20) {
+      setError('닉네임은 2~20자여야 합니다.')
+      return
+    }
 
     setLoading(true)
     try {
       await signup({
         email: form.email,
         password: form.password,
-        nickname: form.nickname, // 윤소윤 nickname PR 머지 후 BE 가 실제로 사용
+        nickname: form.nickname,
       })
-      navigate('/')
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        navigate(redirectTo)
+      }
     } catch (err) {
       setError(err.message || '회원가입에 실패했습니다.')
     } finally {
