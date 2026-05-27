@@ -4,9 +4,13 @@ import Home from './pages/Home'
 import WalkRecord from './pages/WalkRecord'
 import Community from './pages/Community'
 import Profile from './pages/Profile'
+
 import Login from './pages/Login'
 import Join from './pages/Join'
+import DogProfile from './pages/DogProfile'
+
 import NotFound from './pages/NotFound'
+
 
 function App() {
   return (
@@ -20,6 +24,7 @@ function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/dog-profile" element={<DogProfile />} />
           
           <Route path="*" element={<NotFound />} />
         </Route>

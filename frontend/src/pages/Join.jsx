@@ -1,7 +1,11 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 
 function Join() {
+
+    // 페이지 이동
+    const navigate = useNavigate()
 
     // 사용자 정보 입력값 저장하는 저장소역할
     const [form, setForm] = useState({
@@ -29,6 +33,8 @@ function Join() {
     const handleSubmit = (e) => {
         e.preventDefault()  // 새로고침 막는 것
         console.log(form)   // 현재 입력된 값 전체 출력
+
+        navigate("/dog-profile")  // 반려견 프로필 등록 페이지로 이동
     }
 
 
@@ -49,6 +55,8 @@ function Join() {
         { value: "노련한보호자", icon: "🐕", title: "노련한", sub: "보호자", desc: "1년~5년" },
         { value: "베테랑보호자", icon: "🏆", title: "베테랑", sub: "보호자", desc: "5년+" }
     ]
+
+    
 
 
   return (
@@ -111,7 +119,7 @@ function Join() {
             
             {/* 반려견 프로필 등록 버튼 */}
             <div className="w-full mt-6 flex flex-col gap-2">
-                <button className="py-3 bg-brand-300 rounded-xl 
+                <button type="submit" className="py-3 bg-brand-300 rounded-xl 
                                    text-[16px] font-bold text-txtcolor-900">반려견 프로필 등록</button>
             </div>
             {/* 버튼 밑 공지글 */}
