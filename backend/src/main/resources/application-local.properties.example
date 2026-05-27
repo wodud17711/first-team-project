@@ -15,3 +15,8 @@ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 # JWT 시크릿 (dev 키. 운영은 환경변수 JWT_SECRET 으로 주입)
 # dev 키 값은 HANDOFF.md 또는 팀 리더에게 문의
 jwt.secret=PASTE_DEV_JWT_SECRET_HERE
+
+# Refresh Token 쿠키 Secure 플래그.
+# 로컬 dev 는 HTTP 라서 false 필수. 안 그러면 브라우저가 쿠키를 박지 않아 /api/auth/refresh 가 항상 실패.
+# 운영(application.properties)은 true 가 기본값.
+app.cookie.secure=false

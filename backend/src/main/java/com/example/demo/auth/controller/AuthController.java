@@ -8,6 +8,7 @@ import com.example.demo.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    /**
+     * RT 쿠키 Secure 플래그.
+     * - 운영(HTTPS) : true (기본값)
+     * - 로컬 dev(HTTP, application-local.properties): false 로 override.
+     * 환경별 토글이 없으면 로컬에서 브라우저가 쿠키를 박지 않아 /api/auth/refresh 가 항상 실패.
+     */
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
 
     // =========================
     // 회원가입
@@ -120,7 +130,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie
                 .from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(60 * 60 * 24 * 14)
@@ -134,7 +144,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie
                 .from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(0)
