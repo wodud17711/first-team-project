@@ -46,8 +46,8 @@ class DogE2ETest {
                         post("/api/auth/signup")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                        {"email":"%s","password":"%s"}
-                                        """.formatted(email, password))
+                                    {"email":"%s","password":"%s","nickname":"%s"}
+                                """.formatted(email, password, "테스트유저"))
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
