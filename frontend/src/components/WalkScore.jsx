@@ -97,7 +97,7 @@ function WalkScore({ score = 77 }) {
   const { color, label, title, desc } = getScoreMeta(score);
 
   return (
-    <div className="w-full px-[180px]">
+    <div className="w-full">
 
       {/* 상단 */}
       <div className="flex flex-col items-start justify-between">
@@ -118,7 +118,7 @@ function WalkScore({ score = 77 }) {
       </div>
 
       {/* 오늘의 산책지수 */}
-      <div className="mt-5 bg-white rounded-xl p-3 shadow-sm w-full">
+      <div className="mt-5 bg-white rounded-xl px-5 py-3 shadow-sm w-full">
         
         {/* 제목 */}
         <span className="
@@ -135,7 +135,7 @@ function WalkScore({ score = 77 }) {
           {/* 왼쪽 - 점수 */}
           <div className="
             flex flex-col items-center
-            min-w-fit text-center whitespace-nowrap
+            w-[125px] text-center whitespace-nowrap
           ">
             <div className="flex items-end gap-1">
               <span className="text-[48px] font-bold leading-none">

@@ -28,7 +28,7 @@ function Home() {
       <section className="
         relative
         w-full min-h-[500px]
-        -ml-[140px] py-5
+        py-5
       ">
         <WalkScore />
       </section>
@@ -46,9 +46,8 @@ function Home() {
           <WeatherCard />
         </div>
         
-      
         {/* 오른쪽 섹션 - 로그인(사용자 인터페이스) */}
-        <div className="bg-white rounded-xl shadow p-4 -mt-[180px]">
+        <div className="bg-white rounded-xl shadow p-4">
           <p className='text-[20px] font-bold'>안녕하세요, 00님!</p>
 
           {/* 강아지 프로필 */}
