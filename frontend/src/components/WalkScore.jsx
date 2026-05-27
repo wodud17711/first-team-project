@@ -118,7 +118,7 @@ function WalkScore({ score = 77 }) {
       </div>
 
       {/* 오늘의 산책지수 */}
-      <div className="mt-5 bg-white rounded-xl px-5 py-3 shadow-sm w-full">
+      <div className="mt-[120px] bg-white rounded-xl px-5 py-3 shadow-sm w-full">
         
         {/* 제목 */}
         <span className="
@@ -178,68 +178,76 @@ function WalkScore({ score = 77 }) {
             {/* 날씨 요소 */}
             <div className="flex gap-3 mt-4">
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>날씨</p>
-                <img src={weatherTest} alt='날씨아이콘자리' className='w-4 h-4 mr-2 object-cover'/>
-                <p className='text-[16px] font-bold'>맑음</p>
-              </div>
+              <div className="flex items-center gap-2 mt-4 bg-transparent">
+  
+                {/* 날씨 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">날씨</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <img src={weatherTest} className="w-[20px] h-[20px]" />
+                  </div>
+                </div>
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>기온</p>
-                <p className='text-[16px] font-bold'>17.6℃</p>
-              </div>
+                <div className="w-px h-8 bg-gray-200" />
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>지면온도</p>
-                <p className='text-[16px] font-bold'>32℃</p>
-              </div>
+                {/* 기온 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">기온</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <p className="text-[16px] font-bold">17℃</p>
+                  </div>
+                </div>
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>습도</p>
-                <p className='text-[16px] font-bold'>83%</p>
-              </div>
+                <div className="w-px h-8 bg-gray-200" />
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>미세먼지</p>
-                <p className='text-[16px] font-bold'>좋음</p>
-              </div>
+                {/* 지면온도 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">지면온도</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <p className="text-[16px] font-bold">32℃</p>
+                  </div>                  
+                </div>
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>바람</p>
-                <p className='text-[16px] font-bold'>약함</p>
-              </div>
+                <div className="w-px h-8 bg-gray-200" />
 
-              <div className="
-                flex flex-col items-center justify-center
-                w-[82px] h-[68px]
-                bg-white rounded-2xl shadow-sm
-              ">
-                <p className='text-[12px] text-gray-400'>자외선</p>
-                <p className='text-[16px] font-bold'>낮음</p>
+                {/* 습도 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">습도</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <p className="text-[16px] font-bold">83%</p>
+                  </div>                  
+                </div>
+
+                <div className="w-px h-8 bg-gray-200" />
+
+                {/* 미세먼지 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">미세먼지</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <p className="text-[16px] font-bold">좋음</p>
+                  </div>                  
+                </div>
+
+                <div className="w-px h-8 bg-gray-200" />
+
+                {/* 바람 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">바람</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <p className="text-[16px] font-bold">약함</p>
+                  </div>                  
+                </div>
+
+                <div className="w-px h-8 bg-gray-200" />
+
+                {/* 자외선 */}
+                <div className="flex flex-col items-center px-3">
+                  <p className="text-[12px] text-gray-400">자외선</p>
+                  <div className="h-[24px] flex items-center justify-center">
+                    <p className="text-[16px] font-bold">낮음</p>
+                  </div>                  
+                </div>
+
               </div>
               
             </div>
