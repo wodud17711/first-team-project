@@ -2,7 +2,6 @@ package com.example.demo.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import com.example.demo.user.entity.User;
 
 @Entity
 @Getter
@@ -10,6 +9,7 @@ import com.example.demo.user.entity.User;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "refresh_tokens")
 public class RefreshToken {
 
     @Id
