@@ -9,15 +9,17 @@ function Login() {
       <section className="w-[400px] bg-white rounded-xl px-8 py-12 shadow">
         
         <form className="flex flex-col items-center">
-            <h1 className="text-[24px] font-bold">로그인</h1>
+            <h1 className="text-[24px] font-bold mb-6">로그인</h1>
             {/* 아이디, 비번 입력칸 */}
             <div className="w-full mt-4 flex flex-col gap-2">
                 <input type="text" placeholder="이메일을 입력하세요"
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
+                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl text-[14px]
+                               focus:outline-brand-300 hover:bg-[#F0F0F0]
+                               transition"/>
                 <input type="password" placeholder="비밀번호를 입력하세요"
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl focus:outline-brand-300
-                               text-[14px] text-txtcolor-900"/>
+                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl text-[14px]
+                               focus:outline-brand-300 hover:bg-[#F0F0F0]
+                               transition"/>
             </div>
 
             {/* 로그인 유지 */}
