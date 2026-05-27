@@ -43,7 +43,7 @@ cp src/main/resources/application-local.properties.example src/main/resources/ap
 
 ## 동작 체크 (서버 떠 있는 상태에서)
 ```bash
-# 존재하지 않는 계정 로그인 → USER_NOT_FOUND 404 가 떨어지면 DB·JPA·Security 다 정상
+# 존재하지 않는 계정 로그인 → INVALID_CREDENTIALS 401 가 떨어지면 DB·JPA·Security 다 정상
 curl -X POST http://localhost:8081/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"nobody@example.com","password":"anything1234"}'
@@ -51,8 +51,10 @@ curl -X POST http://localhost:8081/api/auth/login \
 
 기대 응답:
 ```json
-{"success":false,"data":null,"message":"사용자를 찾을 수 없습니다","errorCode":"USER_NOT_FOUND"}
+{"success":false,"data":null,"message":"이메일 또는 비밀번호가 일치하지 않습니다","errorCode":"INVALID_CREDENTIALS"}
 ```
+
+> 💡 보안: 이메일 존재 여부를 응답으로 구분하지 않습니다 (OWASP Account Enumeration 차단).
 
 ---
 
