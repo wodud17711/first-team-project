@@ -5,8 +5,15 @@ import { login } from '../api/auth'
 /**
  * 로그인 폼 로직 hook.
  *
- * 사용 (정선혜 Login.jsx):
+ * 사용 예 (정선혜 Login.jsx):
+ *   // 기본: 성공 시 "/" 로 이동
  *   const { form, handleChange, handleSubmit, loading, error } = useLogin()
+ *
+ *   // 커스텀 경로
+ *   const ... = useLogin({ redirectTo: '/welcome' })
+ *
+ *   // 완전 커스텀 (navigate 호출 X, 콜백 직접 처리)
+ *   const ... = useLogin({ onSuccess: () => navigate('/x', { state: ... }) })
  *
  *   <form onSubmit={handleSubmit}>
  *     <input name="email"      value={form.email}      onChange={handleChange} />
@@ -15,8 +22,12 @@ import { login } from '../api/auth'
  *     {error && <p className="text-danger">{error}</p>}
  *     <button disabled={loading}>{loading ? '로그인 중...' : '로그인'}</button>
  *   </form>
+ *
+ * @param {Object}   [options]
+ * @param {string}   [options.redirectTo='/']  성공 시 이동할 경로
+ * @param {Function} [options.onSuccess]       지정 시 navigate(redirectTo) 대신 이 콜백 호출
  */
-export function useLogin() {
+export function useLogin({ redirectTo = '/', onSuccess } = {}) {
   const [form, setForm] = useState({ email: '', password: '', rememberMe: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -42,7 +53,11 @@ export function useLogin() {
     setLoading(true)
     try {
       await login({ email: form.email, password: form.password })
-      navigate('/')
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        navigate(redirectTo)
+      }
     } catch (err) {
       setError(err.message || '로그인에 실패했습니다.')
     } finally {
