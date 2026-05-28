@@ -1,7 +1,12 @@
 """
-산책 위험도 룰베이스 v1
-========================
+산책 위험도 룰베이스 v1.2
+==========================
 날씨 + 반려견 특성을 종합해 산책 위험도(0~100)와 등급(안전/주의/위험), 사유를 산출한다.
+
+변경 이력
+- v1.2 (2026-05-28): 자외선 룰 UV_HIGH/UV_VERY_HIGH 추가 (생활기상지수 V5 자외선 API)
+- v1.1 (2026-05-26): 노령견/퍼피 세분화, 강풍 룰 추가
+- v1   (2026-05-22): 초기 16룰
 
 설계 원칙
 - 프레임워크 의존 없는 순수 Python (백엔드 통합/FastAPI 어느 쪽이든 이식 가능)
@@ -52,6 +57,7 @@ class WeatherInfo:
     pm10: int = 30                     # 미세먼지 ㎍/㎥
     pm25: int = 15                     # 초미세먼지 ㎍/㎥
     precipitation_type: str = "없음"   # 없음 / 비 / 비눈 / 눈
+    uv_index: int = 0                  # 자외선 지수 (생활기상지수 V5, 0~11+)
 
 
 @dataclass
@@ -192,6 +198,18 @@ RULES: list[Rule] = [
         "STRONG_WIND", 10,
         lambda d, w: w.wind_speed >= 9,
         lambda d, w: f"바람이 강해요(풍속 {w.wind_speed:.0f}m/s)",
+    ),
+
+    # ── 자외선 (KMA 생활기상지수 V5 표준: 0~2 낮음 / 3~5 보통 / 6~7 높음 / 8~10 매우높음 / 11+ 위험) ──
+    Rule(
+        "UV_VERY_HIGH", 15,
+        lambda d, w: w.uv_index >= 8,
+        lambda d, w: f"자외선이 매우 강합니다(지수 {w.uv_index}). 산책 시간을 줄이세요",
+    ),
+    Rule(
+        "UV_HIGH", 8,
+        lambda d, w: 6 <= w.uv_index < 8,
+        lambda d, w: f"자외선이 강해요(지수 {w.uv_index})",
     ),
 ]
 

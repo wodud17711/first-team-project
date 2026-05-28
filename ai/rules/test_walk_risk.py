@@ -119,6 +119,30 @@ def test_강풍_감점():
     assert r.score == 90  # -10
 
 
+def test_자외선_매우높음_감점():
+    w = WeatherInfo(temperature=22, feels_like=22, humidity=50,
+                    ground_temperature=24, pm10=20, uv_index=10)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert any("자외선" in s and "매우" in s for s in r.reasons)
+    assert r.score == 85  # -15
+
+
+def test_자외선_높음_감점():
+    w = WeatherInfo(temperature=22, feels_like=22, humidity=50,
+                    ground_temperature=24, pm10=20, uv_index=7)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert any("자외선이 강해요" in s for s in r.reasons)
+    assert r.score == 92  # -8
+
+
+def test_자외선_보통_미감점():
+    w = WeatherInfo(temperature=22, feels_like=22, humidity=50,
+                    ground_temperature=24, pm10=20, uv_index=5)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert all("자외선" not in s for s in r.reasons)
+    assert r.score == 100
+
+
 def test_완벽한_날씨_사유메시지():
     w = WeatherInfo(temperature=18, feels_like=18, humidity=45,
                     ground_temperature=20, pm10=15, pm25=8, wind_speed=1)
