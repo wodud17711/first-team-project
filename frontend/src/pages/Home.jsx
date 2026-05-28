@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 // 컴포넌트
 import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore'
@@ -5,6 +7,7 @@ import WalkScore from '../components/WalkScore'
 // 강아지 테스트 사진
 import dogImg1 from '../assets/dogImg1.jpg'
 import dogImg2 from '../assets/dogImg2.jpeg'
+
 
 // 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
 // 폰트 적용은 나중에, 일단 배치부터
@@ -15,6 +18,9 @@ import dogImg2 from '../assets/dogImg2.jpeg'
 // gap-1 > 4px, gap-2 > 8px ...
 
 function Home() {
+
+  const navigate = useNavigate()
+
   return (
     <div className='relative'>
       {/* 상단 배경(산책지수 배경) */}
@@ -97,7 +103,8 @@ function Home() {
               <div className='flex justify-center items-center gap-4'>
                 <p className='text-[14px]'>마이페이지</p>
                 <div className='w-px h-[14px] bg-gray-300 flex items-center'/>
-                <p className='text-[14px]'>반려견 프로필</p>
+                <button onClick={() => navigate("/dog-profile-list")}
+                        className='text-[14px]'>반려견 프로필</button>
               </div>
               <button className='w-full p-2 bg-brand-500 rounded-xl'>로그아웃</button>
             </div>

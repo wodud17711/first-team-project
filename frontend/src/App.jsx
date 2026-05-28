@@ -11,7 +11,14 @@ import Login from './pages/Login'
 import Join from './pages/Join'
 import DogProfile from './pages/DogProfile'
 
+import DogListPage from './pages/dogs/DogListPage'
+import DogDetailPage from './pages/dogs/DogDetailPage'
+import DogCreatePage from './pages/dogs/DogCreatePage'
+import DogEditPage from './pages/dogs/DogEditPage'
+
 import NotFound from './pages/NotFound'
+
+
 
 
 function App() {
@@ -24,7 +31,7 @@ function App() {
           <Route path="/join" element={<Join />} />
 
           {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
-          <Route element={<ProtectedRoute />}>
+          {/* <Route element={<ProtectedRoute />}> */}
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/walk" element={<WalkRecord />} />
@@ -32,9 +39,15 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/dog-profile" element={<DogProfile />} />
 
+              {/* 반려견 프로필 페이지 */}
+              <Route path="/dog-profile-list" element={<DogListPage/>}/>
+              <Route path="/dog-profile-detail" element={<DogDetailPage/>}/>
+              <Route path="/dog-profile-create" element={<DogCreatePage/>}/>
+              <Route path="/dog-profile-edit" element={<DogEditPage/>}/>
+
               <Route path="*" element={<NotFound />} />
             </Route>
-          </Route>
+          {/* </Route> */}
         </Routes>
       </AuthProvider>
     </BrowserRouter>
