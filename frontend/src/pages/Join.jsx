@@ -26,6 +26,49 @@ function Join() {
               className="flex flex-col items-center">
             <h1 className="text-[24px] font-bold mb-6">회원가입</h1>
 
+            {/* 회원가입 단계표시 */}
+            <div className="w-full mb-2 flex items-center justify-center">
+              <div className="flex items-center text-[13px] font-medium">
+
+                <div className="flex flex-col items-center">
+                  <div className="
+                    w-7 h-7 rounded-full
+                    bg-brand-500 text-white font-bold
+                    flex items-center justify-center
+                  ">
+                    1
+                  </div>
+                  <p className="w-[80px] flex justify-center mt-1 text-[12px] text-brand-500 font-bold">회원가입</p>
+                </div>
+
+                <div className="w-10 h-px bg-brand-300 mx-1 self-start mt-[14px]" />
+
+                <div className="flex flex-col items-center">
+                  <div className="
+                    w-7 h-7 rounded-full
+                    bg-gray-200 text-gray-500 font-bold
+                    flex items-center justify-center
+                  ">
+                    2
+                  </div>
+                  <p className="w-[80px] flex justify-center mt-1 text-[12px] text-txtcolor-400">반려견 프로필</p>
+                </div>
+
+                <div className="w-10 h-px bg-brand-300 mx-1 self-start mt-[14px]" />
+
+                <div className="flex flex-col items-center">
+                  <div className="
+                    w-7 h-7 rounded-full
+                    bg-gray-200 text-gray-500 font-bold
+                    flex items-center justify-center
+                  ">
+                    3
+                  </div>
+                  <p className="w-[80px] flex justify-center mt-1 text-[12px] text-txtcolor-400">완료</p>
+                </div>
+              </div>
+            </div>
+
             {/* 사용자 정보 입력칸 */}
             <div className="w-full mt-4 flex flex-col gap-3">
                 {inputs.map((item) => (

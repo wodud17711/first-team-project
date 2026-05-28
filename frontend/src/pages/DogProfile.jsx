@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useCreateDog } from "../hooks/useCreateDog";
 
 
 
 function DogProfile() {
+
+    // 반려견 프로필 등록 훅 연결
+    const { create, loading, error, reset } = useCreateDog({
+      onSuccess: (dog) => {
+        // a) "반려견 추가" 흐름 — 같은 페이지 머무름:
+           setAddedDogs((prev) => [...prev, dog]); setForm(initialForm)
+        // b) "완료" 흐름 — 로그인으로 이동:
+           navigate('/login')
+      },
+    }) 
 
     // 페이지 이동
     const navigate = useNavigate()
@@ -85,11 +96,18 @@ function DogProfile() {
     }
 
     // '반려견 프로필 등록' 버튼 눌렀을 때, 페이지의 새로고침 방지 및 입력값 확인하는 함수
-    const handleSubmit = (e) => {
-        e.preventDefault()  // 새로고침 막는 것
-        console.log(form)   // 현재 입력된 값 전체 출력
+    const handleSubmit = async (e) => {
+      e.preventDefault()
 
-        navigate("/dog-profile")  // 반려견 프로필 등록 페이지로 이동
+      const dog = await create({
+        name: form.dogname,
+        breedId: null, // 아직 견종 id 없으면 null
+        birthDate: form.dogbirth || null,
+        weight: form.weight ? parseFloat(form.weight) : null,
+        healthNotes: form.health || null,
+      })
+
+      if (!dog) return
     }
 
 
@@ -127,7 +145,50 @@ function DogProfile() {
             </div>
             <div className="w-full mb-6 flex items-center justify-center 
                             text-[12px] text-txtcolor-400">
-                <p>프로필은 나중에도 추가할 수 있어요(완료 클릭 시 스킵가능)</p>
+                <p>프로필은 나중에도 추가할 수 있어요(스킵가능)</p>
+            </div>
+
+            {/* 회원가입 단계표시 */}
+            <div className="w-full mb-2 flex items-center justify-center">
+              <div className="flex items-center text-[13px] font-medium">
+
+                <div className="flex flex-col items-center">
+                  <div className="
+                    w-7 h-7 rounded-full
+                    bg-brand-200 text-brand-700 font-bold
+                    flex items-center justify-center
+                  ">
+                    1
+                  </div>
+                  <p className="w-[80px] flex justify-center mt-1 text-[12px] text-txtcolor-400">회원가입</p>
+                </div>
+
+                <div className="w-10 h-px bg-brand-300 mx-1 self-start mt-[14px]" />
+
+                <div className="flex flex-col items-center">
+                  <div className="
+                    w-7 h-7 rounded-full
+                    bg-brand-500 text-white font-bold
+                    flex items-center justify-center
+                  ">
+                    2
+                  </div>
+                  <p className="w-[80px] flex justify-center mt-1 text-[12px] text-brand-500 font-bold">반려견 프로필</p>
+                </div>
+
+                <div className="w-10 h-px bg-brand-300 mx-1 self-start mt-[14px]" />
+
+                <div className="flex flex-col items-center">
+                  <div className="
+                    w-7 h-7 rounded-full
+                    bg-gray-200 text-gray-500 font-bold
+                    flex items-center justify-center
+                  ">
+                    3
+                  </div>
+                  <p className="w-[80px] flex justify-center mt-1 text-[12px] text-txtcolor-400">완료</p>
+                </div>
+              </div>
             </div>
 
             {/* 반려견 정보 입력칸 */}
@@ -263,14 +324,22 @@ function DogProfile() {
                     
                 </div>
             </div>
+
+            {error && (
+              <p className="mt-6 text-[12px] text-danger">
+                {error}
+              </p>
+            )}
             
             {/* 회원가입 완료 및 반려견 프로필 추가 버튼 */}
             <div className="w-full mt-6 flex gap-2">
-                <button type="submit" className="flex-1 py-3 bg-brand-300 rounded-xl 
+                <button type="button" className="flex-1 py-3 bg-brand-300 rounded-xl 
                                    text-[16px] font-bold text-txtcolor-900">프로필 추가</button>
-                <button type="submit" className="flex-1 py-3 bg-brand-300 rounded-xl 
-                                   text-[16px] font-bold text-txtcolor-900">완료</button>
+                <button type="submit" disabled={loading} className="flex-1 py-3 bg-brand-300 rounded-xl 
+                                   text-[16px] font-bold text-txtcolor-900">{loading ? "등록 중..." : "완료"}</button>
             </div>
+
+            <button type="button" className="mt-3 text-[13px] text-txtcolor-400 underline-none">나중에 등록하기</button>
 
         </form>
         
