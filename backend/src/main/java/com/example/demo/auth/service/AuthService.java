@@ -81,7 +81,9 @@ public class AuthService {
     // =========================
     // refresh
     // =========================
-    @Transactional(readOnly = true)
+    // ⚠️ readOnly 제거: 만료 토큰 발견 시 delete 쓰기 동작이 일어남.
+    // readOnly 트랜잭션은 Hibernate FlushMode 가 MANUAL 로 잡혀 쓰기가 누락될 수 있어
+    // 클래스 @Transactional (쓰기) 을 그대로 적용한다.
     public String refresh(String refreshToken) {
 
         if (refreshToken == null) {
