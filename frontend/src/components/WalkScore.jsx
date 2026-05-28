@@ -157,7 +157,7 @@ function WalkScore({ score = 77 }) {
       </div>
 
       {/* 오늘의 산책지수 */}
-      <div className="mt-[120px] bg-white rounded-xl px-5 py-3 shadow-sm w-full">
+      <div className="mt-[120px] bg-white rounded-xl px-5 py-4 shadow-sm w-full">
         
         {/* 제목 */}
         <span className="
@@ -186,7 +186,6 @@ function WalkScore({ score = 77 }) {
             </div>
 
             <span className="
-              mt-1
               text-[15px] font-bold text-green-600
             ">
               {label}

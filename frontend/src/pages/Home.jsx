@@ -33,14 +33,14 @@ function Home() {
             <WeatherCard />
           </div>
 
-          {/* 오른쪽 콘텐츠 - 로그인(사용자 인터페이스) */}
+          {/* 오른쪽 콘텐츠 - 로그인(유저 패널) */}
           <div className="mt-[225px] flex flex-col bg-white rounded-xl shadow p-4">
             <p className='text-[20px] font-bold'>안녕하세요, 00님!</p>
 
             {/* 강아지 프로필 */}
             <div className='flex flex-col mt-2 gap-2'>
-              <div className='flex items-center bg-brand-100 rounded-lg shadow p-2 gap-3'>
-                <img src={dogImg1} alt='강아지사진' className='w-[78px] h-[78px] border-4 border-white shadow rounded-full object-cover'/>
+              <div className='flex items-center bg-brand-100 rounded-lg shadow p-3 gap-3'>
+                <img src={dogImg1} alt='강아지사진' className='w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover'/>
                 <div>
                   <p className='text-[20px] font-bold'>멍멍일</p>
                   <p className='text-[12px]'>🎂 2023/01/01 (3살)</p>
@@ -66,7 +66,7 @@ function Home() {
                 </div>
               </div>
               <div className='flex items-center bg-brand-100 rounded-lg shadow p-2 gap-3'>
-                <img src={dogImg2} alt='강아지사진' className='w-[78px] h-[78px] border-4 border-white shadow rounded-full object-cover'/>
+                <img src={dogImg2} alt='강아지사진' className='w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover'/>
                 <div>
                   <p className='text-[20px] font-bold'>멍멍이</p>
                   <p className='text-[12px]'>🎂 2021/01/01 (5살)</p>
