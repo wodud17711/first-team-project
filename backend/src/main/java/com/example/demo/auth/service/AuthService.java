@@ -56,13 +56,14 @@ public class AuthService {
     // =========================
     // 로그인
     // =========================
-    @Transactional(readOnly = true)
+    // ⚠️ readOnly 제거: issueTokens 가 RT save/delete 쓰기 동작을 함. readOnly 면 Hibernate FlushMode 변경으로 쓰기 누락 우려.
     public AuthResponse login(String email, String password) {
 
+        // 보안: 이메일이 없을 때와 비번이 틀릴 때 응답을 동일하게 → account enumeration 차단 (OWASP).
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new BusinessException(
-                                ErrorCode.USER_NOT_FOUND
+                                ErrorCode.INVALID_CREDENTIALS
                         ));
 
         if (!passwordEncoder.matches(
