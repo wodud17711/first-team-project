@@ -44,4 +44,16 @@ class GridConverterTest {
         assertThat(result.nx()).isEqualTo(53);
         assertThat(result.ny()).isEqualTo(38);
     }
+
+    @Test
+    void grid_in_bounds_success() {
+
+        GridCoordinate result =
+                GridConverter.toGrid(
+                        37.5665,
+                        126.9780
+                );
+
+        assertThat(result.inBounds()).isTrue();
+    }
 }
