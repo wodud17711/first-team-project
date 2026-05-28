@@ -25,7 +25,7 @@ function Home() {
         {/* 상단 콘텐츠 */}
         <section className="
           w-full mx-auto mt-6
-          grid grid-cols-[2fr_1fr] gap-4
+          grid grid-cols-[2.5fr_1fr] gap-4
         ">
           {/* 왼쪽 콘텐츠 - 산책지수 + 날씨 */}
           <div className='flex flex-col gap-4'>

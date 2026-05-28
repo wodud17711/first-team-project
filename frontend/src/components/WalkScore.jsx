@@ -61,6 +61,34 @@ import locationIcon from '../assets/locationIcon.png'
 import weatherTest from '../assets/weatherTest.png'
 
 
+
+// 날씨요소 코드 줄이는 컴포넌트
+function WeatherItem({ label, value, icon }) {
+  return (
+    <div className="flex flex-col items-center px-[24px]">
+
+      <p className="text-[12px] text-gray-400">
+        {label}
+      </p>
+
+      <div className="h-[35px] flex items-center justify-center">
+        {icon ? (
+          <img
+            src={icon}
+            className="w-[20px] h-[20px] object-contain"
+          />
+        ) : (
+          <p className="text-[16px] font-bold">
+            {value}
+          </p>
+        )}
+      </div>
+
+    </div>
+  )
+}
+
+
 // 날씨 적합도 점수(막대 그래프)
 function WalkScore({ score = 77 }) {
 
@@ -76,7 +104,6 @@ function WalkScore({ score = 77 }) {
         desc: "대부분 견종이 편안하게 산책할 수 있어요"
       };
     }
-
     if (score >= 40) {
       return {
         color: "bg-warning",
@@ -85,7 +112,6 @@ function WalkScore({ score = 77 }) {
         desc: "더위에 약한 반려견은 주의가 필요해요"
       };
     }
-
     return {
       color: "bg-danger",
       label: "위험해요🔴",
@@ -95,6 +121,19 @@ function WalkScore({ score = 77 }) {
   };
 
   const { color, label, title, desc } = getScoreMeta(score);
+
+
+  // 날씨요소 코드 줄이기
+  const weatherItems =[
+    {label: '날씨', icon: weatherTest},
+    {label: '기온', value: '17℃'},
+    {label: '지면온도', value: '32℃'},
+    {label: '습도', value: '83%'},
+    {label: '미세먼지', value: '좋음'},
+    {label: '바람', value: '약함'},
+    {label: '자외선', value: '낮음'},
+  ]
+
 
   return (
     <div className="w-full">
@@ -176,80 +215,21 @@ function WalkScore({ score = 77 }) {
             </div>
 
             {/* 날씨 요소 */}
-            <div className="flex gap-3 mt-4">
+            <div className="flex items-center mt-4">
+              {weatherItems.map((item, index) => (
+                <div key={index} className="flex items-center">
 
-              <div className="flex items-center gap-2 mt-4 bg-transparent">
-  
-                {/* 날씨 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">날씨</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <img src={weatherTest} className="w-[20px] h-[20px]" />
-                  </div>
+                  <WeatherItem
+                    label={item.label}
+                    value={item.value}
+                    icon={item.icon}
+                  />
+
+                  {index !== weatherItems.length - 1 && (
+                    <div className="w-px h-8 bg-gray-200" />
+                  )}
                 </div>
-
-                <div className="w-px h-8 bg-gray-200" />
-
-                {/* 기온 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">기온</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <p className="text-[16px] font-bold">17℃</p>
-                  </div>
-                </div>
-
-                <div className="w-px h-8 bg-gray-200" />
-
-                {/* 지면온도 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">지면온도</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <p className="text-[16px] font-bold">32℃</p>
-                  </div>                  
-                </div>
-
-                <div className="w-px h-8 bg-gray-200" />
-
-                {/* 습도 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">습도</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <p className="text-[16px] font-bold">83%</p>
-                  </div>                  
-                </div>
-
-                <div className="w-px h-8 bg-gray-200" />
-
-                {/* 미세먼지 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">미세먼지</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <p className="text-[16px] font-bold">좋음</p>
-                  </div>                  
-                </div>
-
-                <div className="w-px h-8 bg-gray-200" />
-
-                {/* 바람 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">바람</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <p className="text-[16px] font-bold">약함</p>
-                  </div>                  
-                </div>
-
-                <div className="w-px h-8 bg-gray-200" />
-
-                {/* 자외선 */}
-                <div className="flex flex-col items-center px-3">
-                  <p className="text-[12px] text-gray-400">자외선</p>
-                  <div className="h-[24px] flex items-center justify-center">
-                    <p className="text-[16px] font-bold">낮음</p>
-                  </div>                  
-                </div>
-
-              </div>
-              
+              ))}
             </div>
 
           </div>
