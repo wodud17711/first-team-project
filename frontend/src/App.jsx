@@ -1,13 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
-// 사용 예시 — 로그인 필요한 라우트는 ProtectedRoute 로 감싸기:
-//   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-// 또는 그룹 보호:
-//   <Route element={<ProtectedRoute />}>
-//     <Route path="/profile"     element={<Profile />} />
-//     <Route path="/dog-profile" element={<DogProfile />} />
-//   </Route>
-// import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import WalkRecord from './pages/WalkRecord'
@@ -26,17 +19,21 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/walk" element={<WalkRecord />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/profile" element={<Profile />} />
+          {/* 공개 라우트 — 비로그인도 접근 가능 (Layout 헤더 없는 풀스크린) */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/join" element={<Join />} />
 
-            <Route path="/login" element={<Login />} />
-            <Route path="/join" element={<Join />} />
-            <Route path="/dog-profile" element={<DogProfile />} />
+          {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/walk" element={<WalkRecord />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/dog-profile" element={<DogProfile />} />
 
-            <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Route>
         </Routes>
       </AuthProvider>
