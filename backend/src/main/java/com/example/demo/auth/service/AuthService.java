@@ -32,7 +32,10 @@ public class AuthService {
             String nickname
     ) {
 
-        if (userRepository.existsByEmail(email)) {
+        // 대소문자/공백 차이로 동일 이메일 중복 가입되는 문제 차단.
+        String normalizedEmail = normalizeEmail(email);
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
 
@@ -43,7 +46,7 @@ public class AuthService {
         }
 
         User user = new User();
-        user.setEmail(email);
+        user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));
         user.setNickname(nickname);
         user.setRole("USER");
@@ -60,7 +63,7 @@ public class AuthService {
     public AuthResponse login(String email, String password) {
 
         // 보안: 이메일이 없을 때와 비번이 틀릴 때 응답을 동일하게 → account enumeration 차단 (OWASP).
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(normalizeEmail(email))
                 .orElseThrow(() ->
                         new BusinessException(
                                 ErrorCode.INVALID_CREDENTIALS
@@ -155,6 +158,11 @@ public class AuthService {
                 accessToken,
                 refreshToken
         );
+    }
+
+    private String normalizeEmail(String email) {
+
+        return email == null ? null : email.trim().toLowerCase();
     }
 
     private String generateRefreshToken() {

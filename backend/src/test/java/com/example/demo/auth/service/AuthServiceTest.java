@@ -21,6 +21,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -136,6 +138,84 @@ class AuthServiceTest {
                 ErrorCode.NICKNAME_DUPLICATED,
                 exception.getErrorCode()
         );
+    }
+
+    @Test
+    @DisplayName("회원가입 - 이메일 대소문자/공백 정규화 (A@B.com → a@b.com)")
+    void signup_normalizes_email() {
+
+        when(userRepository.existsByEmail(any()))
+                .thenReturn(false);
+
+        when(userRepository.existsByNickname(any()))
+                .thenReturn(false);
+
+        when(passwordEncoder.encode(any()))
+                .thenReturn("encodedPassword");
+
+        when(jwtProvider.generateAccessToken(any()))
+                .thenReturn("access-token");
+
+        authService.signup(
+                "  A@B.com  ",
+                "password123",
+                "테스트유저"
+        );
+
+        // 정규화된 이메일로 중복 체크 + 저장이 일어나야 함.
+        verify(userRepository).existsByEmail(eq("a@b.com"));
+
+        verify(userRepository).save(
+                argThat(u -> "a@b.com".equals(u.getEmail()))
+        );
+    }
+
+    @Test
+    @DisplayName("회원가입 - 대소문자만 다른 이메일 중복 차단")
+    void signup_duplicate_email_case_insensitive() {
+
+        // 기존 사용자가 a@b.com 으로 가입돼 있다고 가정.
+        when(userRepository.existsByEmail(eq("a@b.com")))
+                .thenReturn(true);
+
+        BusinessException exception =
+                assertThrows(
+                        BusinessException.class,
+                        () -> authService.signup(
+                                "A@B.COM",
+                                "password123",
+                                "테스트유저"
+                        )
+                );
+
+        assertEquals(
+                ErrorCode.EMAIL_DUPLICATED,
+                exception.getErrorCode()
+        );
+    }
+
+    @Test
+    @DisplayName("로그인 - 이메일 정규화 후 조회")
+    void login_normalizes_email() {
+
+        when(userRepository.findByEmail(eq("a@b.com")))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(any(), any()))
+                .thenReturn(true);
+
+        when(jwtProvider.generateAccessToken(any()))
+                .thenReturn("access-token");
+
+        AuthResponse response =
+                authService.login(
+                        "  A@B.com  ",
+                        "password123"
+                );
+
+        assertNotNull(response);
+
+        verify(userRepository).findByEmail(eq("a@b.com"));
     }
 
     @Test
