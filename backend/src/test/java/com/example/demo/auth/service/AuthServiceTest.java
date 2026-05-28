@@ -195,6 +195,83 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("회원가입 - 닉네임 정규화 (양끝/내부 공백 모두 제거)")
+    void signup_normalizes_nickname() {
+
+        when(userRepository.existsByEmail(any()))
+                .thenReturn(false);
+
+        when(userRepository.existsByNickname(any()))
+                .thenReturn(false);
+
+        when(passwordEncoder.encode(any()))
+                .thenReturn("encodedPassword");
+
+        when(jwtProvider.generateAccessToken(any()))
+                .thenReturn("access-token");
+
+        authService.signup(
+                "test@example.com",
+                "password123",
+                "  댕 댕 이 맘  "
+        );
+
+        // 양끝 공백 + 내부 공백 모두 제거된 값으로 중복 체크/저장이 일어나야 함.
+        verify(userRepository).existsByNickname(eq("댕댕이맘"));
+
+        verify(userRepository).save(
+                argThat(u -> "댕댕이맘".equals(u.getNickname()))
+        );
+    }
+
+    @Test
+    @DisplayName("회원가입 - 전각 공백(　)도 정규화에서 제거")
+    void signup_normalizes_fullwidth_whitespace_in_nickname() {
+
+        when(userRepository.existsByEmail(any()))
+                .thenReturn(false);
+
+        when(userRepository.existsByNickname(any()))
+                .thenReturn(false);
+
+        when(passwordEncoder.encode(any()))
+                .thenReturn("encodedPassword");
+
+        when(jwtProvider.generateAccessToken(any()))
+                .thenReturn("access-token");
+
+        authService.signup(
+                "test@example.com",
+                "password123",
+                "댕댕이　맘"   // 전각 공백
+        );
+
+        // (?U) 플래그로 유니코드 공백까지 잡아야 함 — 향후 플래그 누락 회귀 방지용.
+        verify(userRepository).existsByNickname(eq("댕댕이맘"));
+    }
+
+    @Test
+    @DisplayName("회원가입 - 닉네임이 공백만 입력되면 INVALID_INPUT")
+    void signup_nickname_only_whitespace_throws() {
+
+        BusinessException exception =
+                assertThrows(
+                        BusinessException.class,
+                        () -> authService.signup(
+                                "test@example.com",
+                                "password123",
+                                "        "
+                        )
+                );
+
+        // @Size(min=2) 는 raw 입력 통과시키지만, 정규화 후 빈 문자열이 되는 트릭 차단.
+        assertEquals(
+                ErrorCode.INVALID_INPUT,
+                exception.getErrorCode()
+        );
+    }
+
+    @Test
     @DisplayName("로그인 - 이메일 정규화 후 조회")
     void login_normalizes_email() {
 

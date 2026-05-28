@@ -35,11 +35,21 @@ public class AuthService {
         // 대소문자/공백 차이로 동일 이메일 중복 가입되는 문제 차단.
         String normalizedEmail = normalizeEmail(email);
 
+        // 닉네임 공백 트릭(시각적 중복) 차단 — 모든 공백(전각 포함) 제거.
+        String normalizedNickname = normalizeNickname(nickname);
+
+        // 정규화 후 길이 미달(공백만 입력 등) 또는 초과 차단.
+        if (normalizedNickname == null
+                || normalizedNickname.length() < 2
+                || normalizedNickname.length() > 20) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
 
-        if (userRepository.existsByNickname(nickname)) {
+        if (userRepository.existsByNickname(normalizedNickname)) {
             throw new BusinessException(
                     ErrorCode.NICKNAME_DUPLICATED
             );
@@ -48,7 +58,7 @@ public class AuthService {
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));
-        user.setNickname(nickname);
+        user.setNickname(normalizedNickname);
         user.setRole("USER");
 
         userRepository.save(user);
@@ -163,6 +173,12 @@ public class AuthService {
     private String normalizeEmail(String email) {
 
         return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private String normalizeNickname(String nickname) {
+
+        // (?U) = UNICODE_CHARACTER_CLASS — \s 가 전각 공백(　) 등 유니코드 공백까지 매칭.
+        return nickname == null ? null : nickname.replaceAll("(?U)\\s+", "");
     }
 
     private String generateRefreshToken() {
