@@ -1,6 +1,6 @@
 package com.example.demo.auth.service;
 
-import com.example.demo.auth.dto.*;
+import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.security.JwtProvider;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
@@ -11,8 +11,10 @@ import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -24,15 +26,27 @@ public class AuthService {
     // =========================
     // 회원가입
     // =========================
-    public AuthResponse signup(String email, String password) {
+    public AuthResponse signup(
+            String email,
+            String password,
+            String nickname
+    ) {
 
         if (userRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
 
+        if (userRepository.existsByNickname(nickname)) {
+            throw new BusinessException(
+                    ErrorCode.NICKNAME_DUPLICATED
+            );
+        }
+
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setNickname(nickname);
+        user.setRole("USER");
 
         userRepository.save(user);
 
@@ -42,13 +56,23 @@ public class AuthService {
     // =========================
     // 로그인
     // =========================
+    // ⚠️ readOnly 제거: issueTokens 가 RT save/delete 쓰기 동작을 함. readOnly 면 Hibernate FlushMode 변경으로 쓰기 누락 우려.
     public AuthResponse login(String email, String password) {
 
+        // 보안: 이메일이 없을 때와 비번이 틀릴 때 응답을 동일하게 → account enumeration 차단 (OWASP).
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.INVALID_CREDENTIALS
+                        ));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        if (!passwordEncoder.matches(
+                password,
+                user.getPassword()
+        )) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_CREDENTIALS
+            );
         }
 
         return issueTokens(user);
@@ -57,22 +81,38 @@ public class AuthService {
     // =========================
     // refresh
     // =========================
+    // ⚠️ readOnly 제거: 만료 토큰 발견 시 delete 쓰기 동작이 일어남.
+    // readOnly 트랜잭션은 Hibernate FlushMode 가 MANUAL 로 잡혀 쓰기가 누락될 수 있어
+    // 클래스 @Transactional (쓰기) 을 그대로 적용한다.
     public String refresh(String refreshToken) {
 
         if (refreshToken == null) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+            throw new BusinessException(
+                    ErrorCode.INVALID_TOKEN
+            );
         }
 
         RefreshToken token =
-                refreshTokenRepository.findByTokenHash(hash(refreshToken))
+                refreshTokenRepository.findByTokenHash(
+                                hash(refreshToken)
+                        )
                         .orElseThrow(() ->
-                                new BusinessException(ErrorCode.INVALID_TOKEN));
+                                new BusinessException(
+                                        ErrorCode.INVALID_TOKEN
+                                ));
 
         if (token.isExpired()) {
-            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+
+            refreshTokenRepository.delete(token);
+
+            throw new BusinessException(
+                    ErrorCode.EXPIRED_REFRESH_TOKEN
+            );
         }
 
-        return jwtProvider.generateAccessToken(token.getUser().getId());
+        return jwtProvider.generateAccessToken(
+                token.getUser().getId()
+        );
     }
 
     // =========================
@@ -80,9 +120,13 @@ public class AuthService {
     // =========================
     public void logout(String refreshToken) {
 
-        if (refreshToken == null) return;
+        if (refreshToken == null) {
+            return;
+        }
 
-        refreshTokenRepository.deleteByTokenHash(hash(refreshToken));
+        refreshTokenRepository.deleteByTokenHash(
+                hash(refreshToken)
+        );
     }
 
     // =========================
@@ -98,27 +142,46 @@ public class AuthService {
 
         refreshTokenRepository.deleteByUser_Id(user.getId());
 
-        RefreshToken rt = new RefreshToken();
-        rt.setUser(user);
-        rt.setTokenHash(hash(refreshToken));
-        rt.setExpiresAt(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 14);
+        RefreshToken rt = RefreshToken.builder()
+                .user(user)
+                .tokenHash(hash(refreshToken))
+                .expiresAt(
+                        System.currentTimeMillis()
+                                + 1000L * 60 * 60 * 24 * 14
+                )
+                .build();
 
         refreshTokenRepository.save(rt);
 
-        return new AuthResponse(accessToken, refreshToken);
+        return new AuthResponse(
+                accessToken,
+                refreshToken
+        );
     }
 
     private String generateRefreshToken() {
+
         return java.util.UUID.randomUUID().toString()
                 + java.util.UUID.randomUUID();
     }
 
     private String hash(String value) {
+
         try {
-            var md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(value.getBytes());
-            return java.util.HexFormat.of().formatHex(digest);
+
+            var md =
+                    java.security.MessageDigest.getInstance(
+                            "SHA-256"
+                    );
+
+            byte[] digest =
+                    md.digest(value.getBytes());
+
+            return java.util.HexFormat.of()
+                    .formatHex(digest);
+
         } catch (Exception e) {
+
             throw new RuntimeException(e);
         }
     }

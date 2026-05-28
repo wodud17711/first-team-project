@@ -23,6 +23,8 @@ BULLDOG = DogInfo(breed="불독", size="중형", coat_type="단모", age_years=3
                   is_brachycephalic=True, heat_tolerance=1, cold_tolerance=2)
 SENIOR = DogInfo(breed="시츄", size="소형", coat_type="장모", age_years=12,
                  heat_tolerance=2, cold_tolerance=2)
+PUPPY = DogInfo(breed="시바", size="중형", coat_type="단모", age_years=0,
+                heat_tolerance=3, cold_tolerance=3)
 
 
 def test_폭염_말티즈_위험():
@@ -76,7 +78,31 @@ def test_한파_소형단모_주의이상():
 def test_노령견_더위_사유포함():
     w = WeatherInfo(temperature=29, feels_like=30, ground_temperature=40, pm10=40)
     r = calculate_walk_risk(SENIOR, w)
-    assert any("노령견" in s for s in r.reasons)
+    assert any("노령견" in s and "더위" in s for s in r.reasons)
+
+
+def test_노령견_추위_사유포함():
+    w = WeatherInfo(temperature=-2, feels_like=-2, ground_temperature=-2, pm10=30)
+    r = calculate_walk_risk(SENIOR, w)
+    assert any("노령견" in s and "추위" in s for s in r.reasons)
+
+
+def test_노령견_미세먼지_사유포함():
+    w = WeatherInfo(temperature=18, ground_temperature=20, pm10=100, pm25=40)
+    r = calculate_walk_risk(SENIOR, w)
+    assert any("노령견" in s and "미세먼지" in s for s in r.reasons)
+
+
+def test_퍼피_더위_사유포함():
+    w = WeatherInfo(temperature=29, feels_like=28, ground_temperature=26, pm10=30)
+    r = calculate_walk_risk(PUPPY, w)
+    assert any("어린 강아지" in s and "더위" in s for s in r.reasons)
+
+
+def test_퍼피_추위_사유포함():
+    w = WeatherInfo(temperature=3, feels_like=2, ground_temperature=5, pm10=30)
+    r = calculate_walk_risk(PUPPY, w)
+    assert any("어린 강아지" in s and "추위" in s for s in r.reasons)
 
 
 def test_비예보_우산사유():
@@ -91,6 +117,30 @@ def test_강풍_감점():
     r = calculate_walk_risk(GOLDEN, w)
     assert any("바람" in s for s in r.reasons)
     assert r.score == 90  # -10
+
+
+def test_자외선_매우높음_감점():
+    w = WeatherInfo(temperature=22, feels_like=22, humidity=50,
+                    ground_temperature=24, pm10=20, uv_index=10)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert any("자외선" in s and "매우" in s for s in r.reasons)
+    assert r.score == 85  # -15
+
+
+def test_자외선_높음_감점():
+    w = WeatherInfo(temperature=22, feels_like=22, humidity=50,
+                    ground_temperature=24, pm10=20, uv_index=7)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert any("자외선이 강해요" in s for s in r.reasons)
+    assert r.score == 92  # -8
+
+
+def test_자외선_보통_미감점():
+    w = WeatherInfo(temperature=22, feels_like=22, humidity=50,
+                    ground_temperature=24, pm10=20, uv_index=5)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert all("자외선" not in s for s in r.reasons)
+    assert r.score == 100
 
 
 def test_완벽한_날씨_사유메시지():

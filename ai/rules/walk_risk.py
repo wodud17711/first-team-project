@@ -1,7 +1,12 @@
 """
-산책 위험도 룰베이스 v1
-========================
+산책 위험도 룰베이스 v1.2
+==========================
 날씨 + 반려견 특성을 종합해 산책 위험도(0~100)와 등급(안전/주의/위험), 사유를 산출한다.
+
+변경 이력
+- v1.2 (2026-05-28): 자외선 룰 UV_HIGH/UV_VERY_HIGH 추가 (생활기상지수 V5 자외선 API)
+- v1.1 (2026-05-26): 노령견/퍼피 세분화, 강풍 룰 추가
+- v1   (2026-05-22): 초기 16룰
 
 설계 원칙
 - 프레임워크 의존 없는 순수 Python (백엔드 통합/FastAPI 어느 쪽이든 이식 가능)
@@ -52,6 +57,7 @@ class WeatherInfo:
     pm10: int = 30                     # 미세먼지 ㎍/㎥
     pm25: int = 15                     # 초미세먼지 ㎍/㎥
     precipitation_type: str = "없음"   # 없음 / 비 / 비눈 / 눈
+    uv_index: int = 0                  # 자외선 지수 (생활기상지수 V5, 0~11+)
 
 
 @dataclass
@@ -161,11 +167,30 @@ RULES: list[Rule] = [
         lambda d, w: "비가 예보되어 있어요. 우산을 챙기세요",
     ),
 
-    # ── 노령견 ──
+    # ── 나이 (퍼피 1세 미만 / 노령견 8세 이상) ──
     Rule(
-        "SENIOR_EXTREME", 10,
-        lambda d, w: d.age_years >= 8 and (w.temperature >= 28 or w.temperature <= 0),
-        lambda d, w: "노령견은 극단적인 날씨에 더 주의가 필요합니다",
+        "PUPPY_EXTREME", 10,
+        lambda d, w: d.age_years < 1 and (w.temperature >= 28 or w.temperature <= 5),
+        lambda d, w: (
+            "어린 강아지는 더위에 약합니다"
+            if w.temperature >= 28
+            else "어린 강아지는 추위에 약합니다"
+        ),
+    ),
+    Rule(
+        "SENIOR_HEAT", 15,
+        lambda d, w: d.age_years >= 8 and w.temperature >= 28,
+        lambda d, w: "노령견은 더위에 약합니다",
+    ),
+    Rule(
+        "SENIOR_COLD", 15,
+        lambda d, w: d.age_years >= 8 and w.temperature <= 0,
+        lambda d, w: "노령견은 추위에 약합니다",
+    ),
+    Rule(
+        "SENIOR_BAD_AIR", 10,
+        lambda d, w: d.age_years >= 8 and w.pm10 >= 81,
+        lambda d, w: "노령견은 미세먼지에 취약합니다",
     ),
 
     # ── 강풍 ──
@@ -173,6 +198,18 @@ RULES: list[Rule] = [
         "STRONG_WIND", 10,
         lambda d, w: w.wind_speed >= 9,
         lambda d, w: f"바람이 강해요(풍속 {w.wind_speed:.0f}m/s)",
+    ),
+
+    # ── 자외선 (KMA 생활기상지수 V5 표준: 0~2 낮음 / 3~5 보통 / 6~7 높음 / 8~10 매우높음 / 11+ 위험) ──
+    Rule(
+        "UV_VERY_HIGH", 15,
+        lambda d, w: w.uv_index >= 8,
+        lambda d, w: f"자외선이 매우 강합니다(지수 {w.uv_index}). 산책 시간을 줄이세요",
+    ),
+    Rule(
+        "UV_HIGH", 8,
+        lambda d, w: 6 <= w.uv_index < 8,
+        lambda d, w: f"자외선이 강해요(지수 {w.uv_index})",
     ),
 ]
 

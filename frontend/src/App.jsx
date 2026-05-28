@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './hooks/useAuth'
+import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import WalkRecord from './pages/WalkRecord'
@@ -15,20 +17,26 @@ import NotFound from './pages/NotFound'
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/walk" element={<WalkRecord />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/profile" element={<Profile />} />
-
+      <AuthProvider>
+        <Routes>
+          {/* 공개 라우트 — 비로그인도 접근 가능 (Layout 헤더 없는 풀스크린) */}
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
-          <Route path="/dog-profile" element={<DogProfile />} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+
+          {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/walk" element={<WalkRecord />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/dog-profile" element={<DogProfile />} />
+
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
