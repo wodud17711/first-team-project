@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { getAccessToken } from '../api/tokenStorage'
+import { AUTH_CHANGED_EVENT, getAccessToken } from '../api/tokenStorage'
 import { logout as apiLogout } from '../api/auth'
 
 /**
@@ -20,11 +20,17 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
 
-  // 다른 탭에서 localStorage 변경 시 동기화
+  // 토큰 변경 동기화:
+  //  - 'storage'      : 다른 탭에서 localStorage 변경
+  //  - AUTH_CHANGED_EVENT : 같은 탭에서 setAccessToken/removeAccessToken 호출
   useEffect(() => {
-    const onStorage = () => setIsAuthenticated(!!getAccessToken())
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    const onChange = () => setIsAuthenticated(!!getAccessToken())
+    window.addEventListener('storage', onChange)
+    window.addEventListener(AUTH_CHANGED_EVENT, onChange)
+    return () => {
+      window.removeEventListener('storage', onChange)
+      window.removeEventListener(AUTH_CHANGED_EVENT, onChange)
+    }
   }, [])
 
   /** localStorage 의 AT 를 다시 읽어 상태 동기화. login·signup 후 호출. */
@@ -43,6 +49,8 @@ export function AuthProvider({ children }) {
   )
 }
 
+// AuthProvider 와 한 파일에 두는 게 사용 편의상 더 명확하므로 fast-refresh 룰만 예외.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) {
