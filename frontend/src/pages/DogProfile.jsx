@@ -121,9 +121,13 @@ function DogProfile() {
               className="flex flex-col items-center">
             <h1 className="text-[24px] font-bold mb-1">반려견 프로필 등록</h1>
             {/* 버튼 밑 공지글 */}
-            <div className="w-full mb-6 flex items-center justify-center 
+            <div className="w-full flex items-center justify-center 
                             text-[12px] text-txtcolor-400">
                 <p>반려견에게 알맞는 정보를 제공하기 위해 사용됩니다</p>
+            </div>
+            <div className="w-full mb-6 flex items-center justify-center 
+                            text-[12px] text-txtcolor-400">
+                <p>프로필은 나중에도 추가할 수 있어요(완료 클릭 시 스킵가능)</p>
             </div>
 
             {/* 반려견 정보 입력칸 */}
@@ -263,9 +267,9 @@ function DogProfile() {
             {/* 회원가입 완료 및 반려견 프로필 추가 버튼 */}
             <div className="w-full mt-6 flex gap-2">
                 <button type="submit" className="flex-1 py-3 bg-brand-300 rounded-xl 
-                                   text-[16px] font-bold text-txtcolor-900">반려견 프로필 추가</button>
+                                   text-[16px] font-bold text-txtcolor-900">프로필 추가</button>
                 <button type="submit" className="flex-1 py-3 bg-brand-300 rounded-xl 
-                                   text-[16px] font-bold text-txtcolor-900">회원가입 완료</button>
+                                   text-[16px] font-bold text-txtcolor-900">완료</button>
             </div>
 
         </form>
