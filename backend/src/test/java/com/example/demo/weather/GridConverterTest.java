@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GridConverterTest {
 
     @Test
-    void seoul_grid_convert_success() {
+    void seoul_convert_success() {
 
         GridCoordinate result =
                 GridConverter.toGrid(
@@ -20,7 +20,7 @@ class GridConverterTest {
     }
 
     @Test
-    void busan_grid_convert_success() {
+    void busan_convert_success() {
 
         GridCoordinate result =
                 GridConverter.toGrid(
@@ -33,7 +33,7 @@ class GridConverterTest {
     }
 
     @Test
-    void jeju_grid_convert_success() {
+    void jeju_convert_success() {
 
         GridCoordinate result =
                 GridConverter.toGrid(
