@@ -3,6 +3,7 @@ package com.example.demo.user.service;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.user.dto.UserResponse;
+import com.example.demo.user.dto.UserUpdateRequest;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,37 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getMyInfo(Long userId) {
         User user = findUserOrThrow(userId);
+        return UserResponse.from(user);
+    }
+
+    /**
+     * 내 정보 수정. PATCH 방식 — {@code null} 인 필드는 변경하지 않는다.
+     *
+     * <ul>
+     *   <li>nickname 변경 시: 동일 값이면 skip, 다른 값이면 중복 검사 후 변경
+     *   <li>profileImageUrl: null 이 아니면 그대로 반영 (빈 문자열은 "이미지 제거" 의미로 허용)
+     * </ul>
+     *
+     * @throws BusinessException USER_NOT_FOUND (404) — 호출자 유저 자체가 사라짐
+     * @throws BusinessException NICKNAME_DUPLICATED (409) — 다른 사용자가 이미 사용 중인 닉네임
+     */
+    @Transactional
+    public UserResponse updateMyInfo(Long userId, UserUpdateRequest request) {
+        User user = findUserOrThrow(userId);
+
+        if (request.nickname() != null
+                && !request.nickname().equals(user.getNickname())) {
+            if (userRepository.existsByNickname(request.nickname())) {
+                throw new BusinessException(ErrorCode.NICKNAME_DUPLICATED);
+            }
+            user.setNickname(request.nickname());
+        }
+
+        if (request.profileImageUrl() != null) {
+            user.setProfileImageUrl(request.profileImageUrl());
+        }
+
+        // dirty checking + @PreUpdate 가 updatedAt 자동 갱신
         return UserResponse.from(user);
     }
 

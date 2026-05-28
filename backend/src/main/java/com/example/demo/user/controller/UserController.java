@@ -4,12 +4,16 @@ import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.user.dto.UserResponse;
+import com.example.demo.user.dto.UserUpdateRequest;
 import com.example.demo.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,6 +39,15 @@ public class UserController {
     ) {
         Long userId = resolveUserId(userDetails);
         return ResponseEntity.ok(ApiResponse.success(userService.getMyInfo(userId)));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyInfo(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UserUpdateRequest request
+    ) {
+        Long userId = resolveUserId(userDetails);
+        return ResponseEntity.ok(ApiResponse.success(userService.updateMyInfo(userId, request)));
     }
 
     private Long resolveUserId(UserDetails userDetails) {
