@@ -191,8 +191,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 유저 로그인")
-    void login_user_not_found() {
+    @DisplayName("존재하지 않는 유저 로그인 - account enumeration 차단을 위해 INVALID_CREDENTIALS 응답")
+    void login_user_not_found_returns_invalid_credentials() {
 
         when(userRepository.findByEmail(any()))
                 .thenReturn(Optional.empty());
@@ -206,8 +206,9 @@ class AuthServiceTest {
                         )
                 );
 
+        // 보안: 이메일이 없을 때와 비번이 틀릴 때 응답을 동일하게 → 회원 명단 추출 차단 (OWASP).
         assertEquals(
-                ErrorCode.USER_NOT_FOUND,
+                ErrorCode.INVALID_CREDENTIALS,
                 exception.getErrorCode()
         );
     }

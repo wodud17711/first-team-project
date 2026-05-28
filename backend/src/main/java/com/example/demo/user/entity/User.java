@@ -2,6 +2,7 @@ package com.example.demo.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,10 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_users_email", columnList = "email")
         }
 )
+// 소프트 삭제: 탈퇴(deleted_at != null) 유저는 모든 find/exists 쿼리에서 자동 제외.
+// → 재가입 시 EMAIL_DUPLICATED 오탐 방지 + 탈퇴자 비번 알아도 로그인 차단.
+// 어드민 페이지에서 탈퇴자 조회 필요해지면 별도 native query / @Query(nativeQuery) 로 분리.
+@SQLRestriction("deleted_at IS NULL")
 public class User {
 
     @Id

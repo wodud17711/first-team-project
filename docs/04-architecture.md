@@ -225,10 +225,36 @@ src/
 
 ## 🔌 외부 API 호출 정책
 
-- **재시도**: 최대 3회, 지수 백오프
-- **타임아웃**: 3초
-- **실패 시**: 캐시된 마지막 데이터 사용 (없으면 사용자에게 안내)
-- **호출 한도 관리**: 일일 호출 수 모니터링
+### 책임 분담 — **Spring 단독** (2026-05-27 확정)
+
+**모든 외부 API(기상청 단기예보·에어코리아·KMA Hub ASOS·생활기상지수) 호출은 Spring 이 담당.**
+FastAPI 는 외부 API 를 직접 호출하지 않고, Spring 이 가공한 weather 데이터를 받기만 한다.
+
+| 항목 | Spring | FastAPI |
+| --- | :---: | :---: |
+| 위경도 → KMA 격자(nx, ny) 변환 | ✅ | — |
+| 기상청 단기예보 (`getVilageFcst`) | ✅ | — |
+| 에어코리아 (PM10/PM25) | ✅ | — |
+| KMA Hub ASOS (지면온도 TS) | ✅ | — |
+| 생활기상지수 (UV 등) | ✅ | — |
+| 응답 파싱·캐싱·재시도·rate limit | ✅ | — |
+| 위험도 룰 계산·top_reasons | — | ✅ |
+| 룰 가중치 조정 | — | ✅ |
+
+### 근거
+
+1. **`ai/schemas.py.ScoreRequest.weather` 가 이미 그렇게 설계됨** — raw 날씨 데이터(`temperature, feels_like, humidity, wind_speed, ground_temperature, pm10, pm25, precipitation_type`)를 받음. 추가 설계 변경 불필요.
+2. **CLAUDE.md "1일 1,000회 제한" 캐싱이 Spring 한 곳에서 효율적** — 같은 격자·같은 시간버킷이면 캐시 히트 → 외부 호출 0회. 두 군데 캐시는 이중 관리.
+3. **FE 호환성** — 위험도 카드 옆에 날씨 위젯(기온·미세먼지·풍속)도 표시해야 함. Spring 이 외부 API 갖고 있으면 한 응답에 `risk + weather` 같이 담아 보냄. FastAPI 가 호출하면 Spring 이 점수만 받고 날씨를 다시 호출해야 함.
+4. **보안 격리** — 기상청·에어코리아·KMA Hub key 가 Spring 환경변수에만 있으면 됨. FastAPI 는 key 없이 순수 계산만.
+
+### 안정성 정책 (Spring 측)
+
+- **재시도**: 최대 3회, 지수 백오프 (GET 멱등성 활용)
+- **타임아웃**: 3초 (외부 API), Spring→FastAPI 는 2초
+- **실패 시**: 캐시된 마지막 데이터 사용 → 없으면 사용자에게 "잠시 후 다시 시도" 안내
+- **호출 한도 관리**: 일일 호출 수 모니터링 (CLAUDE.md 1,000회 제한)
+- **서킷브레이커**: Phase 2 (Resilience4j) 검토
 
 ---
 
