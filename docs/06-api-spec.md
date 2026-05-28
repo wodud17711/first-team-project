@@ -20,6 +20,7 @@
 | 재발급 | `POST /api/auth/refresh` (Request Body 없음, 쿠키 RT를 서버가 읽음) |
 | 로그아웃 | DB의 RT 삭제 + 쿠키 만료(Max-Age=0) |
 | 서버 저장 | `refresh_tokens` 테이블 (단일 세션, schema v1.4) |
+| 멀티 디바이스 | **단일 세션 정책** — 새 로그인 시 해당 사용자의 기존 RT를 모두 삭제 → 다른 기기는 다음 AT 만료 시점에 자동 로그아웃 (MVP 의도된 동작) |
 | 로테이션 | 미적용 (MVP) |
 | dev 환경 | Vite `/api` → `:8081` 프록시 + axios `withCredentials: true` |
 
@@ -330,10 +331,11 @@ Set-Cookie: refreshToken=eyJhbGc...; HttpOnly; Secure; SameSite=Lax; Path=/api/a
 
 **서버 동작**
 1. 이메일 + BCrypt 비밀번호 검증
-2. Access Token 생성 (1시간 만료)
-3. Refresh Token 생성 (14일) + `refresh_tokens` 테이블에 `token_hash` 저장
-4. Set-Cookie 헤더로 Refresh Token 전달 (HttpOnly → JS 접근 불가, XSS 방어)
-5. 응답 바디로 Access Token + 사용자 정보 반환
+2. **해당 사용자의 기존 `refresh_tokens` row 전체 삭제** (단일 세션 정책 — 다른 기기는 다음 AT 만료 시점에 자동 로그아웃)
+3. Access Token 생성 (1시간 만료)
+4. Refresh Token 생성 (14일) + `refresh_tokens` 테이블에 `token_hash` 저장
+5. Set-Cookie 헤더로 Refresh Token 전달 (HttpOnly → JS 접근 불가, XSS 방어)
+6. 응답 바디로 Access Token + 사용자 정보 반환
 
 **Error**
 - 401: 이메일 또는 비밀번호 불일치 (`INVALID_CREDENTIALS`)
