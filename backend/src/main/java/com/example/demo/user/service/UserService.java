@@ -5,10 +5,13 @@ import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.user.dto.UserResponse;
 import com.example.demo.user.dto.UserUpdateRequest;
 import com.example.demo.user.entity.User;
+import com.example.demo.user.repository.RefreshTokenRepository;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 회원 도메인 비즈니스 로직.
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     /**
      * 내 정보 조회.
@@ -68,6 +72,24 @@ public class UserService {
 
         // dirty checking + @PreUpdate 가 updatedAt 자동 갱신
         return UserResponse.from(user);
+    }
+
+    /**
+     * 회원 탈퇴 (soft delete).
+     *
+     * <p>{@code deleted_at} 에 현재 시각을 박고, 해당 유저의 모든 RT 를 즉시 삭제한다.
+     * 이후 {@code User @SQLRestriction("deleted_at IS NULL")} 덕분에 모든 find/exists
+     * 조회에서 자동 제외 — 재가입 가능, 잔여 토큰으로 로그인 시도해도 USER_NOT_FOUND.
+     *
+     * <p>호출자(컨트롤러)는 응답에서 RT 쿠키를 만료시켜야 클라이언트 측 정리도 완결.
+     *
+     * @throws BusinessException USER_NOT_FOUND — 토큰 유효하지만 유저 사라진 비정상 케이스
+     */
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = findUserOrThrow(userId);
+        user.setDeletedAt(LocalDateTime.now());
+        refreshTokenRepository.deleteByUser_Id(userId);
     }
 
     // =========================

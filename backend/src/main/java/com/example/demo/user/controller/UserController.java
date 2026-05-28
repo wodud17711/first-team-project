@@ -6,11 +6,15 @@ import com.example.demo.common.response.ApiResponse;
 import com.example.demo.user.dto.UserResponse;
 import com.example.demo.user.dto.UserUpdateRequest;
 import com.example.demo.user.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +37,10 @@ public class UserController {
 
     private final UserService userService;
 
+    /** AuthController 와 동일한 환경별 토글. 운영 HTTPS=true, 로컬 dev=false. */
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getMyInfo(
             @AuthenticationPrincipal UserDetails userDetails
@@ -48,6 +56,30 @@ public class UserController {
     ) {
         Long userId = resolveUserId(userDetails);
         return ResponseEntity.ok(ApiResponse.success(userService.updateMyInfo(userId, request)));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdraw(
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletResponse response
+    ) {
+        Long userId = resolveUserId(userDetails);
+        userService.withdraw(userId);
+        clearRefreshCookie(response);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 탈퇴 시 RT 쿠키 즉시 만료. AuthController.clearRefreshCookie 와 동일 정책. */
+    private void clearRefreshCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     private Long resolveUserId(UserDetails userDetails) {
