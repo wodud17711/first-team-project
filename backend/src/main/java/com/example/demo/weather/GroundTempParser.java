@@ -14,16 +14,33 @@ public class GroundTempParser {
 
     private static final int MIN_COLUMN_COUNT = 37;
 
+    private static final double EARTH_RADIUS_KM = 6371.0;
+
     private static final Map<Integer, StationLocation> STATION_LOCATIONS =
             Map.ofEntries(
-                    Map.entry(108, new StationLocation(37.5714, 126.9658)), // 서울
-                    Map.entry(159, new StationLocation(35.1047, 129.0320)), // 부산
-                    Map.entry(184, new StationLocation(33.5141, 126.5297)), // 제주
-                    Map.entry(143, new StationLocation(35.8908, 128.6562)), // 대구
-                    Map.entry(156, new StationLocation(35.1729, 126.8916)), // 광주
-                    Map.entry(152, new StationLocation(35.5821, 129.3296)), // 울산
-                    Map.entry(133, new StationLocation(36.3722, 127.3739)), // 대전
-                    Map.entry(112, new StationLocation(37.4769, 126.6249))  // 인천
+                    Map.entry(90, new StationLocation(38.2509, 128.5647)),   // 속초
+                    Map.entry(101, new StationLocation(37.9026, 127.7355)),  // 춘천
+                    Map.entry(105, new StationLocation(37.7515, 128.8910)),  // 강릉
+                    Map.entry(108, new StationLocation(37.5714, 126.9658)),  // 서울
+                    Map.entry(112, new StationLocation(37.4769, 126.6249)),  // 인천
+                    Map.entry(115, new StationLocation(37.3373, 130.8980)),  // 울릉도
+                    Map.entry(119, new StationLocation(37.2746, 126.9988)),  // 수원
+                    Map.entry(129, new StationLocation(36.7724, 126.4982)),  // 서산
+                    Map.entry(131, new StationLocation(36.6394, 127.4413)),  // 청주
+                    Map.entry(133, new StationLocation(36.3722, 127.3739)),  // 대전
+                    Map.entry(135, new StationLocation(36.2204, 128.2872)),  // 추풍령
+                    Map.entry(138, new StationLocation(36.0327, 129.3800)),  // 포항
+                    Map.entry(143, new StationLocation(35.8908, 128.6562)),  // 대구
+                    Map.entry(146, new StationLocation(35.8226, 127.1192)),  // 전주
+                    Map.entry(152, new StationLocation(35.5821, 129.3296)),  // 울산
+                    Map.entry(156, new StationLocation(35.1729, 126.8916)),  // 광주
+                    Map.entry(159, new StationLocation(35.1047, 129.0320)),  // 부산
+                    Map.entry(162, new StationLocation(34.8083, 126.3815)),  // 목포
+                    Map.entry(165, new StationLocation(34.6815, 126.3814)),  // 흑산도
+                    Map.entry(168, new StationLocation(34.7393, 127.7405)),  // 여수
+                    Map.entry(184, new StationLocation(33.5141, 126.5297)),  // 제주
+                    Map.entry(189, new StationLocation(33.2461, 126.5604)),  // 서귀포
+                    Map.entry(192, new StationLocation(35.1648, 128.0398))   // 진주
             );
 
     private GroundTempParser() {
@@ -60,9 +77,9 @@ public class GroundTempParser {
                         new AsosRecord(
                                 parts[COL_TM],
                                 stn,
-                                parseFloat(parts[COL_TA]),
-                                parseFloat(parts[COL_HM]),
-                                parseFloat(parts[COL_TS])
+                                parseNullableDouble(parts[COL_TA]),
+                                parseNullableDouble(parts[COL_HM]),
+                                parseNullableDouble(parts[COL_TS])
                         )
                 );
 
@@ -78,12 +95,12 @@ public class GroundTempParser {
     // =========================================================
     public static Double getGroundTempByStation(
             List<AsosRecord> records,
-            int stn
+            int stationId
     ) {
 
         for (AsosRecord record : records) {
 
-            if (record.stn() == stn) {
+            if (record.stn() == stationId) {
                 return record.ts();
             }
         }
@@ -94,20 +111,34 @@ public class GroundTempParser {
     public static Double getGroundTempAt(
             List<AsosRecord> records,
             double lat,
+            double lon
+    ) {
+
+        return getGroundTempAt(
+                records,
+                lat,
+                lon,
+                100.0
+        );
+    }
+
+    public static Double getGroundTempAt(
+            List<AsosRecord> records,
+            double lat,
             double lon,
             double maxDistanceKm
     ) {
 
-        NearestStation nearest =
+        NearestStation nearestStation =
                 nearestStation(lat, lon);
 
-        if (nearest.distanceKm() > maxDistanceKm) {
+        if (nearestStation.distanceKm() > maxDistanceKm) {
             return null;
         }
 
         return getGroundTempByStation(
                 records,
-                nearest.stationId()
+                nearestStation.stationId()
         );
     }
 
@@ -120,50 +151,54 @@ public class GroundTempParser {
     ) {
 
         int nearestStationId = -1;
-        double minDistance = Double.MAX_VALUE;
+        double minimumDistanceKm = Double.MAX_VALUE;
 
         for (Map.Entry<Integer, StationLocation> entry
                 : STATION_LOCATIONS.entrySet()) {
 
-            double distance =
+            StationLocation stationLocation =
+                    entry.getValue();
+
+            double distanceKm =
                     haversineKm(
                             lat,
                             lon,
-                            entry.getValue().lat(),
-                            entry.getValue().lon()
+                            stationLocation.lat(),
+                            stationLocation.lon()
                     );
 
-            if (distance < minDistance) {
+            if (distanceKm < minimumDistanceKm) {
 
-                minDistance = distance;
+                minimumDistanceKm = distanceKm;
                 nearestStationId = entry.getKey();
             }
         }
 
         return new NearestStation(
                 nearestStationId,
-                minDistance
+                minimumDistanceKm
         );
     }
 
     // =========================================================
     // 내부 로직
     // =========================================================
-    private static Double parseFloat(String value) {
+    private static Double parseNullableDouble(String value) {
 
         try {
 
-            double parsed = Double.parseDouble(value);
+            double parsedValue =
+                    Double.parseDouble(value);
 
             if (
-                    parsed == -9.0
-                            || parsed == -99.0
-                            || parsed == -999.0
+                    parsedValue == -9.0
+                            || parsedValue == -99.0
+                            || parsedValue == -999.0
             ) {
                 return null;
             }
 
-            return parsed;
+            return parsedValue;
 
         } catch (NumberFormatException e) {
 
@@ -178,24 +213,22 @@ public class GroundTempParser {
             double lon2
     ) {
 
-        double r = 6371.0;
-
-        double dLat =
+        double latitudeDifference =
                 Math.toRadians(lat2 - lat1);
 
-        double dLon =
+        double longitudeDifference =
                 Math.toRadians(lon2 - lon1);
 
         double a =
-                Math.sin(dLat / 2)
-                        * Math.sin(dLat / 2)
+                Math.sin(latitudeDifference * 0.5)
+                        * Math.sin(latitudeDifference * 0.5)
                         + Math.cos(Math.toRadians(lat1))
                         * Math.cos(Math.toRadians(lat2))
-                        * Math.sin(dLon / 2)
-                        * Math.sin(dLon / 2);
+                        * Math.sin(longitudeDifference * 0.5)
+                        * Math.sin(longitudeDifference * 0.5);
 
         return 2
-                * r
+                * EARTH_RADIUS_KM
                 * Math.asin(Math.sqrt(a));
     }
 
