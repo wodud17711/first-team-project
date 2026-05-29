@@ -125,7 +125,6 @@ function DogProfile() {
     // 털길이 선택 버튼 코드 줄이기 위해 사용
     const hairlength = [
         { value: "단모종", title: "단모", desc: "짧고 매끈" },
-        { value: "중모종", title: "중모", desc: "적당히 복슬" },
         { value: "장모종", title: "장모", desc: "길고 풍성" }
     ]
 
@@ -307,7 +306,7 @@ function DogProfile() {
                             key={c.value}
                             type="button"
                             onClick={() => setForm({ ...form, hairlength: c.value })}
-                            className={`w-1/3 flex flex-col items-center justify-center
+                            className={`w-1/2 flex flex-col items-center justify-center
                             px-3 py-3 rounded-xl border text-[14px] transition
                             ${form.hairlength === c.value
                                 ? "bg-brand-200 border-brand-500 hover:bg-brand-200"
@@ -320,9 +319,8 @@ function DogProfile() {
                         </button>
                         ))}
                     </div>
-
-                    
                 </div>
+
             </div>
 
             {error && (
