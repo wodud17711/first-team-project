@@ -1,6 +1,6 @@
 package com.example.demo.weather;
 
-public record NearestStation(
+public record NearestWeatherStation(
 
         int stn,
         double distanceKm
