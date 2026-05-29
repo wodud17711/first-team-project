@@ -16,6 +16,8 @@ public class GroundTempParser {
 
     private static final double EARTH_RADIUS_KM = 6371.0;
 
+    private static final double DEFAULT_MAX_DISTANCE_KM = 100.0;
+
     private static final Map<Integer, StationLocation> STATION_LOCATIONS =
             Map.ofEntries(
                     Map.entry(90, new StationLocation(38.2509, 128.5647)),   // 속초
@@ -71,12 +73,13 @@ public class GroundTempParser {
 
             try {
 
-                int stn = Integer.parseInt(parts[COL_STN]);
+                int stationId =
+                        Integer.parseInt(parts[COL_STN]);
 
                 records.add(
                         new AsosRecord(
                                 parts[COL_TM],
-                                stn,
+                                stationId,
                                 parseNullableDouble(parts[COL_TA]),
                                 parseNullableDouble(parts[COL_HM]),
                                 parseNullableDouble(parts[COL_TS])
@@ -118,7 +121,7 @@ public class GroundTempParser {
                 records,
                 lat,
                 lon,
-                100.0
+                DEFAULT_MAX_DISTANCE_KM
         );
     }
 
@@ -151,7 +154,9 @@ public class GroundTempParser {
     ) {
 
         int nearestStationId = -1;
-        double minimumDistanceKm = Double.MAX_VALUE;
+
+        double minimumDistanceKm =
+                Double.MAX_VALUE;
 
         for (Map.Entry<Integer, StationLocation> entry
                 : STATION_LOCATIONS.entrySet()) {
@@ -235,15 +240,6 @@ public class GroundTempParser {
     // =========================================================
     // DTO
     // =========================================================
-    public record AsosRecord(
-            String tm,
-            int stn,
-            Double ta,
-            Double hm,
-            Double ts
-    ) {
-    }
-
     public record StationLocation(
             double lat,
             double lon
