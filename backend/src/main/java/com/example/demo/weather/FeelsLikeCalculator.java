@@ -19,6 +19,8 @@ public class FeelsLikeCalculator {
             double windSpeed
     ) {
 
+        // TODO: ai/weather/feels_like.py 포팅 예정
+
         // 풍속 m/s → km/h 변환
         double windKmh = windSpeed * 3.6;
 
