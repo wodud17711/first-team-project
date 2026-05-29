@@ -18,7 +18,9 @@ function DogListPage() {
         name: "멍멍일",
         birth: "2023/01/01",
         breed: "리트리버",
+        gender: "🩷 여아",
         weight: 26,
+        favorwalk: ["오전 10~11시", "오후 2~3시", "오후 7~8시"],
         img: dogImg1,
         tags: ["활동적", "종일 산책형"]
         },
@@ -27,7 +29,9 @@ function DogListPage() {
         name: "멍멍이",
         birth: "2021/01/01",
         breed: "사모예드",
+        gender: "🩵 남아",
         weight: 21,
+        favorwalk: ["오전 9~10시"],
         img: dogImg2,
         tags: ["내성적", "오전 산책형"]
         }
@@ -49,60 +53,98 @@ function DogListPage() {
           프로필 추가
         </button>
       </div>
+      <div className='w-full h-[1px] bg-brand-400 mb-[30px]'/>
 
-        {/* 컬럼 헤더 */}
-        <div className="flex items-center px-3 py-2 mb-3 text-[12px] text-gray-500 border-b">
-            <div className="w-[80px]"/>
-            <div className="flex-1 flex justify-between">
-                <span>프로필</span>
-                <span>이름</span>
-                <span>생일</span>
-                <span>견종</span>
-                <span>체중</span>
-                <span>성향</span>
+
+      <div className='flex flex-col gap-[20px]'>
+        {/* 프로필 목록 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          {dogs.map((dog, index) => (
+            <div
+              key={dog.id}
+              onClick={() => navigate("/dog-profile-detail", { state: dog })}
+              className="group relative flex bg-white rounded-xl shadow px-6 py-5 gap-2 cursor-pointer"
+            >
+
+              {/* 강아지 이미지 */}
+              <div className="relative shrink-0">
+                <img
+                  src={dog.img}
+                  className="w-[180px] h-[230px] rounded-2xl object-cover"
+                />
+
+                {/* 첫 번째 강아지만 대표 강아지 표시 */}
+                {index === 0 && (
+                  <span className="
+                    absolute top-3 left-3
+                    px-2 py-1 rounded-full
+                    bg-white/90 backdrop-blur
+                    text-[11px] font-bold
+                  ">
+                    🐶 대표 강아지
+                  </span>
+                )}
+              </div>
+
+              <div>
+                
+              </div>
+
+              {/* 강아지 정보 */}
+              <div className='flex flex-col flex-1 pr-4'>
+                <div className='flex items-center gap-3 mb-2'>
+                  <p className="text-[24px] font-bold">{dog.name}</p>
+                  <div className='flex px-3 py-1
+                      bg-sky-100 rounded-full text-sky-700 text-[12px] font-bold'>
+                    프로필 등록일 · 2026.01.01.
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-1 text-[14px]">
+                  <p className='pb-1 border-b-[1px] border-brand-300'>🎂 {dog.birth}</p>
+                  <p className='pb-1 border-b-[1px] border-brand-300'>🐶 {dog.breed}</p>
+                  <p className='pb-1 border-b-[1px] border-brand-300'>{dog.gender}</p>
+                  <p className='pb-1 border-b-[1px] border-brand-300'>🐾 {dog.weight}kg</p>
+                  <p className='pb-1 border-b-[1px] border-brand-300'>🚶 {dog.favorwalk.join(", ")}</p>
+                </div>
+
+                {/* 성향 태그 */}
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {dog.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="
+                        px-2 py-[2px]
+                        rounded-full
+                        bg-gray-100
+                        text-[11px]
+                      "
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                
+              </div>
+              
+              {/* 우측 화살표 */}
+              <div className="
+                absolute right-5 top-1/2 -translate-y-1/2
+                text-[36px]
+                text-gray-300
+                group-hover:text-txtcolor-500
+              ">
+                ›
+              </div>
+
             </div>
+          ))}
         </div>
 
-      {/* 프로필 목록 */}
-      <div className="flex flex-col gap-3">
-
-        {dogs.map((dog) => (
-          <div
-            key={dog.id}
-            onClick={() => navigate("/dog-profile-detail", {state: dog})}
-            className="flex items-center bg-white rounded-xl shadow p-3 gap-3 cursor-pointer"
-          >
-
-            {/* 이미지 */}
-            <img
-              src={dog.img}
-              className="w-[100px] h-[100px] rounded-full object-cover border-4 border-white"
-            />
-
-            {/* 정보 */}
-            <div>
-              <p className="text-[18px] font-bold">{dog.name}</p>
-              <p className="text-[12px]">
-                🎂 {dog.birth} · 🐶 {dog.breed} · {dog.weight}kg
-              </p>
-
-              {/* 태그 */}
-              <div className="flex gap-1 mt-1">
-                {dog.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-[2px] rounded-full bg-gray-100 text-[11px]"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        ))}
-
       </div>
+
+      
     </div>
   )
 }
