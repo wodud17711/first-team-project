@@ -14,97 +14,69 @@ public class GroundTempParser {
 
     private static final int MIN_COLUMN_COUNT = 37;
 
-    private static final List<Double> MISSING_FLOATS =
-            List.of(-9.0, -99.0, -999.0);
-
-    public static final Map<Integer, StationLocation>
-            STATION_LOCATIONS = Map.ofEntries(
-
-            Map.entry(108,
-                    new StationLocation(
-                            37.5714,
-                            126.9658
-                    )
-            ),
-
-            Map.entry(159,
-                    new StationLocation(
-                            35.1047,
-                            129.0320
-                    )
-            ),
-
-            Map.entry(184,
-                    new StationLocation(
-                            33.5141,
-                            126.5297
-                    )
-            )
-    );
+    private static final Map<Integer, StationLocation> STATION_LOCATIONS =
+            Map.ofEntries(
+                    Map.entry(108, new StationLocation(37.5714, 126.9658)), // 서울
+                    Map.entry(159, new StationLocation(35.1047, 129.0320)), // 부산
+                    Map.entry(184, new StationLocation(33.5141, 126.5297)), // 제주
+                    Map.entry(143, new StationLocation(35.8908, 128.6562)), // 대구
+                    Map.entry(156, new StationLocation(35.1729, 126.8916)), // 광주
+                    Map.entry(152, new StationLocation(35.5821, 129.3296)), // 울산
+                    Map.entry(133, new StationLocation(36.3722, 127.3739)), // 대전
+                    Map.entry(112, new StationLocation(37.4769, 126.6249))  // 인천
+            );
 
     private GroundTempParser() {
     }
 
-    public static List<AsosRecord> parse(
-            String text
-    ) {
+    // =========================================================
+    // 응답 파싱
+    // =========================================================
+    public static List<AsosRecord> parse(String text) {
 
-        List<AsosRecord> records =
-                new ArrayList<>();
+        List<AsosRecord> records = new ArrayList<>();
 
-        String[] lines =
-                text.split("\n");
+        String[] lines = text.split("\\R");
 
         for (String line : lines) {
 
             line = line.trim();
 
-            if (line.isBlank()
-                    || line.startsWith("#")) {
+            if (line.isBlank() || line.startsWith("#")) {
                 continue;
             }
 
-            String[] parts =
-                    line.split("\\s+");
+            String[] parts = line.split("\\s+");
 
-            if (parts.length
-                    < MIN_COLUMN_COUNT) {
+            if (parts.length < MIN_COLUMN_COUNT) {
                 continue;
             }
 
             try {
 
-                int stn =
-                        Integer.parseInt(
-                                parts[COL_STN]
-                        );
+                int stn = Integer.parseInt(parts[COL_STN]);
 
                 records.add(
                         new AsosRecord(
                                 parts[COL_TM],
                                 stn,
-                                parseDouble(
-                                        parts[COL_TA]
-                                ),
-                                parseDouble(
-                                        parts[COL_HM]
-                                ),
-                                parseDouble(
-                                        parts[COL_TS]
-                                )
+                                parseFloat(parts[COL_TA]),
+                                parseFloat(parts[COL_HM]),
+                                parseFloat(parts[COL_TS])
                         )
                 );
 
-            } catch (NumberFormatException e) {
-
-                continue;
+            } catch (NumberFormatException ignored) {
             }
         }
 
         return records;
     }
 
-    public static Double getGroundTempByStn(
+    // =========================================================
+    // 공개 API
+    // =========================================================
+    public static Double getGroundTempByStation(
             List<AsosRecord> records,
             int stn
     ) {
@@ -129,29 +101,28 @@ public class GroundTempParser {
         NearestStation nearest =
                 nearestStation(lat, lon);
 
-        if (nearest.distanceKm()
-                > maxDistanceKm) {
+        if (nearest.distanceKm() > maxDistanceKm) {
             return null;
         }
 
-        return getGroundTempByStn(
+        return getGroundTempByStation(
                 records,
-                nearest.stn()
+                nearest.stationId()
         );
     }
 
+    // =========================================================
+    // 가장 가까운 관측소
+    // =========================================================
     public static NearestStation nearestStation(
             double lat,
             double lon
     ) {
 
-        int nearestStn = -1;
+        int nearestStationId = -1;
+        double minDistance = Double.MAX_VALUE;
 
-        double minDistance =
-                Double.MAX_VALUE;
-
-        for (Map.Entry<Integer,
-                StationLocation> entry
+        for (Map.Entry<Integer, StationLocation> entry
                 : STATION_LOCATIONS.entrySet()) {
 
             double distance =
@@ -165,32 +136,34 @@ public class GroundTempParser {
             if (distance < minDistance) {
 
                 minDistance = distance;
-                nearestStn = entry.getKey();
+                nearestStationId = entry.getKey();
             }
         }
 
         return new NearestStation(
-                nearestStn,
+                nearestStationId,
                 minDistance
         );
     }
 
-    private static Double parseDouble(
-            String token
-    ) {
+    // =========================================================
+    // 내부 로직
+    // =========================================================
+    private static Double parseFloat(String value) {
 
         try {
 
-            double value =
-                    Double.parseDouble(token);
+            double parsed = Double.parseDouble(value);
 
-            if (MISSING_FLOATS.contains(
-                    value
-            )) {
+            if (
+                    parsed == -9.0
+                            || parsed == -99.0
+                            || parsed == -999.0
+            ) {
                 return null;
             }
 
-            return value;
+            return parsed;
 
         } catch (NumberFormatException e) {
 
@@ -214,23 +187,39 @@ public class GroundTempParser {
                 Math.toRadians(lon2 - lon1);
 
         double a =
-                Math.pow(
-                        Math.sin(dLat / 2),
-                        2
-                )
-                        + Math.cos(
-                        Math.toRadians(lat1)
-                )
-                        * Math.cos(
-                        Math.toRadians(lat2)
-                )
-                        * Math.pow(
-                        Math.sin(dLon / 2),
-                        2
-                );
+                Math.sin(dLat / 2)
+                        * Math.sin(dLat / 2)
+                        + Math.cos(Math.toRadians(lat1))
+                        * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(dLon / 2)
+                        * Math.sin(dLon / 2);
 
         return 2
                 * r
                 * Math.asin(Math.sqrt(a));
+    }
+
+    // =========================================================
+    // DTO
+    // =========================================================
+    public record AsosRecord(
+            String tm,
+            int stn,
+            Double ta,
+            Double hm,
+            Double ts
+    ) {
+    }
+
+    public record StationLocation(
+            double lat,
+            double lon
+    ) {
+    }
+
+    public record NearestStation(
+            int stationId,
+            double distanceKm
+    ) {
     }
 }
