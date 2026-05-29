@@ -1,51 +1,67 @@
 package com.example.demo.weather;
 
-public class FeelsLikeCalculator {
+public final class FeelsLikeCalculator {
 
     private FeelsLikeCalculator() {
     }
 
-    /**
-     * 체감온도 계산 (Steadman)
-     *
-     * @param temperature 기온(℃)
-     * @param humidity 상대습도(%)
-     * @param windSpeed 풍속(m/s)
-     * @return 체감온도(℃)
-     */
     public static double calculate(
-            double temperature,
-            double humidity,
-            double windSpeed
+            double tempC,
+            int humidity,
+            double windMs
     ) {
 
-        // TODO: ai/weather/feels_like.py 포팅 예정
+        // ========================================
+        // 여름: Steadman
+        // temp >= 27°C
+        // ========================================
+        if (tempC >= 27.0) {
 
-        // 풍속 m/s → km/h 변환
-        double windKmh = windSpeed * 3.6;
+            double vaporPressure =
+                    (humidity / 100.0)
+                            * 6.105
+                            * Math.exp(
+                            17.27 * tempC
+                                    / (237.7 + tempC)
+                    );
 
-        // 수증기압(hPa)
-        double vaporPressure =
-                (humidity / 100.0)
-                        * 6.105
-                        * Math.exp(
-                        (17.27 * temperature)
-                                / (237.7 + temperature)
-                );
+            double apparentTemp =
+                    1.07 * tempC
+                            + 0.2 * vaporPressure
+                            - 0.65 * windMs
+                            - 2.7;
 
-        double feelsLike =
-                temperature
-                        + 0.33 * vaporPressure
-                        - 0.70 * windKmh
-                        - 4.00;
-
-        if (Double.isNaN(feelsLike)
-                || Double.isInfinite(feelsLike)) {
-
-            return temperature;
+            return round1(apparentTemp);
         }
 
-        return Math.round(feelsLike * 10.0)
-                / 10.0;
+        // ========================================
+        // 겨울: Wind Chill
+        // temp <= 10°C && wind >= 1.3m/s
+        // ========================================
+        if (tempC <= 10.0 && windMs >= 1.3) {
+
+            double windKmh = windMs * 3.6;
+
+            double windPow =
+                    Math.pow(windKmh, 0.16);
+
+            double windChill =
+                    13.12
+                            + 0.6215 * tempC
+                            - 11.37 * windPow
+                            + 0.3965 * tempC * windPow;
+
+            return round1(windChill);
+        }
+
+        // ========================================
+        // 봄/가을 또는 무풍 겨울
+        // ========================================
+        return round1(tempC);
+    }
+
+    private static double round1(double value) {
+
+        return Math.round(value * 10.0) / 10.0;
     }
 }
