@@ -53,7 +53,7 @@ function DogDetailPage() {
                   text-[14px] font-bold
                 "
               >
-                🐶 대표 강아지
+                ⭐ 대표 강아지
               </span>
             )}
           </div>
@@ -70,8 +70,8 @@ function DogDetailPage() {
                                                                                                               </span>{" "}</span> - {dog.gender}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">체중🐾</span> - {dog.weight}kg</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">선호 산책 시간🚶</span> - {dog.favorwalktime.join(", ")}</p>
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">털길이✂️</span> - {dog.hairlength}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">건강 특이사항🩺</span> - {dog.health}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">털길이✂️</span> - {dog.hairlength}</p>
             </div>
           </div>
 

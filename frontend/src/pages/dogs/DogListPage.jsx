@@ -90,7 +90,7 @@ function DogListPage() {
                     text-[11px] font-bold
                   "
                 >
-                  🐶 대표 강아지
+                  ⭐ 대표 강아지
                 </span>
               )}
               </div>
@@ -101,7 +101,7 @@ function DogListPage() {
                   <p className="text-[24px] font-bold">{dog.name}</p>
                   <div className='flex px-3 py-1
                       bg-sky-100 rounded-full text-sky-700 text-[12px] font-bold'>
-                    프로필 등록일 · 2026.01.01.
+                    프로필 등록일 · 2026/01/01
                   </div>
                 </div>
                 

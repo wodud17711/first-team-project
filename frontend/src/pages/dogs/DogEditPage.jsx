@@ -10,16 +10,32 @@ function DogEditPage() {
   const location = useLocation()
   const dog = location.state || {}
 
+  // 강아지 이미지 주소 저장
+  const [previewImg, setPreviewImg] = useState(dog.img)
+
+  // 강아지 이미지 변경 함수
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    const imageUrl = URL.createObjectURL(file)
+    setPreviewImg(imageUrl)
+  }
+
+  // 대표 강아지 설정 여부
+  const [isMain, setIsMain] = useState(dog.isMain || false)
+
   // 인풋 코드 줄이기
   const inputs = [
-    { label: "이름 ✨", name: "name" },
-    { label: "생년월일 🎂", name: "birth" },
-    { label: "견종 🐶", name: "breed" },
+    { label: "이름", name: "name" },
+    { label: "생년월일", name: "birth" },
+    { label: "견종", name: "breed" },
     { label: "성별", name: "gender" },
-    { label: "체중 🐾", name: "weight" },
-    { label: "선호 산책 시간 🚶", name: "favorwalktime" },
-    { label: "건강 특이사항 🩺", name: "health" },
-    { label: "털길이 ✂️", name: "hairlength" },
+    { label: "체중", name: "weight" },
+    { label: "선호 산책 시간", name: "favorwalktime" },
+    { label: "건강 특이사항", name: "health" },
+    { label: "털길이", name: "hairlength" },
   ]
 
   // 수정용 state
@@ -43,6 +59,7 @@ function DogEditPage() {
       [name]: value
     })
   }
+
 
   // 선호 선택 시간 목록 펼쳐져있는지 여부
   const [openWalkTime, setOpenWalkTime] = useState(false)
@@ -97,19 +114,33 @@ function DogEditPage() {
     }
   }
 
+  // 성별 선택 버튼
+  const genders = [
+    { value: "남아" },
+    { value: "여아" },
+  ]
+
   // 털길이 선택 버튼 코드 줄이기 위해 사용
   const hairlength = [
       { value: "단모종", title: "단모", desc: "짧고 매끈" },
       { value: "장모종", title: "장모", desc: "길고 풍성" }
   ]
 
-  // 수정하기 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
+  // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
   const handleSubmit = () => {
-    const confirmDelete = window.confirm(
+    const confirmEdit  = window.confirm(
       "수정을 완료하시겠습니까?"
     )
-    if (confirmDelete) {
-      navigate("/dog-profile-detail", {state: dog})
+
+    if (confirmEdit) {
+      navigate("/dog-profile-detail", {
+        state: {
+          ...dog,
+          ...form,
+          img: previewImg,
+          isMain,
+        }
+      })
     }
   }
 
@@ -136,40 +167,96 @@ function DogEditPage() {
       <div className="flex flex-col items-center space-y-6">        
         <div className="flex items-start w-3/4 bg-white rounded-xl px-[30px] py-[24px] shadow hover:shadow-lg transition">
           
-          {/* 강아지 이미지 */}
-          <div className="relative shrink-0">
-            <img
-              src={dog.img}
-              className="w-[300px] h-[350px] rounded-xl object-cover"
-            />
-            {/* 첫 번째 강아지만 대표 강아지 표시 */}
-            {dog.isMain && (
-              <span
+          {/* 강아지 사진 */}
+          <div className="shrink-0 flex flex-col items-center gap-3">
+            <div className="relative">
+              <img
+                src={previewImg}
+                alt="강아지 사진"
+                className="w-[300px] h-[350px] rounded-xl object-cover"
+              />
+
+              {/* 사진 변경 버튼 */}
+              <label
+                htmlFor="dog-image"
                 className="
-                  absolute top-3 left-3
-                  px-2 py-1 rounded-full
-                  bg-white/90 backdrop-blur
-                  text-[14px] font-bold
+                  absolute bottom-3 right-3
+                  px-3 py-2
+                  bg-white/60
+                  rounded-lg text-[13px] font-bold
+                  cursor-pointer
+                  hover:bg-black/10
+                  transition
                 "
               >
-                🐶 대표 강아지
-              </span>
-            )}
+                📷 사진 변경
+              </label>
+
+              <input
+                id="dog-image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </div>
+
+            {/* 대표 강아지 설정 */}
+            <button
+            type="button"
+            onClick={() => setIsMain(!isMain)}
+            className={`
+              w-full py-3 rounded-xl border font-bold
+              ${
+                isMain
+                  ? "bg-brand-200 border-brand-500"
+                  : "bg-white border-gray-300"
+              }
+            `}
+            >
+              {isMain ? "⭐ 대표 강아지" : "대표 강아지로 설정"}
+            </button>
           </div>
 
           {/* 강아지 정보 */}
-          <div className="flex flex-col gap-3 px-4 w-full text-[14px]">
+          <div className="flex flex-col gap-2 px-4 w-full text-[14px]">
 
             {inputs.map((item) => (
             <div key={item.name} className="flex items-center gap-4">
 
-              <p className="w-[180px] text-[14px] text-txtcolor-400">
+              <p className="w-[110px] text-[16px] font-bold text-txtcolor-400">
                 {item.label}
               </p>
 
-              {/* 체중 */}
-              {item.name === "weight" ? (
-                <div className="relative w-full">
+
+              {/* 성별 선택 */}
+                {item.name === "gender" ? (
+                <div className="flex-1">
+                  <div className="flex gap-2">
+                    {genders.map((g) => (
+                      <button
+                        key={g.value}
+                        type="button"
+                        onClick={() =>
+                          setForm({ ...form, gender: g.value })
+                        }
+                        className={`w-1/2 flex items-center justify-center
+                          px-4 py-3 rounded-xl border text-[14px] transition
+                          ${
+                            form.gender === g.value
+                              ? "bg-brand-200 border-brand-500"
+                              : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0]"
+                          }`}
+                      >
+                        <span>{g.value}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              // 체중
+              ): item.name === "weight" ? (
+                <div className="relative flex-1">
                   <input
                     type="text"
                     value={form.weight}
@@ -185,7 +272,8 @@ function DogEditPage() {
 
                       setForm({ ...form, weight: value })
                     }}
-                    className="w-full px-4 py-3 pr-10 rounded-xl bg-[#f7f7f7]"
+                    className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]
+                    focus:outline-brand-300 hover:bg-[#F0F0F0]"
                   />
 
                   {form.weight && (
@@ -198,11 +286,14 @@ function DogEditPage() {
               ) : item.name === "favorwalktime" ? (
 
                 /* 선호 산책 시간 */
-                <div ref={walkTimeRef} className="relative w-full">
+                <div ref={walkTimeRef} className="relative flex-1">
                   <button
                     type="button"
                     onClick={() => setOpenWalkTime(!openWalkTime)}
-                    className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7] text-left"
+                    className={`w-full px-4 py-3 rounded-xl bg-[#f7f7f7] text-left
+                               hover:bg-[#F0F0F0]
+                               ${openWalkTime ? "outline outline-2 outline-brand-300" : ""}
+                               ${form.favorwalktime.length > 0 ? "text-black" : "text-gray-400"}`}
                   >
                     {form.favorwalktime.length > 0
                       ? form.favorwalktime.join(", ")
@@ -233,7 +324,7 @@ function DogEditPage() {
 
                 // 털길이 선택
                 ) : item.name === "hairlength" ? (
-                <div className="w-full mt-2 flex flex-col gap-2">
+                <div className="flex-1 flex flex-col gap-2">
                   <div className="flex gap-2">
                     {hairlength.map((c) => (
                       <button
@@ -242,15 +333,14 @@ function DogEditPage() {
                         onClick={() =>
                           setForm({ ...form, hairlength: c.value })
                         }
-                        className={`w-1/3 flex flex-col items-center justify-center
-                          px-3 py-3 rounded-xl border text-[14px] transition
+                        className={`w-1/2 flex items-center justify-center
+                          px-4 py-3 rounded-xl border text-[14px] transition
                           ${
                             form.hairlength === c.value
                               ? "bg-brand-200 border-brand-500"
                               : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0]"
                           }`}
                       >
-                        <span className="text-[16px]">{c.icon}</span>
                         <span className="text-[14px]">{c.title}</span>
                         <span className="text-[12px]">({c.desc})</span>
                       </button>
@@ -265,7 +355,8 @@ function DogEditPage() {
                   name={item.name}
                   value={form[item.name]}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]"
+                  className="flex-1 w-full px-4 py-3 rounded-xl bg-[#f7f7f7] 
+                  focus:outline-brand-300 hover:bg-[#F0F0F0]"
                 />
               )}
             </div>
