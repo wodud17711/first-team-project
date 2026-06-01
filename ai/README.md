@@ -14,7 +14,7 @@ ai/
 ├─ requirements.txt
 ├─ rules/
 │  ├─ walk_risk.py        # 룰베이스 본체 (calculate_walk_risk)
-│  └─ test_walk_risk.py   # 테스트 10케이스
+│  └─ test_walk_risk.py   # 테스트 17케이스
 └─ notebooks/             # EDA
 ```
 
@@ -61,7 +61,7 @@ print(result.to_dict())
 # {'score': 30, 'level': '위험', 'reasons': [...]}
 ```
 
-## 📊 룰 가중치 표 (v1)
+## 📊 룰 가중치 표 (v1.2)
 
 점수는 **100에서 시작**해 위험 요인마다 감점합니다.
 
@@ -86,6 +86,8 @@ print(result.to_dict())
 | SENIOR_COLD | 8세+ & 기온 ≤ 0 | -15 | 노령견 추위 |
 | SENIOR_BAD_AIR | 8세+ & PM10 ≥ 81 | -10 | 노령견 호흡기 |
 | STRONG_WIND | 풍속 ≥ 9m/s | -10 | 강풍 |
+| UV_VERY_HIGH | 자외선 지수 ≥ 8 | -15 | 자외선 매우 강함 (v1.2) |
+| UV_HIGH | 자외선 지수 6~7 | -8 | 자외선 강함 (v1.2) |
 
 ### 등급 기준
 | 점수 | 등급 |
@@ -103,9 +105,10 @@ print(result.to_dict())
 | --- | --- | --- |
 | 견종 특성 (단두종·내열·내한) | `dog_breeds` 테이블 | Kaggle 시드 데이터 |
 | 기온·습도·풍속·강수 | 기상청 단기예보 | `docs/09-external-apis.md` |
-| 미세먼지 | 에어코리아 | |
-| 지면온도 | 기온 기반 추정 | 추정식 보강 예정 |
-| 체감온도 | 생활기상지수 or 계산 | |
+| 미세먼지 (PM10/PM2.5) | 에어코리아 | |
+| 지면온도 | KMA Hub ASOS (지면온도 TS) | `kma_sfctm3.php` |
+| 체감온도 | Steadman 공식 직접 계산 | `ai/weather/feels_like.py` |
+| 자외선 지수 | KMA 생활기상지수 V5 | `getUVIdxV5` (룰 v1.2) |
 
 ## 🛣 향후 계획
 
@@ -142,7 +145,8 @@ print(result.to_dict())
     "ground_temperature": 55.0,
     "pm10": 50,
     "pm25": 30,
-    "precipitation_type": "없음"  // 없음 / 비 / 비눈 / 눈
+    "precipitation_type": "없음",  // 없음 / 비 / 비눈 / 눈
+    "uv_index": 0                  // 자외선 지수 0~11+ (생활기상지수 V5). 룰 v1.2
   }
 }
 ```
@@ -236,7 +240,8 @@ public class AiClient {
             @JsonProperty("ground_temperature") double groundTemperature,
             int pm10,
             int pm25,
-            @JsonProperty("precipitation_type") String precipitationType
+            @JsonProperty("precipitation_type") String precipitationType,
+            @JsonProperty("uv_index") int uvIndex            // 룰 v1.2 (UV_HIGH/UV_VERY_HIGH)
     ) {}
 
     public record ScoreResponse(
@@ -279,7 +284,8 @@ public class WalkScoreService {
         var weatherInfo = new AiClient.WeatherInfo(
                 snapshot.getTemperature(), snapshot.getFeelsLike(), snapshot.getHumidity(),
                 snapshot.getWindSpeed(), snapshot.getGroundTemperature(),
-                snapshot.getPm10(), snapshot.getPm25(), snapshot.getPrecipitationType()
+                snapshot.getPm10(), snapshot.getPm25(), snapshot.getPrecipitationType(),
+                snapshot.getUvIndex()   // WeatherSnapshot 에 uv_index 필드 필요 (UvIdxClient 연동분)
         );
         return aiClient.score(dogInfo, weatherInfo);
     }
