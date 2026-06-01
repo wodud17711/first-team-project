@@ -66,7 +66,7 @@ function DogListPage() {
         {/* 프로필 목록 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          {dogs.map((dog, index) => (
+          {dogs.map((dog) => (
             <div
               key={dog.id}
               onClick={() => navigate("/dog-profile-detail", { state: dog })}

@@ -32,7 +32,7 @@ function App() {
           <Route path="/dog-profile" element={<DogProfile />} />
 
           {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
-          {/* <Route element={<ProtectedRoute />}> */}
+          <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/walk" element={<WalkRecord />} />
@@ -48,7 +48,7 @@ function App() {
 
               <Route path="*" element={<NotFound />} />
             </Route>
-          {/* </Route> */}
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>
