@@ -1,5 +1,7 @@
 package com.example.demo.walk;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public record WalkScoreResult(
@@ -7,6 +9,8 @@ public record WalkScoreResult(
         int score,
         String level,
         List<String> reasons,
+
+        @JsonProperty("top_reasons")
         List<String> topReasons
 ) {
 }

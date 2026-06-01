@@ -16,15 +16,11 @@ public class WalkController {
             @RequestParam Long dogId
     ) {
 
-        WalkScoreRequest request =
-                new WalkScoreRequest(dogId);
-
         WalkScoreResult result =
-                walkScoreService.calculateScore(request);
+                walkScoreService.calculateScore(dogId);
 
-        WalkScoreResponse response =
-                WalkScoreResponse.from(result);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                WalkScoreResponse.from(result)
+        );
     }
 }
