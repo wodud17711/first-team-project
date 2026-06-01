@@ -7,7 +7,7 @@ public record WalkScoreResponse(
         int score,
         String level,
         List<String> reasons,
-        List<String> preparations
+        List<String> topReasons
 ) {
 
     public static WalkScoreResponse from(
@@ -16,9 +16,9 @@ public record WalkScoreResponse(
 
         return new WalkScoreResponse(
                 result.score(),
-                result.level().name(),
+                result.level(),
                 result.reasons(),
-                result.preparations()
+                result.topReasons()
         );
     }
 }
