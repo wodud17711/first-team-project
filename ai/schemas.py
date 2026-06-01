@@ -30,6 +30,8 @@ class WeatherIn(BaseModel):
     pm10: int = Field(default=30, ge=0, le=1000)
     pm25: int = Field(default=15, ge=0, le=1000)
     precipitation_type: Literal["없음", "비", "비눈", "눈"] = "없음"
+    # 자외선 지수 (생활기상지수 V5, 0~11+). 룰베이스 v1.2 UV_HIGH/UV_VERY_HIGH 입력.
+    uv_index: int = Field(default=0, ge=0, le=20)
 
 
 class ScoreRequest(BaseModel):
