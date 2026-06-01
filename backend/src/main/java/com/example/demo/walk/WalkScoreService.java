@@ -10,7 +10,8 @@ import java.util.List;
 public class WalkScoreService {
 
     public WalkScoreResult calculate(
-            WeatherSnapshot snapshot
+            WeatherSnapshot snapshot,
+            DogWeatherProfile dog
     ) {
 
         int score = 100;
@@ -21,51 +22,31 @@ public class WalkScoreService {
         List<String> preparations =
                 new ArrayList<>();
 
+        double temp =
+                snapshot.getTemperature();
+
         double feelsLike =
                 snapshot.getFeelsLikeTemperature();
 
         Double groundTemp =
                 snapshot.getGroundTemperature();
 
-        // ====================================
-        // 체감온도
-        // ====================================
+        double humidity =
+                snapshot.getHumidity();
 
-        if (feelsLike >= 33) {
-
-            score -= 40;
-
-            reasons.add(
-                    "체감온도가 매우 높습니다."
-            );
-
-            preparations.add(
-                    "충분한 물을 준비하세요."
-            );
-        }
-
-        else if (feelsLike >= 28) {
-
-            score -= 20;
-
-            reasons.add(
-                    "체감온도가 다소 높습니다."
-            );
-        }
+        double wind =
+                snapshot.getWindSpeed();
 
         // ====================================
         // 지면온도
         // ====================================
 
-        if (
-                groundTemp != null
-                        && groundTemp >= 50
-        ) {
+        if (groundTemp != null && groundTemp >= 50) {
 
             score -= 40;
 
             reasons.add(
-                    "지면온도가 매우 높습니다."
+                    "발바닥 화상 위험이 있습니다."
             );
 
             preparations.add(
@@ -73,10 +54,7 @@ public class WalkScoreService {
             );
         }
 
-        else if (
-                groundTemp != null
-                        && groundTemp >= 40
-        ) {
+        else if (groundTemp != null && groundTemp >= 40) {
 
             score -= 20;
 
@@ -85,15 +63,163 @@ public class WalkScoreService {
             );
         }
 
-        score =
-                Math.max(score, 0);
+        // ====================================
+        // 체감온도
+        // ====================================
 
-        RiskLevel riskLevel =
-                determineRiskLevel(score);
+        if (feelsLike >= 33) {
+
+            score -= 20;
+
+            reasons.add(
+                    "체감온도가 매우 높습니다."
+            );
+        }
+
+        if (feelsLike <= -5) {
+
+            score -= 20;
+
+            reasons.add(
+                    "체감온도가 매우 낮습니다."
+            );
+        }
+
+        // ====================================
+        // 단두종
+        // ====================================
+
+        if (
+                dog.brachycephalic()
+                        && temp >= 28
+        ) {
+
+            score -= 25;
+
+            reasons.add(
+                    "단두종은 더위에 취약합니다."
+            );
+        }
+
+        // ====================================
+        // 더위 취약
+        // ====================================
+
+        if (
+                dog.heatTolerance() <= 2
+                        && temp >= 28
+        ) {
+
+            score -= 15;
+
+            reasons.add(
+                    "더위에 취약한 견종입니다."
+            );
+        }
+
+        // ====================================
+        // 추위 취약
+        // ====================================
+
+        if (
+                dog.coldTolerance() <= 2
+                        && temp <= 0
+        ) {
+
+            score -= 15;
+
+            reasons.add(
+                    "추위에 취약한 견종입니다."
+            );
+        }
+
+        // ====================================
+        // 장모종
+        // ====================================
+
+        if (
+                dog.longCoat()
+                        && temp >= 28
+        ) {
+
+            score -= 10;
+
+            reasons.add(
+                    "장모종에게 다소 더운 날씨입니다."
+            );
+        }
+
+        // ====================================
+        // 단모 소형견
+        // ====================================
+
+        if (
+                dog.smallDog()
+                        && dog.shortCoat()
+                        && temp <= 5
+        ) {
+
+            score -= 10;
+
+            reasons.add(
+                    "소형 단모견에게 추운 날씨입니다."
+            );
+
+            preparations.add(
+                    "외출복 착용을 권장합니다."
+            );
+        }
+
+        // ====================================
+        // 습도
+        // ====================================
+
+        if (
+                humidity >= 70
+                        && temp >= 28
+        ) {
+
+            score -= 10;
+
+            reasons.add(
+                    "습도가 높아 열사병 위험이 있습니다."
+            );
+        }
+
+        // ====================================
+        // 강풍
+        // ====================================
+
+        if (wind >= 9) {
+
+            score -= 10;
+
+            reasons.add(
+                    "강풍이 불고 있습니다."
+            );
+        }
+
+        // ====================================
+        // 노령견
+        // ====================================
+
+        if (
+                dog.age() >= 8
+                        && (temp >= 28 || temp <= 0)
+        ) {
+
+            score -= 10;
+
+            reasons.add(
+                    "노령견에게 부담스러운 날씨입니다."
+            );
+        }
+
+        score = Math.max(score, 0);
 
         return new WalkScoreResult(
                 score,
-                riskLevel,
+                determineRiskLevel(score),
                 reasons,
                 preparations
         );
@@ -103,11 +229,11 @@ public class WalkScoreService {
             int score
     ) {
 
-        if (score >= 80) {
+        if (score >= 70) {
             return RiskLevel.SAFE;
         }
 
-        if (score >= 50) {
+        if (score >= 40) {
             return RiskLevel.CAUTION;
         }
 
