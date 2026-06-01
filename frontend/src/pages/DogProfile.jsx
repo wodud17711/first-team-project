@@ -7,28 +7,25 @@ import { useCreateDog } from "../hooks/useCreateDog";
 function DogProfile() {
 
     // 반려견 프로필 등록 훅 연결
-    const { create, loading, error, reset } = useCreateDog({
-      onSuccess: (dog) => {
-        // a) "반려견 추가" 흐름 — 같은 페이지 머무름:
-           setAddedDogs((prev) => [...prev, dog]); setForm(initialForm)
-        // b) "완료" 흐름 — 로그인으로 이동:
-           navigate('/login')
-      },
-    }) 
+    const { create, loading, error } = useCreateDog()
 
     // 페이지 이동
     const navigate = useNavigate()
 
     // 반려견 정보 입력값 저장하는 저장소역할
-    const [form, setForm] = useState({
-        dogname:"",
-        breed:"",
-        dogbirth:"",
-        weight:"",
-        hairlength:"",
-        favorwalktime:[], // 중복 선택 가능하게 배열로
-        health:"",
-    })
+    const initialForm = {
+      dogname: "",
+      breed: "",
+      dogbirth: "",
+      weight: "",
+      hairlength: "",
+      favorwalktime: [],
+      health: "",
+    }
+    const [form, setForm] = useState(initialForm)
+
+    // 추가한 반려견 프로필 정보들 저장
+    const [addedDogs, setAddedDogs] = useState([])
 
 
     // 선호 선택 시간 목록 펼쳐져있는지 여부
@@ -95,19 +92,39 @@ function DogProfile() {
         })
     }
 
+    // 백엔드에 보낼 데이터 형태 변환
+    const toPayload = () => ({
+      name: form.dogname,
+      breedId: null,
+      birthDate: form.dogbirth || null,
+      weight: form.weight ? parseFloat(form.weight) : null,
+      healthNotes: form.health || null,
+    })
+
     // '반려견 프로필 등록' 버튼 눌렀을 때, 페이지의 새로고침 방지 및 입력값 확인하는 함수
-    const handleSubmit = async (e) => {
+    const handleDone = async (e) => {
       e.preventDefault()
 
-      const dog = await create({
-        name: form.dogname,
-        breedId: null, // 아직 견종 id 없으면 null
-        birthDate: form.dogbirth || null,
-        weight: form.weight ? parseFloat(form.weight) : null,
-        healthNotes: form.health || null,
-      })
+      const dog = await create(toPayload())
 
       if (!dog) return
+
+      navigate("/login")
+    }
+
+    // 프로필 추가 눌렀을 때
+    const handleAdd = async () => {
+      const dog = await create(toPayload())
+
+      if (!dog) return
+
+      setAddedDogs((prev) => [...prev, dog])
+      setForm(initialForm)
+    }
+
+    // 나중에 하기 눌렀을 때
+    const handleSkip = () => {
+      navigate("/login")
     }
 
 
@@ -128,13 +145,15 @@ function DogProfile() {
         { value: "장모종", title: "장모", desc: "길고 풍성" }
     ]
 
+    
+
 
   return (
     <div className="flex flex-col items-center space-y-6">
       
       <section className="w-[400px] bg-white rounded-xl px-8 py-12 shadow">
         
-        <form onSubmit={handleSubmit} 
+        <form onSubmit={handleDone} 
               className="flex flex-col items-center">
             <h1 className="text-[24px] font-bold mb-1">반려견 프로필 등록</h1>
             {/* 버튼 밑 공지글 */}
@@ -297,6 +316,41 @@ function DogProfile() {
                   </div>
                 ))}
 
+                {/* 성별 선택 */}
+                <div className="w-full mt-2 flex flex-col gap-2">
+                  <p className="text-[14px] text-txtcolor-700 font-bold">
+                    성별 선택
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, gender: "M" })}
+                      className={`flex-1 py-3 rounded-xl border
+                        ${
+                          form.gender === "M"
+                            ? "bg-brand-200 border-brand-500 hover:bg-brand-200"
+                            : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0] hover:border-txtcolor-200"
+                        }`}
+                    >
+                      남아
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, gender: "F" })}
+                      className={`flex-1 py-3 rounded-xl border
+                        ${
+                          form.gender === "F"
+                            ? "bg-brand-200 border-brand-500 hover:bg-brand-200"
+                            : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0] hover:border-txtcolor-200"
+                        }`}
+                    >
+                      여아
+                    </button>
+                  </div>
+                </div>
+
                 {/* 반려견 털길이 선택 */}
                 <div className="w-full mt-2 flex flex-col gap-2">
                     <p className="text-[14px] text-txtcolor-700 font-bold">털길이 선택</p>
@@ -331,13 +385,13 @@ function DogProfile() {
             
             {/* 회원가입 완료 및 반려견 프로필 추가 버튼 */}
             <div className="w-full mt-6 flex gap-2">
-                <button type="button" className="flex-1 py-3 bg-brand-300 rounded-xl 
+                <button type="button" onClick={handleAdd} className="flex-1 py-3 bg-brand-300 rounded-xl 
                                    text-[16px] font-bold text-txtcolor-900">프로필 추가</button>
                 <button type="submit" disabled={loading} className="flex-1 py-3 bg-brand-300 rounded-xl 
                                    text-[16px] font-bold text-txtcolor-900">{loading ? "등록 중..." : "완료"}</button>
             </div>
 
-            <button type="button" className="mt-3 text-[13px] text-txtcolor-400 underline-none">나중에 등록하기</button>
+            <button type="button" onClick={handleSkip} className="mt-3 text-[13px] text-txtcolor-400 no-underline">나중에 등록하기</button>
 
         </form>
         
