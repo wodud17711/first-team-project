@@ -29,6 +29,7 @@ function App() {
           {/* 공개 라우트 — 비로그인도 접근 가능 (Layout 헤더 없는 풀스크린) */}
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/dog-profile" element={<DogProfile />} />
 
           {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
           {/* <Route element={<ProtectedRoute />}> */}
@@ -37,7 +38,7 @@ function App() {
               <Route path="/walk" element={<WalkRecord />} />
               <Route path="/community" element={<Community />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/dog-profile" element={<DogProfile />} />
+              
 
               {/* 반려견 프로필 페이지 */}
               <Route path="/dog-profile-list" element={<DogListPage/>}/>
