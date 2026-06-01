@@ -5,8 +5,8 @@ import java.util.List;
 public record WalkScoreResult(
 
         int score,
-        RiskLevel level,
+        String level,
         List<String> reasons,
-        List<String> preparations
+        List<String> topReasons
 ) {
 }

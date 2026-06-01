@@ -16,22 +16,14 @@ public class WalkController {
             @RequestParam Long dogId
     ) {
 
+        WalkScoreRequest request =
+                new WalkScoreRequest(dogId);
+
         WalkScoreResult result =
-                walkScoreService.calculateScore(dogId);
+                walkScoreService.calculateScore(request);
 
         WalkScoreResponse response =
                 WalkScoreResponse.from(result);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/optimal-time")
-    public ResponseEntity<OptimalTimeResponse> getOptimalTime(
-            @RequestParam Long dogId
-    ) {
-
-        OptimalTimeResponse response =
-                walkScoreService.findOptimalTime(dogId);
 
         return ResponseEntity.ok(response);
     }
