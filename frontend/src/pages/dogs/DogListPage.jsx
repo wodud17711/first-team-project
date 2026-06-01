@@ -54,7 +54,7 @@ function DogListPage() {
 
         <button
           onClick={() => navigate("/dog-profile-create")}
-          className="px-4 py-2 bg-brand-500 text-white text-[14px] font-bold rounded-xl"
+          className="px-4 py-2 bg-brand-500 text-[#FFFFE3] text-[14px] font-bold rounded-xl"
         >
           프로필 추가
         </button>
