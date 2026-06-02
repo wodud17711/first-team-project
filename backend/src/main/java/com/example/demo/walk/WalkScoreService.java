@@ -86,40 +86,17 @@ public class WalkScoreService {
 
                 snapshot.getGroundTemperature(),
 
-                0,
+                // TODO: AirKorea 연동 후 실제 PM10 값 사용
                 0,
 
+                // TODO: AirKorea 연동 후 실제 PM2.5 값 사용
+                0,
+
+                // TODO: 기상청 PTY 연동 후 실제 강수 형태 사용
                 "없음",
 
+                // TODO: UV API 연동 후 실제 UV Index 사용
                 0
         );
     }
-
-    private final WeatherSnapshot weatherSnapshot;
-    private static final int DEFAULT_PM10 = 0;
-    private static final int DEFAULT_PM25 = 0;
-    private static final int DEFAULT_UV_INDEX = 0;
-    private static final String DEFAULT_PRECIPITATION_TYPE = "없음";
-
-    // TODO(#xx): WeatherSnapshot 에 아직 없는 데이터. 추후 AirKorea / UV API 연동 시 실제 값으로 교체.
-    WalkScoreRequest.WeatherInfo weatherInfo =
-            new WalkScoreRequest.WeatherInfo(
-                    weatherSnapshot.getTemperature(),
-                    weatherSnapshot.getFeelsLikeTemperature(),
-                    (int) weatherSnapshot.getHumidity(),
-                    weatherSnapshot.getWindSpeed(),
-                    weatherSnapshot.getGroundTemperature(),
-
-                    // TODO: AirKorea API 연동
-                    DEFAULT_PM10,
-
-                    // TODO: AirKorea API 연동
-                    DEFAULT_PM25,
-
-                    // TODO: KMA PTY 연동
-                    DEFAULT_PRECIPITATION_TYPE,
-
-                    // TODO: UV API 연동
-                    DEFAULT_UV_INDEX
-            );
 }
