@@ -39,7 +39,11 @@ public class WalkScoreService {
 
         WeatherSnapshot snapshot =
                 weatherSnapshotRepository.findTopByOrderByBaseDateTimeDesc()
-                        .orElseThrow();
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        ErrorCode.WEATHER_API_ERROR
+                                )
+                        );
 
         WalkScoreRequest request =
                 new WalkScoreRequest(
