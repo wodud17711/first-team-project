@@ -1,49 +1,21 @@
 // 강아지 테스트 사진
 import dogImg1 from '../../assets/dogImg1.jpg'
-import dogImg2 from '../../assets/dogImg2.jpeg'
 
 
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
 
 import { useNavigate } from "react-router-dom"
+import { useDogs } from "../../hooks/useDogs"
 
 function DogListPage() {
 
-    const navigate = useNavigate()
+  const navigate = useNavigate()
+  const { dogs, loading, error } = useDogs() // 기존 const dogs = [{ 멍멍일... }, { 멍멍이... }] 삭제
 
-    // 강아지 정보 배열(임시)
-    const dogs = [
-        {
-        id: 1,
-        name: "멍멍일",
-        birth: "2023/01/01",
-        breed: "리트리버",
-        gender: "여아",
-        weight: 26,
-        hairlength: "장모종",
-        health: "특이사항 없음",
-        favorwalktime: ["오전 10~11시", "오후 2~3시", "오후 7~8시"],
-        img: dogImg1,
-        tags: ["활동적", "종일 산책형"],
-        isMain: true
-        },
-        {
-        id: 2,
-        name: "멍멍이",
-        birth: "2021/01/01",
-        breed: "사모예드",
-        gender: "남아",
-        weight: 21,
-        hairlength: "장모종",
-        health: "더위에 취약",
-        favorwalktime: ["오전 9~10시"],
-        img: dogImg2,
-        tags: ["내성적", "오전 산책형"],
-        isMain: false
-        }
-    ]
+  const genderLabel = (g) => (g === "F" ? "여아" : "남아")  // 백엔드는 "M" / "F" 로 변환
 
-  
+  if (loading) return <div className="p-4">불러오는 중...</div> // 로딩
+  if (error) return <div className="p-4 text-danger">목록을 불러오지 못했어요</div> // 에러
 
   return (
     <div className="p-4">
@@ -61,14 +33,20 @@ function DogListPage() {
       </div>
       <div className='w-full h-[1px] bg-brand-400 mb-[30px]'/>
 
-
-      <div className='flex flex-col gap-[20px]'>
+      {/* 강아지 0 마리면 등록 유도 */}
+      {dogs.length === 0 ? (
+        <div className="text-center text-txtxolor-400 py-16">
+          아직 등록된 반려견이 없어요
+        </div>
+      ) : (
+        <div className='flex flex-col gap-[20px]'>
         {/* 프로필 목록 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          {dogs.map((dog) => (
+          {dogs.map((dog, index) => (  // index 추가 ( 대표 강아지 표시 용 )
+
             <div
-              key={dog.id}
+              key={dog.dogId}
               onClick={() => navigate("/dog-profile-detail", { state: dog })}
               className="group relative flex bg-white rounded-xl shadow px-6 py-5 gap-2 cursor-pointer"
             >
@@ -76,12 +54,12 @@ function DogListPage() {
               {/* 강아지 이미지 */}
               <div className="relative shrink-0">
                 <img
-                  src={dog.img}
+                  src={dog.profileImageUrl || dogImg1}  // dog.img > dog.profileImageUrl ( 없으면 기본 )
                   className="w-[180px] h-[230px] rounded-2xl object-cover"
                 />
 
                 {/* 첫 번째 강아지만 대표 강아지 표시 */}
-                {dog.isMain && (
+                {index === 0 && (  // dog.isMain → 첫 번째를 대표로
                 <span
                   className="
                     absolute top-3 left-3
@@ -106,40 +84,42 @@ function DogListPage() {
                 </div>
                 
                 <div className="flex flex-col gap-1 text-[14px]">
-                  <p className='pb-1 border-b-[1px] border-brand-300'>🎂 {dog.birth}</p>
-                  <p className='pb-1 border-b-[1px] border-brand-300'>🐶 {dog.breed}</p>
+
+                  {/* dog.birth → birthDate + ageYears */}
+                  <p className='pb-1 border-b-[1px] border-brand-300'>
+                    🎂 {dog.birthDate ?? '생일 미등록'}
+                    {dog.age != null && ` (${dog.age}살)`}
+                  </p>
+                  {/* dog.breed(글자) → dog.breed?.nameKr */}
+                  <p className='pb-1 border-b-[1px] border-brand-300'>
+                    🐶 {dog.breed?.nameKr ?? '믹스'}
+                  </p>
+                  {/* gender "여아"/"남아" → "F"/"M" */}
                   <p className='pb-1 border-b-[1px] border-brand-300'>
                     <span
-                      className={
-                        dog.gender === "여아"
-                          ? "text-pink-400"
-                          : "text-sky-400"
-                      }
-                    >
-                      {dog.gender === "여아" ? "🩷" : "🩵"}
+                      className=
+                      {dog.gender === "F" ? "text-pink-400" : "text-sky-400"}>
+                      {dog.gender === "F" ? "🩷" : "🩵"}
                     </span>{" "}
-                    {dog.gender}
+                    {genderLabel(dog.gender)}
                   </p>
                   <p className='pb-1 border-b-[1px] border-brand-300'>🐾 {dog.weight}kg</p>
-                  <p className='pb-1 border-b-[1px] border-brand-300'>🚶 {dog.favorwalktime.join(", ")}</p>
+                  {/* favorwalktime 줄 삭제 (API에 없음). 대신 활동량 표시 */}
+                  {dog.activityLevel && (
+                    <p className='pb-1 border-b-[1px] border-brand-300'>⚡ 활동량 {dog.activityLevel}</p>
+                  )}
                 </div>
 
-                {/* 성향 태그 */}
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {dog.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="
-                        px-2 py-[2px]
-                        rounded-full
-                        bg-gray-100
-                        text-[11px]
-                      "
-                    >
-                      {tag}
+                {/* 🔌 dog.tags 블록 삭제 (API에 없음).
+                    필요하면 healthNotes 배지로 대체 가능 */}
+
+                {dog.healthNotes && (
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    <span className="px-2 py-[2px] rounded-full bg-gray-100 text-[11px]">
+                      📋 {dog.healthNotes}
                     </span>
-                  ))}
-                </div>
+                  </div>
+                )}
                 
               </div>
               
@@ -158,8 +138,8 @@ function DogListPage() {
         </div>
 
       </div>
+      )}
 
-      
     </div>
   )
 }
