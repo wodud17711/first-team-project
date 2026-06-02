@@ -186,7 +186,8 @@ public class WeatherClient {
                 humidity,
                 windSpeed,
                 feelsLike,
-                null // 지면온도는 ASOS(GroundTempParser)에서 별도 보강
+                null, // 지면온도는 ASOS(GroundTempParser)에서 별도 보강
+                null  // 자외선지수는 생활기상지수(UvIdxClient)에서 별도 보강
         );
     }
 
