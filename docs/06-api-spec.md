@@ -459,61 +459,56 @@ Authorization: Bearer {token}
 ### 🌤️ 산책 위험도 조회 ⭐ 핵심 API
 
 ```
-GET /api/walk/score?dogId=1&lat=37.5665&lng=126.9780
+GET /api/walk/score?dogId=1
 Authorization: Bearer {token}
 ```
+
+> **응답 정본 = FastAPI 룰베이스(`ai/`).** Spring(`/api/walk/score`)은 dogId로 견종형질·나이·날씨를 채워 FastAPI `POST /score`를 호출하고 결과를 그대로 전달한다. 룰·필드 정본은 `ai/README.md` 참조.
 
 **Query Parameters**
 
 | 파라미터 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
-| dogId | Long | ✅ | 반려견 ID |
-| lat | Double | ✅ | 위도 |
-| lng | Double | ✅ | 경도 |
+| dogId | Long | ✅ | 반려견 ID (본인 소유 강아지만 조회 가능) |
+
+> 좌표별(lat/lng) 날씨는 **Phase 2**. MVP는 최신 날씨 스냅샷을 사용한다.
 
 **Response 200**
 ```json
 {
   "success": true,
   "data": {
-    "dogId": 1,
-    "dogName": "초코",
-    "score": 72,
-    "level": "CAUTION",
-    "levelLabel": "주의",
+    "score": 30,
+    "level": "위험",
     "reasons": [
-      {
-        "code": "HIGH_GROUND_TEMP",
-        "message": "지면 온도가 높아 발바닥 화상 위험이 있어요"
-      },
-      {
-        "code": "LONG_COAT_HEAT",
-        "message": "장모종에게 다소 더운 날씨예요"
-      }
+      "지면이 매우 뜨거워 발바닥 화상 위험이 큽니다",
+      "체감온도가 35℃로 높습니다",
+      "말티즈는 더위에 취약한 견종입니다"
     ],
-    "recommendedTime": {
-      "start": "18:00",
-      "end": "20:00",
-      "description": "오늘은 저녁 시간대가 산책하기 좋아요"
-    },
-    "weather": {
-      "temperature": 29.5,
-      "humidity": 65,
-      "windSpeed": 2.3,
-      "condition": "맑음",
-      "pm10": 35,
-      "pm25": 18,
-      "estimatedGroundTemperature": 50.2
-    },
-    "supplies": ["물병", "쿨링매트"],
-    "measuredAt": "2026-05-20T15:30:00"
-  }
+    "topReasons": [
+      "지면이 매우 뜨거워 발바닥 화상 위험이 큽니다",
+      "체감온도가 35℃로 높습니다",
+      "말티즈는 더위에 취약한 견종입니다"
+    ]
+  },
+  "message": null,
+  "errorCode": null
 }
 ```
 
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| score | int | 0~100 (100에서 위험 요인마다 감점) |
+| level | string | `안전`(70~100) / `주의`(40~69) / `위험`(0~39) |
+| reasons | string[] | 매칭된 모든 룰 사유. 모두 통과(100점) 시 `["산책하기 좋은 날씨예요!"]` |
+| topReasons | string[] | 감점 큰 순 상위 3개 (FE 카드용). 100점이면 `[]` |
+
 **Error**
 - 404: 반려견 없음 (`DOG_NOT_FOUND`)
-- 503: 외부 API 호출 실패 (`WEATHER_API_ERROR`)
+- 503: AI(룰베이스) 서버 호출 실패 (`AI_SERVER_ERROR`)
+- 503: 날씨 데이터 없음/조회 실패 (`WEATHER_API_ERROR`)
+
+> 🔮 **Phase 2/3 확장 (현재 미구현)**: `dogName` · `weather` 상세 블록 · `supplies`(준비물 추천) · `measuredAt`(측정 시각)은 추후 추가. 최적 산책 시간(`recommendedTime`)은 별도 엔드포인트 `GET /api/walk/score/optimal-time`(Phase 3)로 분리한다.
 
 ---
 

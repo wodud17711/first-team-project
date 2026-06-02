@@ -4,9 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore'
 
-// 강아지 테스트 사진
+// hooks (실 API 연결)
+import { useMe } from '../hooks/useMe'
+import { useDogs } from '../hooks/useDogs'
+import { useAuth } from '../hooks/useAuth'
+
+// 강아지 기본(폴백) 사진
 import dogImg1 from '../assets/dogImg1.jpg'
-import dogImg2 from '../assets/dogImg2.jpeg'
 
 
 // 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
@@ -20,6 +24,14 @@ import dogImg2 from '../assets/dogImg2.jpeg'
 function Home() {
 
   const navigate = useNavigate()
+  const { me } = useMe()
+  const { dogs } = useDogs()
+  const { logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
+  }
 
   return (
     <div className='relative'>
@@ -41,62 +53,45 @@ function Home() {
 
           {/* 오른쪽 콘텐츠 - 로그인(유저 패널) */}
           <div className="mt-[225px] flex flex-col bg-white rounded-xl shadow p-4">
-            <p className='text-[20px] font-bold'>안녕하세요, 00님!</p>
+            <p className='text-[20px] font-bold'>안녕하세요, {me?.nickname ?? '게스트'}님!</p>
 
-            {/* 강아지 프로필 */}
+            {/* 강아지 프로필 (useDogs 실 API) */}
             <div className='flex flex-col mt-2 gap-2'>
-              <div className='flex items-center bg-brand-100 rounded-lg shadow p-3 gap-3'>
-                <img src={dogImg1} alt='강아지사진' className='w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover'/>
-                <div>
-                  <p className='text-[20px] font-bold'>멍멍일</p>
-                  <p className='text-[12px]'>🎂 2023/01/01 (3살)</p>
-                  <p className='text-[12px]'>🐶 리트리버 · 26kg</p>
-                  <div className='flex gap-1 mt-1'>
-                    <span className='
-                    px-2 py-[2px]
-                    rounded-full
-                    bg-sun-200 text-sun-700
-                    text-[11px] font-bold
-                    '>
-                      활동적
-                    </span>
-                    <span className='
-                      px-2 py-[2px]
-                      rounded-full
-                      bg-sky-100 text-sky-700
-                      text-[11px] font-bold
-                    '>
-                      종일 산책형
-                    </span>
+              {dogs.length === 0 ? (
+                <p className='text-[13px] text-gray-500 py-4 text-center'>
+                  아직 등록된 반려견이 없어요
+                </p>
+              ) : (
+                dogs.map((dog) => (
+                  <div key={dog.dogId} className='flex items-center bg-brand-100 rounded-lg shadow p-3 gap-3'>
+                    <img
+                      src={dog.profileImageUrl || dogImg1}
+                      alt='강아지사진'
+                      className='w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover'
+                    />
+                    <div>
+                      <p className='text-[20px] font-bold'>{dog.name}</p>
+                      <p className='text-[12px]'>
+                        🎂 {dog.birthDate ?? '생일 미등록'}
+                        {dog.age != null && ` (${dog.age}살)`}
+                      </p>
+                      <p className='text-[12px]'>🐶 {dog.breed?.nameKr ?? '믹스'} · {dog.weight}kg</p>
+                      {dog.activityLevel && (
+                        <div className='flex gap-1 mt-1'>
+                          <span className='
+                          px-2 py-[2px]
+                          rounded-full
+                          bg-sun-200 text-sun-700
+                          text-[11px] font-bold
+                          '>
+                            활동량 {dog.activityLevel}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className='flex items-center bg-brand-100 rounded-lg shadow p-2 gap-3'>
-                <img src={dogImg2} alt='강아지사진' className='w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover'/>
-                <div>
-                  <p className='text-[20px] font-bold'>멍멍이</p>
-                  <p className='text-[12px]'>🎂 2021/01/01 (5살)</p>
-                  <p className='text-[12px]'>🐶 사모예드 · 21kg</p>
-                  <div className='flex gap-1 mt-1'>
-                    <span className='
-                    px-2 py-[2px]
-                    rounded-full
-                    bg-sun-200 text-sun-700
-                    text-[11px] font-bold
-                    '>
-                      내성적
-                    </span>
-                    <span className='
-                      px-2 py-[2px]
-                      rounded-full
-                      bg-sky-100 text-sky-700
-                      text-[11px] font-bold
-                    '>
-                      오전 산책형
-                    </span>
-                  </div>
-                </div>
-              </div>
+                ))
+              )}
             </div>
 
             <div className='mt-auto'>
@@ -106,7 +101,8 @@ function Home() {
                 <button onClick={() => navigate("/dog-profile-list")}
                         className='text-[14px]'>반려견 프로필</button>
               </div>
-              <button className='w-full p-2 bg-brand-500 rounded-xl'>로그아웃</button>
+              <button onClick={handleLogout}
+                      className='w-full p-2 bg-brand-500 rounded-xl'>로그아웃</button>
             </div>
             
           </div>

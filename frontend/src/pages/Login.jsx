@@ -1,11 +1,15 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useLogin } from "../hooks/useLogin"
 
 
 function Login() {
-    
+
     // 로그인 훅 연결
     const {form, handleChange, handleSubmit, loading, error} = useLogin()
+
+    // 비밀번호 표시 여부
+    const [showPw, setShowPw] = useState(false)
 
   return (
     <div className="flex flex-col items-center space-y-6">
@@ -23,11 +27,18 @@ function Login() {
                     className="px-3 py-4 bg-[#f7f7f7] rounded-xl text-[14px]
                                focus:outline-brand-300 hover:bg-[#F0F0F0]
                                transition"/>
-                <input type="password" name="password" placeholder="비밀번호를 입력하세요"
-                       value={form.password} onChange={handleChange}
-                    className="px-3 py-4 bg-[#f7f7f7] rounded-xl text-[14px]
-                               focus:outline-brand-300 hover:bg-[#F0F0F0]
-                               transition"/>
+                <div className="relative">
+                    <input type={showPw ? "text" : "password"} name="password" placeholder="비밀번호를 입력하세요"
+                           value={form.password} onChange={handleChange}
+                        className="w-full px-3 py-4 pr-11 bg-[#f7f7f7] rounded-xl text-[14px]
+                                   focus:outline-brand-300 hover:bg-[#F0F0F0]
+                                   transition"/>
+                    <button type="button" onClick={() => setShowPw((s) => !s)}
+                            aria-label={showPw ? "비밀번호 숨기기" : "비밀번호 표시"}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[18px] leading-none">
+                        {showPw ? "🙈" : "👁"}
+                    </button>
+                </div>
             </div>
 
             {/* 로그인 유지 */}
