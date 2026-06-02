@@ -41,12 +41,12 @@ function DogEditPage() {
   // 수정용 state
   const [form, setForm] = useState({
     name: dog.name || "",
-    birth: dog.birth || "",
+    birth: dog.birthDate || "",
     breed: dog.breed || "",
     gender: dog.gender || "",
     weight: dog.weight || "",
     favorwalktime: dog.favorwalktime || [],
-    health: dog.health || "",
+    healthNotes: dog.health || "",
     hairlength: dog.hairlength || "",
   })
 

@@ -18,20 +18,49 @@ function DogDetailPage() {
     }
   }
 
+  // 성별에 따른 이름
+  const genderMap = {
+    F: { text: "여아", icon: "🩷" },
+    M: { text: "남아", icon: "🩵" },
+  };
+
+  // 활동량 저, 중, 고에 따른 태그이름
+  const activityMap = {
+    저: "내향적",
+    중: "양향적",
+    고: "외향적",
+  };
+
 
   return (
     <div className="p-4">
-      {/* 상단 제목 + 프로필 추가 버튼*/}
+
+      {/* 상단 */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-[28px] font-bold">반려견 프로필 상세</h1>
-        <button
-          onClick={() => navigate("/dog-profile-list")}
-          className="px-4 py-2 bg-brand-500 text-white text-[14px] font-bold rounded-xl"
-        >
-          목록
-        </button>
+        {/* 제목 */}
+        <div>
+          <h1 className="text-[32px] font-extrabold text-sky-800">
+            반려견 프로필 상세
+          </h1>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="w-[4px] h-[20px] rounded-full bg-sky-700"/>
+            <p className="text-[14px] text-gray-500 font-light">
+              등록된 반려견 프로필의 상세 내용을 확인할 수 있어요.
+            </p>
+          </div>
+        </div>
+        
+        {/* 목록버튼 */}
+        <div className="text-center rounded-xl shadow-sm border">
+          <button
+            onClick={() => navigate("/dog-profile-list")}
+            className="px-4 py-2 bg-brand-500 text-white text-[14px] font-bold rounded-xl"
+          >
+            목록
+          </button>
+        </div>
       </div>
-      <div className='w-full h-[1px] bg-brand-400 mb-[30px]'/>
+      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
 
       {/* 강아지 프로필 상세칸 */}
       <div className="flex flex-col items-center space-y-6">        
@@ -40,7 +69,7 @@ function DogDetailPage() {
           {/* 강아지 이미지 */}
           <div className="relative shrink-0">
             <img
-              src={dog.img}
+              src={dog.profileImageUrl}
               className="w-[300px] h-[350px] rounded-xl object-cover"
             />
             {/* 첫 번째 강아지만 대표 강아지 표시 */}
@@ -62,20 +91,17 @@ function DogDetailPage() {
           <div className="flex flex-col w-full justify-between h-[350px] gap-3 px-4 text-[14px]">
             <h1 className="text-[28px] font-bold">{dog.name}</h1>
             <div className="flex flex-col gap-[14px] text-[14px]">
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">생년월일🎂</span> - {dog.birth}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">생년월일🎂</span> - {dog.birthDate} ({dog.ageYears})</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">견종🐶</span> - {dog.breed}</p>
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">성별<span
-                                                                                                                className={dog.gender === "여아" ? "text-pink-400" : "text-sky-400"}>
-                                                                                                                {dog.gender === "여아" ? "🩷" : "🩵"}
-                                                                                                              </span>{" "}</span> - {dog.gender}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">성별🤍</span> - {genderMap[dog.gender]?.text}{genderMap[dog.gender]?.icon}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">체중🐾</span> - {dog.weight}kg</p>
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">선호 산책 시간🚶</span> - {dog.favorwalktime.join(", ")}</p>
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">건강 특이사항🩺</span> - {dog.health}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">중성화🩺</span> - {dog.isNeutered ? "O" : "X"}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">털길이✂️</span> - {dog.hairlength}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">활동량🚶</span> - {activityMap[dog.activityLevel]}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">선호 산책 시간🚶</span> - {dog.favorwalktime.join(", ")}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">건강 특이사항🩺</span> - {dog.healthNotes}</p>
             </div>
           </div>
-
-
 
         </div>
       </div>

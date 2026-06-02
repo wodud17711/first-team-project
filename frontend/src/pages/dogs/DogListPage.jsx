@@ -2,6 +2,9 @@
 import dogImg1 from '../../assets/dogImg1.jpg'
 import dogImg2 from '../../assets/dogImg2.jpeg'
 
+// 훅 연결
+import { useDogs } from "../../hooks/useDogs";
+
 
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
 
@@ -11,39 +14,85 @@ function DogListPage() {
 
     const navigate = useNavigate()
 
+    // // 정보 받기
+    // const {
+    //   dogs,
+    //   loading,
+    //   error,
+    // } = useDogs();
+
     // 강아지 정보 배열(임시)
     const dogs = [
         {
         id: 1,
         name: "멍멍일",
-        birth: "2023/01/01",
+        birthDate: "2023-01-01",
+        ageYears:"3살",
         breed: "리트리버",
-        gender: "여아",
+        gender: "F",
         weight: 26,
         hairlength: "장모종",
-        health: "특이사항 없음",
+        isNeutered: true,
+        healthNotes: "특이사항 없음",
         favorwalktime: ["오전 10~11시", "오후 2~3시", "오후 7~8시"],
-        img: dogImg1,
-        tags: ["활동적", "종일 산책형"],
+        activityLevel:"고",
+        profileImageUrl: dogImg1,
         isMain: true
         },
         {
         id: 2,
         name: "멍멍이",
-        birth: "2021/01/01",
+        birthDate: "2021-01-01",
+        ageYears:"5살",
         breed: "사모예드",
-        gender: "남아",
+        gender: "M",
         weight: 21,
         hairlength: "장모종",
-        health: "더위에 취약",
+        isNeutered: true,
+        healthNotes: "더위에 취약",
         favorwalktime: ["오전 9~10시"],
-        img: dogImg2,
-        tags: ["내성적", "오전 산책형"],
+        activityLevel:"저",
+        profileImageUrl: dogImg2,
         isMain: false
         }
     ]
 
-  
+    // 성별에 따른 이름
+    const genderMap = {
+      F: { text: "여아", icon: "🩷" },
+      M: { text: "남아", icon: "🩵" },
+    };
+
+    // 활동량 저, 중, 고에 따른 태그이름
+    const activityMap = {
+      저: "내향적",
+      중: "양향적",
+      고: "외향적",
+    };
+
+    // 선호 산책 시간에 따른 태그 이름
+    const getWalkType = (times) => {
+      const hasMorning = times.some(t => t.includes("오전"));
+      const hasAfternoon = times.some(t => t.includes("오후"));
+
+      if (hasMorning && hasAfternoon) return "종일 산책형";
+      if (hasMorning) return "오전 산책형";
+      if (hasAfternoon) return "오후 산책형";
+
+      return "미지정";
+    };
+
+    
+
+    // if (loading) {
+    //   return <div>불러오는 중...</div>
+    // }
+
+    // if (error) {
+    //   return <div>목록을 불러오지 못했습니다.</div>
+    // }
+    
+
 
   return (
     <div className="p-4">
@@ -75,6 +124,7 @@ function DogListPage() {
       <div className='flex flex-col gap-[20px]'>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 justify-items-center">
           {dogs.map((dog, index) => (
+            
             <div
               key={dog.id}
               onClick={() => navigate("/dog-profile-detail", { state: dog })}
@@ -87,7 +137,7 @@ function DogListPage() {
                 {/* 강아지 이미지 */}
                 <div className="relative shrink-0">
                   <img
-                    src={dog.img}
+                    src={dog.profileImageUrl}
                     className="w-[350px] h-[470px] rounded-xl object-cover"
                   />
 
@@ -118,18 +168,15 @@ function DogListPage() {
                       </div>
 
                       <p className="ml-1 mb-2
-                        text-white/90 text-[12px]">{dog.birth} · {dog.breed}</p>
+                        text-white/90 text-[12px]">{dog.birthDate.replaceAll("-", "/")} · {dog.breed}</p>
 
                       <div className="flex gap-[6px]">
-                        {dog.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-3 py-[2px]
+                        <span className="px-3 py-[2px]
                               rounded-full bg-white/20 backdrop-blur
-                              text-[12px] text-white/90">
-                            {tag}
-                          </span>
-                        ))}
+                              text-[12px] text-white/90"> {activityMap[dog.activityLevel]}</span>
+                        <span className="px-3 py-[2px]
+                              rounded-full bg-white/20 backdrop-blur
+                              text-[12px] text-white/90"> {getWalkType(dog.favorwalktime)}</span>
                       </div>
                     </div>
                   </div>
@@ -156,6 +203,8 @@ function DogListPage() {
         </div>
       </div>
     </div>
+
+
   )
 }
 
