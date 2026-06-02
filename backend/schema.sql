@@ -1,9 +1,15 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.4
--- 작성일: 2026-05-19 (v1.4: 2026-05-20)
+-- 반려견 산책 라이프 플랫폼 ERD v1.5
+-- 작성일: 2026-05-19 (v1.5: 2026-06-02)
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
 -- 테이블: 25개
+--
+-- 변경 사항 (v1.4 → v1.5) — weather_snapshots 를 실제 JPA 엔티티에 정합화
+--  • weather_snapshots: 위경도 기반 → 기상청 격자(grid_x/grid_y) + base_date_time 기반으로 재정의
+--    (WeatherSnapshot 엔티티는 #45부터 격자 기반이었으나 schema 가 따라오지 않았던 드리프트 정리)
+--  • weather_snapshots: uv_index 컬럼 추가 (생활기상지수 V5 자외선, 룰 v1.2 UV_HIGH/UV_VERY_HIGH 입력)
+--  • UNIQUE uk_weather_grid_time(grid_x, grid_y, base_date_time) + index idx_weather_grid_time
 --
 -- 변경 사항 (v1.3 → v1.4) — API 명세서 v3.1 인증 지원
 --  • users: role 컬럼 추가 (USER / ADMIN)
@@ -132,23 +138,23 @@ CREATE TABLE dogs (
 -- ============================================================
 -- 4. 날씨 스냅샷 (weather_snapshots)
 -- ============================================================
+-- ⚠️ WeatherSnapshot 엔티티(JPA, ddl-auto=create)가 실제 생성하는 테이블 정의를 반영.
+--    기상청 단기예보는 위경도가 아닌 격자(nx, ny)+발표시각 단위라 같은 격자+시각은 같은 결과(UNIQUE).
+--    측정값은 엔티티 필드 타입(double/Integer)을 그대로 따른다.
 CREATE TABLE weather_snapshots (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '날씨 스냅샷 ID',
-    location_lat DECIMAL(10,7) COMMENT '위도',
-    location_lng DECIMAL(10,7) COMMENT '경도',
-    temperature DECIMAL(4,1) COMMENT '기온 (°C)',
-    humidity INT COMMENT '습도 (%)',
-    ground_temperature DECIMAL(4,1) COMMENT '지면온도 (°C) - 발바닥 화상 판단용',
-    wind_speed DECIMAL(4,1) COMMENT '풍속 (m/s)',
-    feels_like DECIMAL(4,1) COMMENT '체감온도 (°C)',
-    pm10 INT COMMENT '미세먼지 (㎍/㎥)',
-    pm25 INT COMMENT '초미세먼지 (㎍/㎥)',
-    precipitation DECIMAL(4,1) COMMENT '강수량 (mm)',
-    weather_condition VARCHAR(30) COMMENT '날씨 상태 (맑음/흐림/비/눈)',
-    recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '측정 시각',
-    INDEX idx_weather_recorded_at (recorded_at),
-    INDEX idx_weather_location (location_lat, location_lng)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='기상청 날씨 스냅샷';
+    grid_x INT NOT NULL COMMENT '기상청 격자 X (nx)',
+    grid_y INT NOT NULL COMMENT '기상청 격자 Y (ny)',
+    base_date_time DATETIME NOT NULL COMMENT '예보 대상 시각 (격자별 가장 가까운 예보)',
+    temperature DOUBLE NOT NULL COMMENT '기온 (°C)',
+    humidity DOUBLE NOT NULL COMMENT '습도 (%)',
+    wind_speed DOUBLE NOT NULL COMMENT '풍속 (m/s)',
+    feels_like_temperature DOUBLE NOT NULL COMMENT '체감온도 (°C)',
+    ground_temperature DOUBLE COMMENT '지면온도 (°C) - ASOS(GroundTempParser) 보강, 발바닥 화상 판단용',
+    uv_index INT COMMENT '자외선지수 (생활기상지수 V5, 0~11+) - UvIdxClient 보강, 룰 v1.2 입력',
+    UNIQUE KEY uk_weather_grid_time (grid_x, grid_y, base_date_time),
+    INDEX idx_weather_grid_time (grid_x, grid_y, base_date_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='기상청 날씨 스냅샷 (격자+발표시각 단위)';
 
 -- ============================================================
 -- 5. 산책로 (walk_routes)

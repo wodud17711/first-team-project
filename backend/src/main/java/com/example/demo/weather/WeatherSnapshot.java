@@ -77,6 +77,13 @@ public class WeatherSnapshot {
     @Column
     private Double groundTemperature;
 
+    // 자외선지수(생활기상지수 V5, 0~11+). 별도 API(UvIdxClient)에서 보강하므로
+    // 미보강 상태는 null. 룰베이스 v1.2 UV_HIGH/UV_VERY_HIGH 입력.
+    @Column(
+            name = "uv_index"
+    )
+    private Integer uvIndex;
+
     @Builder
     private WeatherSnapshot(
             int gridX,
@@ -86,7 +93,8 @@ public class WeatherSnapshot {
             double humidity,
             double windSpeed,
             double feelsLikeTemperature,
-            Double groundTemperature
+            Double groundTemperature,
+            Integer uvIndex
     ) {
 
         validateHumidity(humidity);
@@ -99,6 +107,7 @@ public class WeatherSnapshot {
         this.windSpeed = windSpeed;
         this.feelsLikeTemperature = feelsLikeTemperature;
         this.groundTemperature = groundTemperature;
+        this.uvIndex = uvIndex;
     }
 
     public static WeatherSnapshot create(
@@ -109,7 +118,8 @@ public class WeatherSnapshot {
             double humidity,
             double windSpeed,
             double feelsLikeTemperature,
-            Double groundTemperature
+            Double groundTemperature,
+            Integer uvIndex
     ) {
 
         return WeatherSnapshot.builder()
@@ -121,6 +131,7 @@ public class WeatherSnapshot {
                 .windSpeed(windSpeed)
                 .feelsLikeTemperature(feelsLikeTemperature)
                 .groundTemperature(groundTemperature)
+                .uvIndex(uvIndex)
                 .build();
     }
 
