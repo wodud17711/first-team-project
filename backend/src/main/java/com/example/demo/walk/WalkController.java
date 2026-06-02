@@ -1,5 +1,7 @@
 package com.example.demo.walk;
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +22,8 @@ public class WalkController {
             @RequestParam Long dogId
     ) {
 
-        Long userId = Long.parseLong(
-                userDetails.getUsername()
+        Long userId = resolveUserId(
+                userDetails
         );
 
         WalkScoreResult result =
@@ -36,5 +38,26 @@ public class WalkController {
         return ResponseEntity.ok(
                 ApiResponse.success(response)
         );
+    }
+
+    private Long resolveUserId(
+            UserDetails userDetails
+    ) {
+
+        if (userDetails == null) {
+            throw new BusinessException(
+                    ErrorCode.UNAUTHORIZED
+            );
+        }
+
+        try {
+            return Long.parseLong(
+                    userDetails.getUsername()
+            );
+        } catch (NumberFormatException e) {
+            throw new BusinessException(
+                    ErrorCode.UNAUTHORIZED
+            );
+        }
     }
 }

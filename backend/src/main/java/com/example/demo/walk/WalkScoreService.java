@@ -3,6 +3,7 @@ package com.example.demo.walk;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.dog.entity.Dog;
+import com.example.demo.dog.entity.DogBreed;
 import com.example.demo.dog.repository.DogRepository;
 import com.example.demo.weather.WeatherSnapshot;
 import com.example.demo.weather.WeatherSnapshotRepository;
@@ -42,7 +43,6 @@ public class WalkScoreService {
 
         WalkScoreRequest request =
                 new WalkScoreRequest(
-
                         buildDogInfo(dog),
                         buildWeatherInfo(snapshot)
                 );
@@ -54,29 +54,44 @@ public class WalkScoreService {
             Dog dog
     ) {
 
+        DogBreed breed = dog.getBreed();
+
         int ageYears =
-                Period.between(
+                dog.getBirthDate() != null
+                        ? Period.between(
                         dog.getBirthDate(),
                         LocalDate.now()
-                ).getYears();
+                ).getYears()
+                        : 3;
+
+        double weight =
+                dog.getWeight() != null
+                        ? dog.getWeight().doubleValue()
+                        : 10.0;
+
+        if (breed == null) {
+
+            return new WalkScoreRequest.DogInfo(
+                    "믹스",
+                    "중형",
+                    "단모",
+                    ageYears,
+                    weight,
+                    false,
+                    3,
+                    3
+            );
+        }
 
         return new WalkScoreRequest.DogInfo(
-
-                dog.getBreed().getNameKr(),
-
-                dog.getBreed().getSize(),
-
-                dog.getBreed().getCoatType(),
-
+                breed.getNameKr(),
+                breed.getSize(),
+                breed.getCoatType(),
                 ageYears,
-
-                dog.getWeight().doubleValue(),
-
-                dog.getBreed().isBrachycephalic(),
-
-                dog.getBreed().getHeatTolerance(),
-
-                dog.getBreed().getColdTolerance()
+                weight,
+                breed.isBrachycephalic(),
+                breed.getHeatTolerance(),
+                breed.getColdTolerance()
         );
     }
 
@@ -94,7 +109,9 @@ public class WalkScoreService {
 
                 snapshot.getWindSpeed(),
 
-                snapshot.getGroundTemperature(),
+                snapshot.getGroundTemperature() != null
+                        ? snapshot.getGroundTemperature()
+                        : 25.0,
 
                 // TODO: AirKorea 연동 후 실제 PM10 값 사용
                 0,
@@ -105,8 +122,9 @@ public class WalkScoreService {
                 // TODO: 기상청 PTY 연동 후 실제 강수 형태 사용
                 "없음",
 
-                // TODO: UV API 연동 후 실제 UV Index 사용
-                0
+                snapshot.getUvIndex() != null
+                        ? snapshot.getUvIndex()
+                        : 0
         );
     }
 }
