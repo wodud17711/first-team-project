@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useCreateDog } from "../hooks/useCreateDog";
+import { searchBreeds } from "../api/breeds";
 
 
 
@@ -32,12 +33,22 @@ function DogProfile() {
     // 선호 선택 시간 목록 펼쳐져있는지 여부
     const [openWalkTime, setOpenWalkTime] = useState(false)
 
+    // 견종 검색 상태 (입력칸 표시값 · 검색결과 목록 · 드롭다운 열림)
+    // form.breedId 에는 선택한 견종의 숫자 ID 만 저장한다 (백엔드는 breedId:Long 기대).
+    const [breedKeyword, setBreedKeyword] = useState("")
+    const [breedResults, setBreedResults] = useState([])
+    const [openBreed, setOpenBreed] = useState(false)
+    const breedRef = useRef(null)
+
     // 선호 선택 시간 버튼 누르지 않아도 목록 밖 화면 빈 곳 아무대나 눌렀을 때 목록창 꺼지게
     const walkTimeRef = useRef(null)
     useEffect(() => {
       const handleClickOutside = (e) => {
         if (walkTimeRef.current && !walkTimeRef.current.contains(e.target)) {
           setOpenWalkTime(false)
+        }
+        if (breedRef.current && !breedRef.current.contains(e.target)) {
+          setOpenBreed(false)
         }
       }
 
@@ -47,6 +58,31 @@ function DogProfile() {
         document.removeEventListener("mousedown", handleClickOutside)
       }
     }, [])
+
+    // 견종 검색: 입력할 때마다 /api/breeds 호출. 다시 입력하면 이전 선택(breedId) 해제.
+    const handleBreedSearch = async (kw) => {
+      setBreedKeyword(kw)
+      setForm((f) => ({ ...f, breedId: "" }))
+      if (kw.trim().length < 1) {
+        setBreedResults([])
+        setOpenBreed(false)
+        return
+      }
+      try {
+        const list = await searchBreeds(kw.trim())
+        setBreedResults(list ?? [])
+        setOpenBreed(true)
+      } catch {
+        setBreedResults([])
+      }
+    }
+
+    // 견종 선택: 숫자 breedId 저장 + 입력칸에 견종명 표시.
+    const handleSelectBreed = (b) => {
+      setForm((f) => ({ ...f, breedId: b.breedId }))
+      setBreedKeyword(b.nameKr)
+      setOpenBreed(false)
+    }
 
     // 선호 산책 시간 선택 목록 배열
     const walkTimes = [
@@ -93,10 +129,17 @@ function DogProfile() {
         })
     }
 
+    // "20200123"(8자리) → "2020-01-23" (백엔드 LocalDate = ISO yyyy-MM-dd). 8자리 아니면 null.
+    const toIsoDate = (raw) => {
+      const digits = (raw ?? "").replace(/\D/g, "")
+      if (digits.length !== 8) return null
+      return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`
+    }
+
     // 백엔드에 보낼 데이터 형태 변환
     const toPayload = () => ({
       name: form.dogname,
-      birthDate: form.dogbirth || null,
+      birthDate: toIsoDate(form.dogbirth),
       breedId: form.breedId || null,
       gender: form.gender || null,
       weight: form.weight ? parseFloat(form.weight) : null,
@@ -122,6 +165,8 @@ function DogProfile() {
 
       setAddedDogs((prev) => [...prev, dog])
       setForm(initialForm)
+      setBreedKeyword("")
+      setBreedResults([])
     }
 
     // 나중에 하기 눌렀을 때
@@ -348,7 +393,39 @@ function DogProfile() {
                       ))}
                     </div>
 
-                  ) : item === "breedId" || item === "dogname" || item === "dogbirth" || item === "health" ? (
+                  ) : item === "breedId" ? (
+                    <div className="relative" ref={breedRef}>
+                      <input
+                        type="text"
+                        value={breedKeyword}
+                        onChange={(e) => handleBreedSearch(e.target.value)}
+                        onFocus={() => { if (breedResults.length > 0) setOpenBreed(true) }}
+                        placeholder="견종을 검색하세요 (예: 말티즈)"
+                        className="w-full px-3 py-4 bg-[#f7f7f7] rounded-xl text-[14px]
+                                  focus:outline-brand-300 hover:bg-[#F0F0F0]"
+                      />
+
+                      {openBreed && (
+                        <div className="absolute top-full mt-2 w-full max-h-[220px] overflow-y-auto bg-white border rounded-xl py-2 shadow z-10">
+                          {breedResults.length > 0 ? (
+                            breedResults.map((b) => (
+                              <button
+                                key={b.breedId}
+                                type="button"
+                                onClick={() => handleSelectBreed(b)}
+                                className="w-full text-left px-4 py-2 text-[14px] hover:bg-brand-100"
+                              >
+                                {b.nameKr}
+                              </button>
+                            ))
+                          ) : (
+                            <p className="px-4 py-2 text-[13px] text-gray-400">검색 결과가 없어요</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                  ) : item === "dogname" || item === "dogbirth" || item === "health" ? (
                     <input
                       type="text"
                       name={item}
@@ -357,8 +434,6 @@ function DogProfile() {
                       placeholder={
                         item === "dogname"
                           ? "반려견의 이름을 입력하세요"
-                          : item === "breedId"
-                          ? "견종을 선택하세요"
                           : item === "dogbirth"
                           ? "생년월일(8자리)을 입력하세요"
                           : "건강 특이사항을 입력하세요"
