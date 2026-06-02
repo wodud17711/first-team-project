@@ -1,5 +1,7 @@
 package com.example.demo.walk;
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.dog.entity.Dog;
 import com.example.demo.dog.repository.DogRepository;
 import com.example.demo.weather.WeatherSnapshot;
@@ -19,12 +21,20 @@ public class WalkScoreService {
     private final WeatherSnapshotRepository weatherSnapshotRepository;
 
     public WalkScoreResult calculateScore(
+            Long userId,
             Long dogId
     ) {
 
         Dog dog =
-                dogRepository.findById(dogId)
-                        .orElseThrow();
+                dogRepository.findByIdAndUserId(
+                                dogId,
+                                userId
+                        )
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        ErrorCode.DOG_NOT_FOUND
+                                )
+                        );
 
         WeatherSnapshot snapshot =
                 weatherSnapshotRepository.findTopByOrderByBaseDateTimeDesc()

@@ -1,9 +1,12 @@
 package com.example.demo.walk;
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Component
 @RequiredArgsConstructor
@@ -18,10 +21,19 @@ public class AiClient {
             WalkScoreRequest request
     ) {
 
-        return restClient.post()
-                .uri(aiBaseUrl + "/score")
-                .body(request)
-                .retrieve()
-                .body(WalkScoreResult.class);
+        try {
+
+            return restClient.post()
+                    .uri(aiBaseUrl + "/score")
+                    .body(request)
+                    .retrieve()
+                    .body(WalkScoreResult.class);
+
+        } catch (RestClientException e) {
+
+            throw new BusinessException(
+                    ErrorCode.AI_SERVER_ERROR
+            );
+        }
     }
 }
