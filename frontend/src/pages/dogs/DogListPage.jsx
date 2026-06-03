@@ -5,6 +5,9 @@ import dogImg2 from '../../assets/dogImg2.jpeg'
 // 훅 연결
 import { useDogs } from "../../hooks/useDogs";
 
+// 함수 땡겨오기
+import { genderMap, activityMap, getWalkType} from "../../constants/dogConstants"
+
 
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
 
@@ -54,33 +57,6 @@ function DogListPage() {
         isMain: false
         }
     ]
-
-    // 성별에 따른 이름
-    const genderMap = {
-      F: { text: "여아", icon: "🩷" },
-      M: { text: "남아", icon: "🩵" },
-    };
-
-    // 활동량 저, 중, 고에 따른 태그이름
-    const activityMap = {
-      저: "느긋함",
-      중: "활기참",
-      고: "에너자이저",
-    };
-
-    // 선호 산책 시간에 따른 태그 이름
-    const getWalkType = (times) => {
-      const hasMorning = times.some(t => t.includes("오전"));
-      const hasAfternoon = times.some(t => t.includes("오후"));
-
-      if (hasMorning && hasAfternoon) return "종일 산책형";
-      if (hasMorning) return "오전 산책형";
-      if (hasAfternoon) return "오후 산책형";
-
-      return "미지정";
-    };
-
-    
 
     // if (loading) {
     //   return <div>불러오는 중...</div>

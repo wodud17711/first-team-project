@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { searchBreeds } from "../api/breeds";
+
+// 함수 땡겨오기
+import { genders, formatWeight, activityLevels, walkTimes } from "../../constants/dogConstants"
 
 
 function DogEditPage() {
@@ -27,6 +29,7 @@ function DogEditPage() {
   // 대표 강아지 설정 여부
   const [isMain, setIsMain] = useState(dog.isMain || false)
 
+  // 견종 검색 state
   const [breedKeyword, setBreedKeyword] = useState(dog.breed || "")
   const [breedResults, setBreedResults] = useState([])
   const [openBreed, setOpenBreed] = useState(false)
@@ -120,14 +123,6 @@ function DogEditPage() {
     }
   }, [])
 
-  // 선호 산책 시간 선택 목록 배열
-  const walkTimes = [
-    ...Array.from({length: 12}, (_, i) =>
-    `오전 ${i}~${i+1}시`),
-    ...Array.from({length: 12}, (_, i) =>
-    `오후 ${i === 0 ? 12 : i}~${i+1}시`)
-  ]
-
   // 선호 산책 시간 - 제거 가능하게, 최대 3개 선택가능하게
   const handleWalkTime = (time) => {
     // 이미 선택된 경우, 재클릭 시 제거
@@ -153,20 +148,6 @@ function DogEditPage() {
       })
     }
   }
-
-  // 성별 선택 버튼
-  const genders = [
-    { value: "남아" },
-    { value: "여아" },
-  ]
-
-  // 활동량 저, 중, 고에 따른 태그이름
-  const activityLevels = [
-    { value: "저", label: "느긋함" },
-    { value: "중", label: "활기참" },
-    { value: "고", label: "에너자이저" },
-  ]
-
 
   // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
   const handleSubmit = () => {
@@ -368,16 +349,10 @@ function DogEditPage() {
                     type="text"
                     value={form.weight}
                     onChange={(e) => {
-                      let value = e.target.value
-                      value = value.replace(/[^0-9.]/g, "")
-
-                      const parts = value.split(".")
-                      if (parts.length > 2) value = parts[0] + "." + parts[1]
-                      if (parts[1]?.length > 1) {
-                        value = parts[0] + "." + parts[1].slice(0, 1)
-                      }
-
-                      setForm({ ...form, weight: value })
+                      setForm({
+                        ...form,
+                        weight: formatWeight(e.target.value)
+                      })
                     }}
                     className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]
                     focus:outline-brand-300 hover:bg-[#F0F0F0]"
