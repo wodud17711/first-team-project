@@ -31,7 +31,6 @@ function DogListPage() {
         breed: "리트리버",
         gender: "F",
         weight: 26,
-        hairlength: "장모종",
         isNeutered: true,
         healthNotes: "특이사항 없음",
         favorwalktime: ["오전 10~11시", "오후 2~3시", "오후 7~8시"],
@@ -47,7 +46,6 @@ function DogListPage() {
         breed: "사모예드",
         gender: "M",
         weight: 21,
-        hairlength: "장모종",
         isNeutered: true,
         healthNotes: "더위에 취약",
         favorwalktime: ["오전 9~10시"],
@@ -65,9 +63,9 @@ function DogListPage() {
 
     // 활동량 저, 중, 고에 따른 태그이름
     const activityMap = {
-      저: "내향적",
-      중: "양향적",
-      고: "외향적",
+      저: "느긋함",
+      중: "활기참",
+      고: "에너자이저",
     };
 
     // 선호 산책 시간에 따른 태그 이름
@@ -168,7 +166,7 @@ function DogListPage() {
                       </div>
 
                       <p className="ml-1 mb-2
-                        text-white/90 text-[12px]">{dog.birthDate.replaceAll("-", "/")} · {dog.breed}</p>
+                        text-white/90 text-[12px]">{dog.birthDate.replaceAll("-", "/")} · {dog.breed.split("(")[0].trim()}</p>
 
                       <div className="flex gap-[6px]">
                         <span className="px-3 py-[2px]

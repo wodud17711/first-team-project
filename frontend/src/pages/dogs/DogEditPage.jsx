@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { searchBreeds } from "../api/breeds";
 
 
 function DogEditPage() {
@@ -11,7 +12,7 @@ function DogEditPage() {
   const dog = location.state || {}
 
   // 강아지 이미지 주소 저장
-  const [previewImg, setPreviewImg] = useState(dog.img)
+  const [previewImg, setPreviewImg] = useState(dog.profileImageUrl)
 
   // 강아지 이미지 변경 함수
   const handleImageChange = (e) => {
@@ -26,28 +27,38 @@ function DogEditPage() {
   // 대표 강아지 설정 여부
   const [isMain, setIsMain] = useState(dog.isMain || false)
 
+  const [breedKeyword, setBreedKeyword] = useState(dog.breed || "")
+  const [breedResults, setBreedResults] = useState([])
+  const [openBreed, setOpenBreed] = useState(false)
+  const [mixMode, setMixMode] = useState(false)
+
+  const breedRef = useRef(null)
+
   // 인풋 코드 줄이기
   const inputs = [
     { label: "이름", name: "name" },
-    { label: "생년월일", name: "birth" },
+    { label: "생년월일", name: "birthDate" },
     { label: "견종", name: "breed" },
     { label: "성별", name: "gender" },
     { label: "체중", name: "weight" },
+    { label: "중성화", name: "isNeutered" },
+    { label: "활동량", name: "activityLevel" },
     { label: "선호 산책 시간", name: "favorwalktime" },
-    { label: "건강 특이사항", name: "health" },
-    { label: "털길이", name: "hairlength" },
+    { label: "건강 특이사항", name: "healthNotes" },
   ]
 
   // 수정용 state
   const [form, setForm] = useState({
     name: dog.name || "",
-    birth: dog.birthDate || "",
+    birthDate: dog.birthDate || "",
     breed: dog.breed || "",
+    breedId: dog.breedId || "",
     gender: dog.gender || "",
     weight: dog.weight || "",
+    isNeutered: dog.isNeutered || "",
+    activityLevel: dog.activityLevel || "",
     favorwalktime: dog.favorwalktime || [],
-    healthNotes: dog.health || "",
-    hairlength: dog.hairlength || "",
+    healthNotes: dog.healthNotes || "",
   })
 
   // input 변경 함수
@@ -60,16 +71,45 @@ function DogEditPage() {
     })
   }
 
+  // 견종 검색: 입력할 때마다 /api/breeds 호출. 다시 입력하면 이전 선택(breedId) 해제.
+  const handleBreedSearch = async (kw) => {
+    setBreedKeyword(kw)
+    setForm((f) => ({ ...f, breedId: "" }))
+    if (kw.trim().length < 1) {
+      setBreedResults([])
+      setOpenBreed(false)
+      return
+    }
+    try {
+      const list = await searchBreeds(kw.trim())
+      setBreedResults(list ?? [])
+      setOpenBreed(true)
+    } catch {
+      setBreedResults([])
+    }
+  }
+
+  // 견종 선택: 숫자 breedId 저장 + 입력칸에 견종명 표시.
+  const handleSelectBreed = (b) => {
+    setForm((f) => ({ ...f, breedId: b.breedId }))
+    setBreedKeyword(b.nameKr)
+    setOpenBreed(false)
+  }
+
 
   // 선호 선택 시간 목록 펼쳐져있는지 여부
   const [openWalkTime, setOpenWalkTime] = useState(false)
 
-  // 선호 선택 시간 버튼 누르지 않아도 목록 밖 화면 빈 곳 아무대나 눌렀을 때 목록창 꺼지게
+  // 선호 선택 시간 + 견종 선택 버튼 누르지 않아도 목록 밖 화면 빈 곳 아무대나 눌렀을 때 목록창 꺼지게
   const walkTimeRef = useRef(null)
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (walkTimeRef.current && !walkTimeRef.current.contains(e.target)) {
         setOpenWalkTime(false)
+      }
+
+      if (breedRef.current && !breedRef.current.contains(e.target)) {
+        setOpenBreed(false)
       }
     }
 
@@ -120,11 +160,13 @@ function DogEditPage() {
     { value: "여아" },
   ]
 
-  // 털길이 선택 버튼 코드 줄이기 위해 사용
-  const hairlength = [
-      { value: "단모종", title: "단모", desc: "짧고 매끈" },
-      { value: "장모종", title: "장모", desc: "길고 풍성" }
+  // 활동량 저, 중, 고에 따른 태그이름
+  const activityLevels = [
+    { value: "저", label: "느긋함" },
+    { value: "중", label: "활기참" },
+    { value: "고", label: "에너자이저" },
   ]
+
 
   // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
   const handleSubmit = () => {
@@ -137,7 +179,7 @@ function DogEditPage() {
         state: {
           ...dog,
           ...form,
-          img: previewImg,
+          profileImageUrl: previewImg,
           isMain,
         }
       })
@@ -229,8 +271,73 @@ function DogEditPage() {
               </p>
 
 
-              {/* 성별 선택 */}
-                {item.name === "gender" ? (
+              {/* 견종 선택 */}
+                {item.name === "breed" ? (
+                <div className="relative flex-1" ref={breedRef}>
+
+                  {/* 순종 / 믹스견 */}
+                  <div className="flex gap-2 mb-2">
+                    {[
+                      { mix: false, label: "순종" },
+                      { mix: true, label: "믹스견" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.label}
+                        type="button"
+                        onClick={() => {
+                          setMixMode(opt.mix)
+                          if (breedResults.length > 0) setOpenBreed(true)
+                        }}
+                        className={`flex-1 py-2 rounded-xl border
+                          ${
+                            mixMode === opt.mix
+                              ? "bg-brand-200 border-brand-500"
+                              : "bg-white border-gray-300"
+                          }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={breedKeyword}
+                    onChange={(e) => handleBreedSearch(e.target.value)}
+                    onFocus={() => {
+                      if (breedResults.length > 0) setOpenBreed(true)
+                    }}
+                    placeholder="견종을 검색하세요"
+                    className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]
+                    focus:outline-brand-300 hover:bg-[#F0F0F0]"
+                  />
+
+                  {openBreed && (
+                    <div className="absolute top-full mt-2 w-full bg-white border rounded-xl shadow z-10 max-h-[250px] overflow-y-auto">
+
+                      {breedResults
+                        .filter((b) =>
+                          mixMode
+                            ? b.nameKr.includes("×")
+                            : !b.nameKr.includes("×")
+                        )
+                        .map((b) => (
+                          <button
+                            key={b.breedId}
+                            type="button"
+                            onClick={() => handleSelectBreed(b)}
+                            className="w-full text-left px-4 py-2 hover:bg-brand-100"
+                          >
+                            {b.nameKr}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                
+
+              // 성별 선택
+              ): item.name === "gender" ? (
                 <div className="flex-1">
                   <div className="flex gap-2">
                     {genders.map((g) => (
@@ -283,9 +390,64 @@ function DogEditPage() {
                   )}
                 </div>
 
-              ) : item.name === "favorwalktime" ? (
+              // 중성화 여부
+              ) : item.name === "isNeutered" ? (
+                <div className="flex-1 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm({ ...form, isNeutered: true })
+                    }
+                    className={`w-1/2 py-3 rounded-xl border
+                      ${
+                        form.isNeutered
+                          ? "bg-brand-200 border-brand-500"
+                          : "bg-white border-gray-300"
+                      }`}
+                  >
+                    O
+                  </button>
 
-                /* 선호 산책 시간 */
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm({ ...form, isNeutered: false })
+                    }
+                    className={`w-1/2 py-3 rounded-xl border
+                      ${
+                        !form.isNeutered
+                          ? "bg-brand-200 border-brand-500"
+                          : "bg-white border-gray-300"
+                      }`}
+                  >
+                    X
+                  </button>
+                </div>
+
+              // 활동량
+              ) : item.name === "activityLevel" ? (
+                <div className="flex-1 flex gap-2">
+                  {activityLevels.map((level) => (
+                    <button
+                      key={level.value}
+                      type="button"
+                      onClick={() =>
+                        setForm({ ...form, activityLevel: level.value })
+                      }
+                      className={`flex-1 py-3 rounded-xl border transition
+                        ${
+                          form.activityLevel === level.value
+                            ? "bg-brand-200 border-brand-500"
+                            : "bg-white border-gray-300 hover:bg-[#F0F0F0]"
+                        }`}
+                    >
+                      {level.label}
+                    </button>
+                  ))}
+                </div>
+
+              // 선호 산책 시간
+              ) : item.name === "favorwalktime" ? (
                 <div ref={walkTimeRef} className="relative flex-1">
                   <button
                     type="button"
@@ -320,32 +482,6 @@ function DogEditPage() {
                       </div>
                     </div>
                   )}
-                </div>
-
-                // 털길이 선택
-                ) : item.name === "hairlength" ? (
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    {hairlength.map((c) => (
-                      <button
-                        key={c.value}
-                        type="button"
-                        onClick={() =>
-                          setForm({ ...form, hairlength: c.value })
-                        }
-                        className={`w-1/2 flex items-center justify-center
-                          px-4 py-3 rounded-xl border text-[14px] transition
-                          ${
-                            form.hairlength === c.value
-                              ? "bg-brand-200 border-brand-500"
-                              : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0]"
-                          }`}
-                      >
-                        <span className="text-[14px]">{c.title}</span>
-                        <span className="text-[12px]">({c.desc})</span>
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 // 나머지 인풋들

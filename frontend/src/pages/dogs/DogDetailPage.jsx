@@ -92,11 +92,10 @@ function DogDetailPage() {
             <h1 className="text-[28px] font-bold">{dog.name}</h1>
             <div className="flex flex-col gap-[14px] text-[14px]">
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">생년월일🎂</span> - {dog.birthDate} ({dog.ageYears})</p>
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">견종🐶</span> - {dog.breed}</p>
+              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">견종🐶</span> - {dog.breed.split("(")[0].trim()}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">성별🤍</span> - {genderMap[dog.gender]?.text}{genderMap[dog.gender]?.icon}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">체중🐾</span> - {dog.weight}kg</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">중성화🩺</span> - {dog.isNeutered ? "O" : "X"}</p>
-              <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">털길이✂️</span> - {dog.hairlength}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">활동량🚶</span> - {activityMap[dog.activityLevel]}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">선호 산책 시간🚶</span> - {dog.favorwalktime.join(", ")}</p>
               <p className='pb-1 border-b-[1px] border-brand-300'><span className="text-[16px] font-bold">건강 특이사항🩺</span> - {dog.healthNotes}</p>

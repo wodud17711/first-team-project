@@ -32,7 +32,6 @@ function DogCreatePage() {
     { label: "체중", name: "weight", placeholder: "무게를 입력하세요" },
     { label: "선호 산책 시간", name: "favorwalktime" },
     { label: "건강 특이사항", name: "health", placeholder: "건강 특이사항을 입력하세요" },
-    { label: "털길이", name: "hairlength" },
   ]
 
   // 생성용 state
@@ -44,7 +43,6 @@ function DogCreatePage() {
     weight: "",
     favorwalktime: [],
     health: "",
-    hairlength: "",
   })
 
   // input 변경 함수
@@ -117,11 +115,6 @@ function DogCreatePage() {
     { value: "여아" },
   ]
 
-  // 털길이 선택 버튼 코드 줄이기 위해 사용
-  const hairlength = [
-      { value: "단모종", title: "단모", desc: "짧고 매끈" },
-      { value: "장모종", title: "장모", desc: "길고 풍성" }
-  ]
 
   // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 기능 X)
   const handleSubmit = () => {
@@ -332,32 +325,6 @@ function DogCreatePage() {
                       </div>
                     </div>
                   )}
-                </div>
-
-                // 털길이 선택
-                ) : item.name === "hairlength" ? (
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    {hairlength.map((c) => (
-                      <button
-                        key={c.value}
-                        type="button"
-                        onClick={() =>
-                          setForm({ ...form, hairlength: c.value })
-                        }
-                        className={`w-1/2 flex items-center justify-center
-                          px-4 py-3 rounded-xl border text-[14px] transition
-                          ${
-                            form.hairlength === c.value
-                              ? "bg-brand-200 border-brand-500"
-                              : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0]"
-                          }`}
-                      >
-                        <span className="text-[14px]">{c.title}</span>
-                        <span className="text-[12px]">({c.desc})</span>
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 // 나머지 인풋들
