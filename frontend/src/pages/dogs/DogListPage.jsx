@@ -1,6 +1,4 @@
-// ⚠️ 병합 초안 (정선혜 브랜치용): 카드 디자인은 정선혜 원본 그대로,
-//    데이터만 develop 실 API(useDogs)로 배선. 본인 브랜치 pages/dogs/DogListPage.jsx 에 적용.
-//    favorwalktime 태그만 디자인 결정 필요(아래 주석 참고).
+
 
 // 강아지 기본(폴백) 사진
 import dogImg1 from '../../assets/dogImg1.jpg'
