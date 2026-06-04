@@ -150,16 +150,25 @@ public class WalkScoreService {
             WalkScoreResult result
     ) {
 
+        if (result == null) {
+            return;
+        }
+
+        String reason =
+                result.reasons() == null
+                        ? ""
+                        : String.join(
+                        ", ",
+                        result.reasons()
+                );
+
         WalkScore walkScore =
                 WalkScore.create(
                         dog,
                         snapshot,
                         result.score(),
                         result.level(),
-                        String.join(
-                                ", ",
-                                result.reasons()
-                        )
+                        reason
                 );
 
         walkScoreRepository.save(
