@@ -12,5 +12,8 @@ public interface DogRepository extends JpaRepository<Dog, Long> {
     List<Dog> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     /** ID 조회. {@code @SQLRestriction} 으로 soft delete 된 행은 자동 제외된다. */
-    Optional<Dog> findById(Long id);
+    Optional<Dog> findByIdAndUserId(
+            Long dogId,
+            Long userId
+    );
 }
