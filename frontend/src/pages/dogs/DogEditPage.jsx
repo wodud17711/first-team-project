@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 
-// 함수 땡겨오기
+// 함수 땡겨오기 (그대로 유지)
 import { genders, formatWeight, activityLevels, walkTimes } from "../../constants/dogConstants"
 
-
 function DogEditPage() {
-
   const navigate = useNavigate()
 
   // 목록 만든 강아지 데이터 받기
@@ -177,314 +175,232 @@ function DogEditPage() {
     }
   }
 
+  const Section = ({ title, children }) => (
+    <div className="bg-white rounded-xl border shadow-sm px-6 py-5">
+      <h3 className="flex items-center text-[18px] font-bold text-sky-900 mb-4">
+        <span className="w-1 h-4 bg-sky-700 rounded-full mr-2" />
+        {title}
+      </h3>
+      <div className="flex flex-col gap-3">{children}</div>
+    </div>
+  )
+
+
+
 
   return (
-    <div className="p-4">
-      {/* 상단 제목 */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-[28px] font-bold">반려견 프로필 수정</h1>
+    <div className="p-4 animate-fadeIn">
+
+      {/* 헤더 */}
+      <div className="mb-4">
+        <h1 className="text-[32px] font-extrabold text-sky-800">
+          반려견 프로필 수정
+        </h1>
+        <div className="w-full h-[1px] bg-sky-700/50 mt-3" />
       </div>
-      <div className='w-full h-[1px] bg-brand-400 mb-[30px]'/>
 
-      {/* 강아지 프로필 상세칸 */}
-      <div className="flex flex-col items-center space-y-6">        
-        <div className="flex items-start w-3/4 bg-white rounded-xl px-[30px] py-[24px] shadow hover:shadow-lg transition">
-          
-          {/* 강아지 사진 */}
-          <div className="shrink-0 flex flex-col items-center gap-3">
-            <div className="relative">
-              <img
-                src={previewImg}
-                alt="강아지 사진"
-                className="w-[300px] h-[350px] rounded-xl object-cover"
-              />
+      <div className="flex gap-6">
 
-              {/* 사진 변경 버튼 */}
-              <label
-                htmlFor="dog-image"
-                className="
-                  absolute bottom-3 right-3
-                  px-3 py-2
-                  bg-white/60
-                  rounded-lg text-[13px] font-bold
-                  cursor-pointer
-                  hover:bg-black/10
-                  transition
-                "
-              >
-                📷 사진 변경
-              </label>
+        {/* 이미지 */}
+        <div className="shrink-0 flex flex-col gap-3">
+          <img
+            src={previewImg}
+            className="w-[340px] h-[420px] rounded-xl object-cover shadow"
+          />
 
+          <label className="text-sky-700 text-center cursor-pointer">
+            📷 사진 변경
+            <input type="file" hidden onChange={handleImageChange} />
+          </label>
+
+          <button
+            onClick={() => setIsMain(!isMain)}
+            className={`py-2 rounded-xl border ${
+              isMain ? "bg-sky-100 border-sky-400" : "bg-white"
+            }`}
+          >
+            {isMain ? "⭐ 대표 강아지" : "대표 설정"}
+          </button>
+        </div>
+
+        {/* 폼 */}
+        <div className="flex-1 flex flex-col gap-4">
+
+          {/* ================= 기본 정보 ================= */}
+          <Section title="📋 기본 정보">
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px]
+                                  focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+              placeholder="반려견의 이름을 입력하세요"
+            />
+
+            <input
+              name="birthDate"
+              value={form.birthDate}
+              onChange={handleChange}
+              className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px]
+                                  focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+              placeholder="생년월일(8자리)를 입력하세요"
+            />
+
+            <div ref={breedRef} className="relative">
               <input
-                id="dog-image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
+                value={breedKeyword}
+                onChange={(e) => setBreedKeyword(e.target.value)}
+                className="w-full p-3 bg-gray-100 rounded-xl"
+                placeholder="견종"
               />
+
+              {openBreed && breedResults.length > 0 && (
+                <div className="absolute w-full bg-white border rounded-xl mt-2 z-10">
+                  {breedResults.map((b) => (
+                    <div
+                      key={b.breedId}
+                      onClick={() => {
+                        setForm({ ...form, breedId: b.breedId })
+                        setBreedKeyword(b.nameKr)
+                        setOpenBreed(false)
+                      }}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      {b.nameKr}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* 대표 강아지 설정 */}
-            <button
-            type="button"
-            onClick={() => setIsMain(!isMain)}
-            className={`
-              w-full py-3 rounded-xl border font-bold
-              ${
-                isMain
-                  ? "bg-brand-200 border-brand-500"
-                  : "bg-white border-gray-300"
-              }
-            `}
-            >
-              {isMain ? "⭐ 대표 강아지" : "대표 강아지로 설정"}
-            </button>
-          </div>
+            <div className="flex gap-2">
+              {genders.map((g) => (
+                <button
+                  key={g.value}
+                  onClick={() => setForm({ ...form, gender: g.value })}
+                  className={`flex-1 p-2 rounded-xl ${
+                    form.gender === g.value ? "bg-sky-200" : "bg-gray-100"
+                  }`}
+                >
+                  {g.value}
+                </button>
+              ))}
+            </div>
+          </Section>
 
-          {/* 강아지 정보 */}
-          <div className="flex flex-col gap-2 px-4 w-full text-[14px]">
+          {/* ================= 상세 정보 ================= */}
+          <Section title="🔎 상세 정보">
 
-            {inputs.map((item) => (
-            <div key={item.name} className="flex items-center gap-4">
+            <div className="relative">
+              <input
+                value={form.weight}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    weight: formatWeight(e.target.value),
+                  })
+                }
+                className="w-full p-3 bg-gray-100 rounded-xl"
+                placeholder="무게를 입력하세요"
+              />
+              {form.weight && (
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-gray-400">
+                  kg
+                </span>
+              )}
+            </div>
+            
 
-              <p className="w-[110px] text-[16px] font-bold text-txtcolor-400">
-                {item.label}
-              </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setForm({ ...form, isNeutered: true })}
+                className={`flex-1 p-2 rounded-xl ${
+                  form.isNeutered ? "bg-sky-200" : "bg-gray-100"
+                }`}
+              >
+                중성화 O
+              </button>
 
+              <button
+                onClick={() => setForm({ ...form, isNeutered: false })}
+                className={`flex-1 p-2 rounded-xl ${
+                  !form.isNeutered ? "bg-sky-200" : "bg-gray-100"
+                }`}
+              >
+                중성화 X
+              </button>
+            </div>
+          </Section>
 
-              {/* 견종 선택 */}
-                {item.name === "breed" ? (
-                <div className="relative flex-1" ref={breedRef}>
+          {/* ================= 생활 정보 ================= */}
+          <Section title="🏡 생활 정보">
 
-                  {/* 순종 / 믹스견 */}
-                  <div className="flex gap-2 mb-2">
-                    {[
-                      { mix: false, label: "순종" },
-                      { mix: true, label: "믹스견" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.label}
-                        type="button"
-                        onClick={() => {
-                          setMixMode(opt.mix)
-                          if (breedResults.length > 0) setOpenBreed(true)
-                        }}
-                        className={`flex-1 py-2 rounded-xl border
-                          ${
-                            mixMode === opt.mix
-                              ? "bg-brand-200 border-brand-500"
-                              : "bg-white border-gray-300"
-                          }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
+            
 
-                  <input
-                    type="text"
-                    value={breedKeyword}
-                    onChange={(e) => handleBreedSearch(e.target.value)}
-                    onFocus={() => {
-                      if (breedResults.length > 0) setOpenBreed(true)
-                    }}
-                    placeholder="견종을 검색하세요"
-                    className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]
-                    focus:outline-brand-300 hover:bg-[#F0F0F0]"
-                  />
+            <div className="flex gap-2">
+              {activityLevels.map((a) => (
+                <button
+                  key={a.value}
+                  onClick={() =>
+                    setForm({ ...form, activityLevel: a.value })
+                  }
+                  className={`flex-1 p-2 rounded-xl ${
+                    form.activityLevel === a.value
+                      ? "bg-sky-200"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
 
-                  {openBreed && (
-                    <div className="absolute top-full mt-2 w-full bg-white border rounded-xl shadow z-10 max-h-[250px] overflow-y-auto">
+            <div ref={walkTimeRef}>
+              <button
+                onClick={() => setOpenWalkTime(!openWalkTime)}
+                className="w-full p-3 bg-gray-100 rounded-xl text-left"
+              >
+                {form.favorwalktime.join(", ") || "산책 시간"}
+              </button>
 
-                      {breedResults
-                        .filter((b) =>
-                          mixMode
-                            ? b.nameKr.includes("×")
-                            : !b.nameKr.includes("×")
-                        )
-                        .map((b) => (
-                          <button
-                            key={b.breedId}
-                            type="button"
-                            onClick={() => handleSelectBreed(b)}
-                            className="w-full text-left px-4 py-2 hover:bg-brand-100"
-                          >
-                            {b.nameKr}
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                </div>
-                
-
-              // 성별 선택
-              ): item.name === "gender" ? (
-                <div className="flex-1">
-                  <div className="flex gap-2">
-                    {genders.map((g) => (
-                      <button
-                        key={g.value}
-                        type="button"
-                        onClick={() =>
-                          setForm({ ...form, gender: g.value })
-                        }
-                        className={`w-1/2 flex items-center justify-center
-                          px-4 py-3 rounded-xl border text-[14px] transition
-                          ${
-                            form.gender === g.value
-                              ? "bg-brand-200 border-brand-500"
-                              : "bg-white border-txtcolor-200 hover:bg-[#F0F0F0]"
-                          }`}
-                      >
-                        <span>{g.value}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-              // 체중
-              ): item.name === "weight" ? (
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    value={form.weight}
-                    onChange={(e) => {
-                      setForm({
-                        ...form,
-                        weight: formatWeight(e.target.value)
-                      })
-                    }}
-                    className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]
-                    focus:outline-brand-300 hover:bg-[#F0F0F0]"
-                  />
-
-                  {form.weight && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      kg
-                    </span>
-                  )}
-                </div>
-
-              // 중성화 여부
-              ) : item.name === "isNeutered" ? (
-                <div className="flex-1 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setForm({ ...form, isNeutered: true })
-                    }
-                    className={`w-1/2 py-3 rounded-xl border
-                      ${
-                        form.isNeutered
-                          ? "bg-brand-200 border-brand-500"
-                          : "bg-white border-gray-300"
-                      }`}
-                  >
-                    O
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setForm({ ...form, isNeutered: false })
-                    }
-                    className={`w-1/2 py-3 rounded-xl border
-                      ${
-                        !form.isNeutered
-                          ? "bg-brand-200 border-brand-500"
-                          : "bg-white border-gray-300"
-                      }`}
-                  >
-                    X
-                  </button>
-                </div>
-
-              // 활동량
-              ) : item.name === "activityLevel" ? (
-                <div className="flex-1 flex gap-2">
-                  {activityLevels.map((level) => (
+              {openWalkTime && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {walkTimes.map((t) => (
                     <button
-                      key={level.value}
-                      type="button"
-                      onClick={() =>
-                        setForm({ ...form, activityLevel: level.value })
-                      }
-                      className={`flex-1 py-3 rounded-xl border transition
-                        ${
-                          form.activityLevel === level.value
-                            ? "bg-brand-200 border-brand-500"
-                            : "bg-white border-gray-300 hover:bg-[#F0F0F0]"
-                        }`}
+                      key={t}
+                      onClick={() => handleWalkTime(t)}
+                      className={`px-2 py-1 rounded ${
+                        form.favorwalktime.includes(t)
+                          ? "bg-sky-200"
+                          : "bg-white"
+                      }`}
                     >
-                      {level.label}
+                      {t}
                     </button>
                   ))}
                 </div>
-
-              // 선호 산책 시간
-              ) : item.name === "favorwalktime" ? (
-                <div ref={walkTimeRef} className="relative flex-1">
-                  <button
-                    type="button"
-                    onClick={() => setOpenWalkTime(!openWalkTime)}
-                    className={`w-full px-4 py-3 rounded-xl bg-[#f7f7f7] text-left
-                               hover:bg-[#F0F0F0]
-                               ${openWalkTime ? "outline outline-2 outline-brand-300" : ""}
-                               ${form.favorwalktime.length > 0 ? "text-black" : "text-gray-400"}`}
-                  >
-                    {form.favorwalktime.length > 0
-                      ? form.favorwalktime.join(", ")
-                      : "선호 산책 시간을 선택하세요"}
-                  </button>
-
-                  {openWalkTime && (
-                    <div className="absolute top-full mt-2 w-full bg-white border rounded-xl p-3 shadow z-10">
-                      <div className="flex flex-wrap gap-2">
-                        {walkTimes.map((time) => (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => handleWalkTime(time)}
-                            className={`px-2 py-1 rounded border text-[12px]
-                              ${form.favorwalktime.includes(time)
-                                ? "bg-brand-200 border-brand-500"
-                                : "bg-white"
-                              }`}
-                          >
-                            {time}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                // 나머지 인풋들
-                ) : (
-                <input
-                  type="text"
-                  name={item.name}
-                  value={form[item.name]}
-                  onChange={handleChange}
-                  className="flex-1 w-full px-4 py-3 rounded-xl bg-[#f7f7f7] 
-                  focus:outline-brand-300 hover:bg-[#F0F0F0]"
-                />
               )}
             </div>
-          ))}
 
-          </div>
-          
+            <textarea
+              name="healthNotes"
+              value={form.healthNotes}
+              onChange={handleChange}
+              className="p-3 bg-gray-100 rounded-xl"
+              placeholder="건강 특이사항"
+            />
+          </Section>
+
         </div>
       </div>
-      
-      {/* 확인, 취소 버튼 */}
-      <div className="flex justify-center gap-4 mt-4">
+
+      {/* 저장, 취소 버튼 */}
+      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <button
           onClick={handleSubmit}
-          className="px-3 py-2 w-[90px] bg-brand-500 text-white text-[14px] font-bold rounded-xl"
+          className="px-4 py-2 w-[90px] bg-sky-500 text-white rounded-xl"
         >
-          확인
+          저장
         </button>
         <button
           onClick={handleGoDetail}
@@ -493,7 +409,6 @@ function DogEditPage() {
           취소
         </button>
       </div>
-      
     </div>
   )
 }

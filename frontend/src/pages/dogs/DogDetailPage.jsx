@@ -23,7 +23,7 @@ function DogDetailPage() {
     },
     {
       label: "성별🤍",
-      value: `${genderMap[dog.gender]?.text}${genderMap[dog.gender]?.icon}`,
+      value: `${genderMap[dog.gender]?.text}`,
     },
   ]
 
@@ -48,36 +48,35 @@ function DogDetailPage() {
       value: dog.favorwalktime.join(", "),
     },
     {
-      label: "건강특이🩹",
+      label: "건강 특이사항🩹",
       value: dog.healthNotes || "없음",
     },
   ]
 
   // 프로필 상세 내용
-  const renderSection = (title, data, isLast = false) => (
-    <div className={isLast ? "" : "mb-8"}>
-      <h3 className="flex items-center text-[18px] font-bold text-sky-800 mb-4">
-        <span className="w-1 h-[18px] bg-sky-700 rounded-full mr-2" />
+  const renderSection = (title, data) => (
+    <div className="bg-gray-50 rounded-xl border border-gray-100 px-5 py-4">
+      <h3 className="flex items-center text-[18px] font-semibold text-sky-900 mb-4">
+        <span className="w-1 h-4 bg-sky-700 rounded-full mr-2" />
         {title}
       </h3>
 
-      <div className="flex flex-col">
-        {data.map((info) => (
-          <div
-            key={info.label}
-            className="flex items-center text-[14px]"
-          >
-            <span className="font-bold shrink-0">
-              {info.label}
-            </span>
+      <div className="flex flex-col gap-3">
+      {data.map((info) => (
+        <div key={info.label} className="flex items-center text-[14px]">
 
-            <div className="flex-1 border-b border-dashed border-gray-300 mx-3" />
+          <span className="font-semibold shrink-0 text-gray-700">
+            {info.label}
+          </span>
 
-            <span className="shrink-0 text-gray-700">
-              {info.value}
-            </span>
-          </div>
-        ))}
+          <div className="flex-1 mx-3 border-b border-dashed border-gray-400" />
+
+          <span className="text-gray-600 shrink-0">
+            {info.value}
+          </span>
+
+        </div>
+      ))}
       </div>
     </div>
   )
@@ -94,7 +93,7 @@ function DogDetailPage() {
 
 
   return (
-    <div className="p-4">
+    <div className="p-4 animate-fadeIn">
 
       {/* 상단 */}
       <div className="flex justify-between items-center mb-4">
@@ -131,56 +130,63 @@ function DogDetailPage() {
 
       {/* 강아지 프로필 상세칸 */}
       <div className="flex flex-col items-center space-y-6">        
-        <div className="flex items-stretch gap-6 w-full bg-white rounded-2xl px-8 py-6 shadow-sm border border-gray-100">
+        <div className="flex items-stretch gap-6 w-full">
           
           {/* 강아지 이미지 */}
           <div className="relative shrink-0">
             <img
               src={dog.profileImageUrl}
-              className="w-[350px] h-[470px] rounded-xl object-cover"
+              className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
             />
-            {/* 첫 번째 강아지만 대표 강아지 표시 */}
-            {dog.isMain && (
-              <span
-                className="
-                  absolute top-4 left-4
-                  px-3 py-1 rounded-full
-                  bg-white/80 backdrop-blur
-                  text-[14px] font-medium
-                "
-              >
-                ⭐ 대표 강아지
-              </span>
-            )}
           </div>
 
+          {/* 강아지 정보 */}
           <div className="flex flex-col w-full">
-            <h2 className="text-[24px] font-extrabold text-sky-800 mb-4">
-              {dog.name}
-            </h2>
+            <div className="flex-1 bg-white rounded-xl border shadow-sm px-6 py-4">
+              <div className="flex items-center mb-3 ml-1 gap-3">
+                <h2 className="text-[36px] font-extrabold text-sky-900">
+                  {dog.name}
+                </h2>
+                {dog.isMain && (
+                  <span className="px-2 py-1 text-[12px] rounded-full bg-sky-200/80 text-sky-900 font-semibold">
+                    대표
+                  </span>
+                )}
+              </div>
+                
+              <div className="grid grid-cols-2 gap-4">
+                {renderSection("📋 기본 정보", basicInfo)}
+                {renderSection("🔎 상세 정보", detailInfo)}
 
-            {/* 강아지 정보 */}
-            <div className="flex-1 bg-gray-50 rounded-xl border p-6">
-              {renderSection("📋 기본 정보", basicInfo)}
-              {renderSection("🔎 상세 정보", detailInfo)}
-              {renderSection("🏡 생활 정보", lifeInfo, true)}
+                <div className="col-span-2">
+                  {renderSection("🏡 생활 정보", lifeInfo)}
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-2 mr-1">
+                <span className="text-[12px] text-gray-400">
+                  프로필 등록일 · 2026/01/01
+                </span>
+              </div>
+              
+              
             </div>
-
           </div>
         </div>
       </div>
       
       {/* 수정, 삭제 버튼 */}
-      <div className="flex justify-center gap-4 mt-4">
+      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <button
-          onClick={() => navigate("/dog-profile-edit", {state: dog})}
-          className="px-3 py-2 w-[90px] bg-brand-500 text-white text-[14px] font-bold rounded-xl"
+          onClick={() => navigate("/dog-profile-edit", { state: dog })}
+          className="px-4 py-2 w-[90px] bg-sky-500 text-white text-[14px] font-bold rounded-xl hover:bg-sky-600 transition"
         >
           수정
         </button>
+
         <button
-            onClick={handleSubmit}
-            className="px-3 py-2 w-[90px] bg-danger text-white text-[14px] font-bold rounded-xl"
+          onClick={handleSubmit}
+          className="px-4 py-2 w-[90px] bg-red-500 text-white text-[14px] font-bold rounded-xl hover:bg-red-600 transition"
         >
           삭제
         </button>

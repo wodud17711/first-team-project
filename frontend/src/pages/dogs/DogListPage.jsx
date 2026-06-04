@@ -69,7 +69,7 @@ function DogListPage() {
 
 
   return (
-    <div className="p-4">
+    <div className="p-4 animate-fadeIn">
 
       {/* 상단 */}
       <div className="flex justify-between items-center mb-4">
