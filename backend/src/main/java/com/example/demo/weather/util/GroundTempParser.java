@@ -1,4 +1,6 @@
-package com.example.demo.weather;
+package com.example.demo.weather.util;
+
+import com.example.demo.weather.dto.AsosRecord;
 
 import java.util.ArrayList;
 import java.util.List;

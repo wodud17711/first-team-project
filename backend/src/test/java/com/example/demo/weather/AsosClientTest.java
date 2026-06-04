@@ -1,5 +1,6 @@
 package com.example.demo.weather;
 
+import com.example.demo.weather.client.AsosClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

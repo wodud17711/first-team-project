@@ -1,4 +1,4 @@
-package com.example.demo.weather;
+package com.example.demo.weather.dto;
 
 /**
  * KMA ASOS 관측 레코드.

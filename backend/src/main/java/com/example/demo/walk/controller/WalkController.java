@@ -1,8 +1,11 @@
-package com.example.demo.walk;
+package com.example.demo.walk.controller;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
+import com.example.demo.walk.dto.WalkScoreResponse;
+import com.example.demo.walk.dto.WalkScoreResult;
+import com.example.demo.walk.service.WalkScoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

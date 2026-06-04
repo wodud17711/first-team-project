@@ -1,7 +1,9 @@
-package com.example.demo.walk;
+package com.example.demo.walk.client;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.walk.dto.WalkScoreRequest;
+import com.example.demo.walk.dto.WalkScoreResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

@@ -1,12 +1,15 @@
-package com.example.demo.walk;
+package com.example.demo.walk.service;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.dog.entity.Dog;
 import com.example.demo.dog.entity.DogBreed;
 import com.example.demo.dog.repository.DogRepository;
-import com.example.demo.weather.WeatherSnapshot;
-import com.example.demo.weather.WeatherSnapshotRepository;
+import com.example.demo.walk.client.AiClient;
+import com.example.demo.walk.dto.WalkScoreRequest;
+import com.example.demo.walk.dto.WalkScoreResult;
+import com.example.demo.weather.domain.WeatherSnapshot;
+import com.example.demo.weather.repository.WeatherSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

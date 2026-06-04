@@ -1,5 +1,6 @@
-package com.example.demo.weather;
+package com.example.demo.weather.repository;
 
+import com.example.demo.weather.domain.WeatherSnapshot;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

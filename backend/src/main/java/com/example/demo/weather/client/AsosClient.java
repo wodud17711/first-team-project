@@ -1,7 +1,9 @@
-package com.example.demo.weather;
+package com.example.demo.weather.client;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.weather.dto.AsosRecord;
+import com.example.demo.weather.util.GroundTempParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;

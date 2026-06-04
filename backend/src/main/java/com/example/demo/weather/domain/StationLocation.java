@@ -1,4 +1,4 @@
-package com.example.demo.weather;
+package com.example.demo.weather.domain;
 
 public record StationLocation(
 

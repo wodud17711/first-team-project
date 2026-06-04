@@ -1,4 +1,4 @@
-package com.example.demo.weather;
+package com.example.demo.weather.domain;
 
 import java.time.LocalDateTime;
 import java.util.Map;

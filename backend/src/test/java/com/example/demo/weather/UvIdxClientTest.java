@@ -2,6 +2,9 @@ package com.example.demo.weather;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.weather.client.UvIdxClient;
+import com.example.demo.weather.domain.UvIndex;
+import com.example.demo.weather.dto.KmaUvResponse;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

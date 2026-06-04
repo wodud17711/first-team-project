@@ -1,4 +1,4 @@
-package com.example.demo.walk;
+package com.example.demo.walk.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

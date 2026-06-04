@@ -1,7 +1,12 @@
-package com.example.demo.weather;
+package com.example.demo.weather.client;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.weather.domain.WeatherSnapshot;
+import com.example.demo.weather.dto.KmaForecastResponse;
+import com.example.demo.weather.service.FeelsLikeCalculator;
+import com.example.demo.weather.service.WeatherSnapshotService;
+import com.example.demo.weather.util.GridConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;

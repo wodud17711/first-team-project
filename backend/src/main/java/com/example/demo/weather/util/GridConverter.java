@@ -1,4 +1,4 @@
-package com.example.demo.weather;
+package com.example.demo.weather.util;
 
 public final class GridConverter {
 

@@ -1,5 +1,6 @@
 package com.example.demo.weather;
 
+import com.example.demo.weather.service.FeelsLikeCalculator;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,5 +1,7 @@
-package com.example.demo.weather;
+package com.example.demo.weather.service;
 
+import com.example.demo.weather.domain.WeatherSnapshot;
+import com.example.demo.weather.repository.WeatherSnapshotRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
