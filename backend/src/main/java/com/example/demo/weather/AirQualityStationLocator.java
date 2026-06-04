@@ -15,7 +15,9 @@ import java.util.List;
  * {@link AirKoreaClient} 가 해당 시도의 유효한 첫 측정소로 폴백한다(시도 단위 정확도는 유지).
  *
  * <p><b>데모 타깃 = 부산</b>: 데모 범위가 부산으로 고정되어, 실 API 로 대조할 측정소명은
- * 부산 1건(현재 "광복동")뿐이다. 미일치 시에도 위 폴백으로 부산 PM 값은 보장된다.
+ * 부산 1건("연산동", 2026-06-04 실호출 검증)뿐이다. 광복동은 PM 이 자주 결측("-")이라
+ * 도시대기·값이 안정적인 연산동(부산시청권)으로 교체했다. 미일치·결측 시에도
+ * {@link AirKoreaClient} 가 시도 내 값 있는 측정소로 폴백해 부산 PM 값은 보장된다.
  */
 public final class AirQualityStationLocator {
 
@@ -31,7 +33,7 @@ public final class AirQualityStationLocator {
 
             // ----- 6대 광역시 -----
             new AirQualityStation("인천", "부평구", 37.5070, 126.7219),
-            new AirQualityStation("부산", "광복동", 35.0978, 129.0350),   // 데모 타깃 — 실 API 로 이름 검증
+            new AirQualityStation("부산", "연산동", 35.1796, 129.0756),   // 데모 타깃 — 실 API 로 검증(2026-06-04)
             new AirQualityStation("대구", "중구", 35.8693, 128.6062),
             new AirQualityStation("광주", "동구", 35.1460, 126.9230),
             new AirQualityStation("대전", "중구", 36.3255, 127.4214),

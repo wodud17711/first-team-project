@@ -58,6 +58,22 @@ class AirKoreaClientTest {
     }
 
     @Test
+    @DisplayName("최근접 측정소가 매칭돼도 PM 이 전부 결측이면 값 있는 측정소로 폴백한다")
+    void select_falls_back_when_matched_has_no_pm() {
+
+        AirKoreaResponse response = response(List.of(
+                item("광복동", "-", "-"),
+                item("초량동", "20", "5")
+        ));
+
+        AirQuality result = AirKoreaClient.select(response, "광복동");
+
+        assertThat(result.stationName()).isEqualTo("초량동");
+        assertThat(result.pm10()).isEqualTo(20);
+        assertThat(result.pm25()).isEqualTo(5);
+    }
+
+    @Test
     @DisplayName("결측값(\"-\")은 null 로 변환된다")
     void select_missing_value_to_null() {
 

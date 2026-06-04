@@ -86,28 +86,31 @@ public class AirKoreaClient {
 
     // ============================================================
     // 응답에서 측정소 선택 → AirQuality
-    // 최근접 측정소명 우선, 없으면 PM 값이 유효한 첫 측정소로 폴백.
+    // 최근접 측정소명 우선. 매칭이 없거나 매칭돼도 PM 이 전부 결측이면
+    // PM 값이 유효한 첫 측정소로 폴백.
     // ============================================================
     static AirQuality select(AirKoreaResponse response, String preferredStation) {
 
         List<AirKoreaResponse.Item> items = extractItems(response);
 
         AirKoreaResponse.Item matched = null;
-        AirKoreaResponse.Item fallback = null;
+        AirKoreaResponse.Item firstWithPm = null;
 
         for (AirKoreaResponse.Item item : items) {
 
-            if (fallback == null && hasPm(item)) {
-                fallback = item;
+            if (firstWithPm == null && hasPm(item)) {
+                firstWithPm = item;
             }
 
-            if (preferredStation.equals(item.stationName())) {
+            if (matched == null && preferredStation.equals(item.stationName())) {
                 matched = item;
-                break;
             }
         }
 
-        AirKoreaResponse.Item chosen = matched != null ? matched : fallback;
+        // 최근접 측정소가 매칭돼도 PM 이 전부 결측이면, 같은 시도에서 값이
+        // 있는 첫 측정소로 폴백한다(예: 부산 광복동이 "-"/"-" 로 내려오는 경우).
+        AirKoreaResponse.Item chosen =
+                (matched != null && hasPm(matched)) ? matched : firstWithPm;
 
         if (chosen == null) {
             throw new BusinessException(
