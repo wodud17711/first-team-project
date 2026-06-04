@@ -92,8 +92,12 @@ function WeatherItem({ label, value, icon }) {
 // 날씨 적합도 점수(막대 그래프)
 // score: BE /api/walk/score 실값(0~100). 없을 때(미등록/로딩/날씨준비중/오류)는
 //        숫자 대신 안내 문구를 보여준다.
+// level: BE 등급 정본('안전'|'주의'|'위험'). 점수 임계와 어긋나는 치명요인
+//        override(예: 미세먼지 매우나쁨 70점이지만 '주의')를 그대로 반영하므로,
+//        등급 카테고리는 score 가 아니라 level 로 분기한다.
 function WalkScore({
   score,
+  level,
   reasons = [],
   loading = false,
   notReady = false,
@@ -103,30 +107,31 @@ function WalkScore({
   const ready = typeof score === 'number'
   const clamped = ready ? Math.max(0, Math.min(score, 100)) : 0
 
-  const getScoreMeta = (score) => {
-    if (score >= 70) {
-      return {
-        color: "bg-success",
-        label: "안전해요🟢",
-        title: "산책하기 좋은 날이에요 ☀️",
-        desc: "대부분 견종이 편안하게 산책할 수 있어요"
-      };
-    }
-    if (score >= 40) {
-      return {
-        color: "bg-warning",
-        label: "주의가 필요해요🟡",
-        title: "짧은 산책을 추천드려요 🌥️",
-        desc: "더위에 약한 반려견은 주의가 필요해요"
-      };
-    }
-    return {
+  // 등급별 표시 메타 (색·문구는 디자인 영역 — 정선혜 확정).
+  const LEVEL_META = {
+    '안전': {
+      color: "bg-success",
+      label: "안전해요🟢",
+      title: "산책하기 좋은 날이에요 ☀️",
+      desc: "대부분 견종이 편안하게 산책할 수 있어요"
+    },
+    '주의': {
+      color: "bg-warning",
+      label: "주의가 필요해요🟡",
+      title: "짧은 산책을 추천드려요 🌥️",
+      desc: "더위에 약한 반려견은 주의가 필요해요"
+    },
+    '위험': {
       color: "bg-danger",
       label: "위험해요🔴",
       title: "산책을 되도록 피해주세요 🌧️",
       desc: "지면온도와 날씨 상태가 산책하기 위험해요"
-    };
+    },
   };
+
+  // level 우선, 없으면 점수 임계로 폴백.
+  const metaByScore = (s) =>
+    s >= 70 ? LEVEL_META['안전'] : s >= 40 ? LEVEL_META['주의'] : LEVEL_META['위험'];
 
   // 표시 상태 결정 (우선순위: 반려견 없음 → 로딩 → 날씨 준비중 → 오류 → 정상)
   let color, label, title, desc, scoreText
@@ -147,7 +152,8 @@ function WalkScore({
     title = "산책지수를 불러오지 못했어요";
     desc = "잠시 후 다시 시도해 주세요";
   } else {
-    const meta = getScoreMeta(clamped);
+    // 등급 카테고리는 BE level 정본 우선(override 반영), 없으면 점수 폴백.
+    const meta = LEVEL_META[level] ?? metaByScore(clamped);
     color = meta.color; label = meta.label; title = meta.title;
     scoreText = clamped;
     // 감점 사유가 있으면(주의/위험) 대표 사유를 안내로, 없으면 기본 설명.
