@@ -54,6 +54,7 @@ function Home() {
           <div className='flex flex-col gap-4'>
             <WalkScore
               score={walk?.score}
+              level={walk?.level}
               reasons={walk?.topReasons ?? []}
               loading={walkLoading}
               notReady={walkNotReady}
