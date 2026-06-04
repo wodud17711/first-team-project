@@ -90,10 +90,18 @@ function WeatherItem({ label, value, icon }) {
 
 
 // 날씨 적합도 점수(막대 그래프)
-function WalkScore({ score = 77 }) {
+// score: BE /api/walk/score 실값(0~100). 없을 때(미등록/로딩/날씨준비중/오류)는
+//        숫자 대신 안내 문구를 보여준다.
+function WalkScore({
+  score,
+  reasons = [],
+  loading = false,
+  notReady = false,
+  hasDog = true,
+}) {
 
-  // 점수 0~100으로 제한
-  score = Math.max(0, Math.min(score, 100));
+  const ready = typeof score === 'number'
+  const clamped = ready ? Math.max(0, Math.min(score, 100)) : 0
 
   const getScoreMeta = (score) => {
     if (score >= 70) {
@@ -120,7 +128,31 @@ function WalkScore({ score = 77 }) {
     };
   };
 
-  const { color, label, title, desc } = getScoreMeta(score);
+  // 표시 상태 결정 (우선순위: 반려견 없음 → 로딩 → 날씨 준비중 → 오류 → 정상)
+  let color, label, title, desc, scoreText
+  if (!hasDog) {
+    color = "bg-gray-300"; label = "–"; scoreText = "--";
+    title = "반려견을 먼저 등록해 주세요";
+    desc = "반려견을 등록하면 맞춤 산책지수를 알려드려요";
+  } else if (loading) {
+    color = "bg-gray-300"; label = "측정 중"; scoreText = "--";
+    title = "산책지수를 측정하고 있어요";
+    desc = "잠시만 기다려 주세요";
+  } else if (notReady) {
+    color = "bg-gray-300"; label = "준비 중"; scoreText = "--";
+    title = "날씨 데이터를 준비하고 있어요 🛰️";
+    desc = "날씨 정보가 모이면 산책지수를 보여드려요";
+  } else if (!ready) {
+    color = "bg-gray-300"; label = "–"; scoreText = "--";
+    title = "산책지수를 불러오지 못했어요";
+    desc = "잠시 후 다시 시도해 주세요";
+  } else {
+    const meta = getScoreMeta(clamped);
+    color = meta.color; label = meta.label; title = meta.title;
+    scoreText = clamped;
+    // 감점 사유가 있으면(주의/위험) 대표 사유를 안내로, 없으면 기본 설명.
+    desc = reasons.length > 0 ? reasons[0] : meta.desc;
+  }
 
 
   // 날씨요소 코드 줄이기
@@ -178,7 +210,7 @@ function WalkScore({ score = 77 }) {
           ">
             <div className="flex items-end gap-1">
               <span className="text-[48px] font-bold leading-none">
-                {score}
+                {scoreText}
               </span>
               <span className="text-[18px] text-gray-500 -mb-[2px]">
                 /100
@@ -209,7 +241,7 @@ function WalkScore({ score = 77 }) {
                   transition-all duration-500
                   ${color}
                 `}
-                style={{ width: `${score}%` }}
+                style={{ width: `${clamped}%` }}
               />
             </div>
 
