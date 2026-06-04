@@ -1,4 +1,8 @@
 package com.example.demo.walk.repository;
 
-public class WalkScoreRepository {
+import com.example.demo.walk.domain.WalkScore;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface WalkScoreRepository
+        extends JpaRepository<WalkScore, Long> {
 }

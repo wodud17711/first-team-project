@@ -6,8 +6,10 @@ import com.example.demo.dog.entity.Dog;
 import com.example.demo.dog.entity.DogBreed;
 import com.example.demo.dog.repository.DogRepository;
 import com.example.demo.walk.client.AiClient;
+import com.example.demo.walk.domain.WalkScore;
 import com.example.demo.walk.dto.WalkScoreRequest;
 import com.example.demo.walk.dto.WalkScoreResult;
+import com.example.demo.walk.repository.WalkScoreRepository;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class WalkScoreService {
     private final AiClient aiClient;
     private final DogRepository dogRepository;
     private final WeatherSnapshotRepository weatherSnapshotRepository;
+    private final WalkScoreRepository walkScoreRepository;
 
     public WalkScoreResult calculateScore(
             Long userId,
@@ -54,7 +57,24 @@ public class WalkScoreService {
                         buildWeatherInfo(snapshot)
                 );
 
-        return aiClient.calculateScore(request);
+        WalkScoreResult result =
+                aiClient.calculateScore(request);
+
+        WalkScore walkScore =
+                WalkScore.create(
+                        dog,
+                        snapshot,
+                        result.score(),
+                        result.level(),
+                        String.join(
+                                ", ",
+                                result.reasons()
+                        )
+                );
+
+        walkScoreRepository.save(walkScore);
+
+        return result;
     }
 
     private WalkScoreRequest.DogInfo buildDogInfo(
@@ -120,13 +140,10 @@ public class WalkScoreService {
                         ? snapshot.getGroundTemperature()
                         : 25.0,
 
-                // TODO: AirKorea 연동 후 실제 PM10 값 사용
                 0,
 
-                // TODO: AirKorea 연동 후 실제 PM2.5 값 사용
                 0,
 
-                // TODO: 기상청 PTY 연동 후 실제 강수 형태 사용
                 "없음",
 
                 snapshot.getUvIndex() != null
