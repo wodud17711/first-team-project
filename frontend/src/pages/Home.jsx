@@ -8,6 +8,7 @@ import WalkScore from '../components/WalkScore'
 import { useMe } from '../hooks/useMe'
 import { useDogs } from '../hooks/useDogs'
 import { useAuth } from '../hooks/useAuth'
+import { useWalkScore } from '../hooks/useWalkScore'
 
 // 강아지 기본(폴백) 사진
 import dogImg1 from '../assets/dogImg1.jpg'
@@ -28,6 +29,10 @@ function Home() {
   const { dogs } = useDogs()
   const { logout } = useAuth()
 
+  // 산책지수: 첫 번째 반려견 기준으로 실 API 조회 (dogId 없으면 미호출)
+  const firstDogId = dogs[0]?.dogId
+  const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
+
   const handleLogout = async () => {
     await logout()
     navigate('/login')
@@ -47,7 +52,13 @@ function Home() {
         ">
           {/* 왼쪽 콘텐츠 - 산책지수 + 날씨 */}
           <div className='flex flex-col gap-4'>
-            <WalkScore />
+            <WalkScore
+              score={walk?.score}
+              reasons={walk?.topReasons ?? []}
+              loading={walkLoading}
+              notReady={walkNotReady}
+              hasDog={firstDogId != null}
+            />
             <WeatherCard />
           </div>
 
@@ -117,14 +128,15 @@ function Home() {
         <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
           <p className="text-sm text-brand-600 font-medium mb-1">오늘의 산책</p>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            산책하기 좋은 날씨예요 🌤
+            오늘의 산책지수
           </h2>
           <div className="flex items-baseline gap-2 mt-4">
-            <span className="text-5xl font-bold text-brand-600">85</span>
+            <span className="text-5xl font-bold text-brand-600">{walk?.score ?? '--'}</span>
             <span className="text-gray-600">/ 100점</span>
           </div>
           <p className="text-sm text-gray-700 mt-2">
-            지면 온도 22°C · 습도 55% · 미세먼지 보통
+            {walk?.topReasons?.[0]
+              ?? (walkNotReady ? '날씨 데이터를 준비하고 있어요' : '산책하기 좋은 날을 알려드릴게요')}
           </p>
         </section>
 
