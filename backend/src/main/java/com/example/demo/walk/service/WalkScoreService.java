@@ -60,19 +60,11 @@ public class WalkScoreService {
         WalkScoreResult result =
                 aiClient.calculateScore(request);
 
-        WalkScore walkScore =
-                WalkScore.create(
-                        dog,
-                        snapshot,
-                        result.score(),
-                        result.level(),
-                        String.join(
-                                ", ",
-                                result.reasons()
-                        )
-                );
-
-        walkScoreRepository.save(walkScore);
+        saveWalkScore(
+                dog,
+                snapshot,
+                result
+        );
 
         return result;
     }
@@ -149,6 +141,29 @@ public class WalkScoreService {
                 snapshot.getUvIndex() != null
                         ? snapshot.getUvIndex()
                         : 0
+        );
+    }
+
+    private void saveWalkScore(
+            Dog dog,
+            WeatherSnapshot snapshot,
+            WalkScoreResult result
+    ) {
+
+        WalkScore walkScore =
+                WalkScore.create(
+                        dog,
+                        snapshot,
+                        result.score(),
+                        result.level(),
+                        String.join(
+                                ", ",
+                                result.reasons()
+                        )
+                );
+
+        walkScoreRepository.save(
+                walkScore
         );
     }
 }
