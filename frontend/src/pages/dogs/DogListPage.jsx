@@ -64,7 +64,7 @@ function DogListPage() {
 
             <div
               key={dog.dogId}
-              onClick={() => navigate("/dog-profile-detail", { state: dog })}
+              onClick={() => navigate("/dog-profile-detail", { state: { dog, index } })}
               className="group relative flex w-[350px] h-[470px] gap-2
               overflow-hidden rounded-xl shadow
               cursor-pointer transition-all duration-200

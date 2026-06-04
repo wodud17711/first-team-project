@@ -1,5 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom"
 
+// 강아지 기본(폴백) 사진
+import dogImg1 from '../../assets/dogImg1.jpg'
+
 // 함수 땡겨오기
 import { genderMap, activityMap} from "../../constants/dogConstants"
 
@@ -9,43 +12,87 @@ function DogDetailPage() {
 
   // 목록에서 만든 강아지 데이터 받기
   const location = useLocation()
-  const dog = location.state
+ 
+  const state = location.state
+
+  // 👉 dog 없으면 기본값으로 "빈 객체" 처리
+  const dog = state?.dog ?? null
+  const index = state?.index ?? 0
+
+  // 👉 로딩/빈 데이터 상태 UI
+  if (!dog) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        선택된 강아지 정보에 문제가 생겼어요! 🐶
+        <div className="mt-4">
+          <button
+            onClick={() => navigate("/dog-profile-list")}
+            className="px-4 py-2 bg-sky-500 text-white rounded-xl"
+          >
+            목록으로
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // 강아지 나이 계산 함수
+  const getAge = (birthDate) => {
+    if (!birthDate) return "정보 없음"
+
+    const today = new Date()
+    const birth = new Date(birthDate)
+
+    let age = today.getFullYear() - birth.getFullYear()
+
+    const m = today.getMonth() - birth.getMonth()
+
+    // 아직 생일 안 지났으면 -1
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+
+    return `${age}살`
+  }
+
 
   // 정보 함수
   const basicInfo = [
     {
       label: "생년월일🎂",
-      value: `${dog.birthDate} (${dog.ageYears})`,
+      value: `${dog.birthDate?.replaceAll("-", ".") ?? "정보 없음"} (${getAge(dog.birthDate)})`,
     },
     {
       label: "견종🐶",
-      value: dog.breed.split("(")[0].trim(),
+      value: dog.breed?.split("(")?.[0]?.trim() ?? "정보 없음",
     },
     {
       label: "성별🤍",
-      value: `${genderMap[dog.gender]?.text}`,
+      value: genderMap?.[dog.gender]?.text ?? "정보 없음",
     },
   ]
 
   const detailInfo = [
     {
       label: "체중🐾",
-      value: `${dog.weight}kg`,
+      value: dog.weight ? `${dog.weight}kg` : "정보 없음",
     },
     {
       label: "중성화🩺",
-      value: dog.isNeutered ? "O" : "X",
+      value: dog.isNeutered !== undefined ? (dog.isNeutered ? "O" : "X") : "정보 없음",
     },
   ]
 
   const lifeInfo = [
     {
       label: "활동량🚶",
-      value: activityMap[dog.activityLevel],
+      value: activityMap?.[dog.activityLevel] ?? "정보 없음",
     },
     {
       label: "선호 산책 시간🌳",
-      value: dog.favorwalktime.join(", "),
+      value: Array.isArray(dog.favorwalktime) && dog.favorwalktime.length > 0
+              ? dog.favorwalktime.join(", ")
+              : "정보 없음",
     },
     {
       label: "건강 특이사항🩹",
@@ -135,7 +182,7 @@ function DogDetailPage() {
           {/* 강아지 이미지 */}
           <div className="relative shrink-0">
             <img
-              src={dog.profileImageUrl}
+              src={dog.profileImageUrl || dogImg1}
               className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
             />
           </div>
@@ -147,7 +194,7 @@ function DogDetailPage() {
                 <h2 className="text-[36px] font-extrabold text-sky-900">
                   {dog.name}
                 </h2>
-                {dog.isMain && (
+                {index === 0 && (
                   <span className="px-2 py-1 text-[12px] rounded-full bg-sky-200/80 text-sky-900 font-semibold">
                     대표
                   </span>
