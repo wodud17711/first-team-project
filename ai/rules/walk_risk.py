@@ -4,6 +4,9 @@
 날씨 + 반려견 특성을 종합해 산책 위험도(0~100)와 등급(안전/주의/위험), 사유를 산출한다.
 
 변경 이력
+- v1.3 (2026-06-04): 치명 요인 등급 강제(override) 추가 — 점수와 무관하게
+  지면 화상(≥50℃)·지면 고온(40~50℃)·미세먼지 매우나쁨은 최소 등급을 보장.
+  (단일 치명 요인이 감점만으로는 임계(70/40)를 못 넘어 '안전'으로 표기되던 문제 보정)
 - v1.2 (2026-05-28): 자외선 룰 UV_HIGH/UV_VERY_HIGH 추가 (생활기상지수 V5 자외선 API)
 - v1.1 (2026-05-26): 노령견/퍼피 세분화, 강풍 룰 추가
 - v1   (2026-05-22): 초기 16룰
@@ -12,6 +15,7 @@
 - 프레임워크 의존 없는 순수 Python (백엔드 통합/FastAPI 어느 쪽이든 이식 가능)
 - 점수는 100에서 시작해 위험 요인마다 감점 (deduction)
 - 모든 룰은 RULES 리스트에 데이터로 정의 → 가중치 튜닝이 쉬움
+- 점수만으로 등급이 위험을 과소평가하는 치명 요인은 LEVEL_OVERRIDES 로 최소 등급 보장
 - ML 모델 도입 전, 설명 가능한 룰베이스로 먼저 서비스
 
 입력 데이터 출처
@@ -215,6 +219,52 @@ RULES: list[Rule] = [
 
 
 # ============================================================
+# 치명 요인 등급 강제 (override)
+# ============================================================
+# 점수(감점 누적)만으로는 단일 치명 요인이 임계(70/40)를 못 넘어 '안전'으로
+# 표기되는 문제가 있다(예: 미세먼지 매우나쁨 단독 → 70점 '안전', 지면 50℃ 화상
+# 단독 → 60점 '주의'). 점수 스케일은 그대로 두고, 아래 요인은 점수와 무관하게
+# 최소 등급을 보장한다. 임계/등급은 여기서 조정한다(데이터 누적 후 튜닝 가능).
+_LEVEL_SEVERITY = {RiskLevel.SAFE: 0, RiskLevel.CAUTION: 1, RiskLevel.DANGER: 2}
+
+
+@dataclass
+class LevelOverride:
+    code: str
+    min_level: RiskLevel                       # 이 요인 발생 시 보장할 최소 등급
+    predicate: Callable[[DogInfo, WeatherInfo], bool]
+
+
+# 임계값은 대응 감점 룰과 동일하게 맞춘다(일관성).
+LEVEL_OVERRIDES: list[LevelOverride] = [
+    # 발바닥 화상(지면 ≥50℃) — 즉각적 부상 위험 → 최소 '위험'
+    LevelOverride(
+        "GROUND_BURN_DANGER", RiskLevel.DANGER,
+        lambda d, w: w.ground_temperature >= 50,
+    ),
+    # 지면 고온(40~50℃, 짧은 산책 권장) → 최소 '주의'
+    LevelOverride(
+        "GROUND_HOT_CAUTION", RiskLevel.CAUTION,
+        lambda d, w: 40 <= w.ground_temperature < 50,
+    ),
+    # 미세먼지 매우나쁨(pm10 ≥151 또는 pm25 ≥76) → 최소 '주의'
+    LevelOverride(
+        "PM_VERY_BAD_CAUTION", RiskLevel.CAUTION,
+        lambda d, w: w.pm10 >= 151 or w.pm25 >= 76,
+    ),
+]
+
+
+def _apply_level_overrides(level: RiskLevel, dog: DogInfo, weather: WeatherInfo) -> RiskLevel:
+    """발화한 override 중 가장 높은 최소 등급으로 등급을 끌어올린다(점수는 불변)."""
+    worst = level
+    for ov in LEVEL_OVERRIDES:
+        if ov.predicate(dog, weather) and _LEVEL_SEVERITY[ov.min_level] > _LEVEL_SEVERITY[worst]:
+            worst = ov.min_level
+    return worst
+
+
+# ============================================================
 # 점수 → 등급
 # ============================================================
 def _score_to_level(score: int) -> RiskLevel:
@@ -240,6 +290,7 @@ def calculate_walk_risk(dog: DogInfo, weather: WeatherInfo) -> RiskResult:
 
     score = max(0, min(100, score))  # 0~100 클램프
     level = _score_to_level(score)
+    level = _apply_level_overrides(level, dog, weather)  # 치명 요인 최소 등급 보장
 
     if not reasons:
         reasons.append("산책하기 좋은 날씨예요!")
