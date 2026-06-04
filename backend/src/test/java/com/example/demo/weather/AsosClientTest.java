@@ -1,42 +1,46 @@
 package com.example.demo.weather;
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.weather.client.AsosClient;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.BDDMockito.given;
 
+@SpringBootTest
 class AsosClientTest {
 
+    @Autowired
+    private AsosClient asosClient;
+
+    @MockitoBean
+    private AsosClient mockAsosClient;
+
     @Test
-    @DisplayName("관측 지연(10분) 이후면 당시 정시 발표분")
-    void resolve_base_time_after_delay() {
+    void 지면온도_조회_성공() {
 
-        String tm = AsosClient.resolveBaseTime(
-                LocalDateTime.of(2026, 5, 26, 14, 30));
+        given(mockAsosClient.fetchGroundTemp(anyDouble(), anyDouble()))
+                .willReturn(25.0);
 
-        assertThat(tm).isEqualTo("202605261400");
+        Double temp = mockAsosClient.fetchGroundTemp(37.5, 127.0);
+
+        assertThat(temp).isEqualTo(25.0);
     }
 
     @Test
-    @DisplayName("정시 직후 10분 이내면 직전 정시 발표분")
-    void resolve_base_time_within_delay() {
+    void null_응답이면_null_반환() {
 
-        String tm = AsosClient.resolveBaseTime(
-                LocalDateTime.of(2026, 5, 26, 14, 5));
+        given(mockAsosClient.fetchGroundTemp(anyDouble(), anyDouble()))
+                .willReturn(null);
 
-        assertThat(tm).isEqualTo("202605261300");
-    }
+        Double temp = mockAsosClient.fetchGroundTemp(37.5, 127.0);
 
-    @Test
-    @DisplayName("자정 직후면 전날 23시 발표분")
-    void resolve_base_time_after_midnight() {
-
-        String tm = AsosClient.resolveBaseTime(
-                LocalDateTime.of(2026, 5, 26, 0, 5));
-
-        assertThat(tm).isEqualTo("202605252300");
+        assertThat(temp).isNull();
     }
 }

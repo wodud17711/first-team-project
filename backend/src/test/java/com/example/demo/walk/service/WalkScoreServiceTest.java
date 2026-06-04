@@ -13,7 +13,7 @@ import com.example.demo.weather.repository.WeatherSnapshotRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -41,7 +41,7 @@ class WalkScoreServiceTest {
     @Autowired
     private WalkScoreRepository walkScoreRepository;
 
-    @MockBean
+    @MockitoBean
     private AiClient aiClient;
 
     @Test
@@ -86,8 +86,9 @@ class WalkScoreServiceTest {
                         List.of("기온 높음")
                 );
 
-        given(aiClient.calculateScore(any()))
-                .willReturn(aiResult);
+        given(
+                aiClient.calculateScore(any())
+        ).willReturn(aiResult);
 
         // when
         walkScoreService.calculateScore(
