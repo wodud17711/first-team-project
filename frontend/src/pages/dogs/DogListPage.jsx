@@ -1,13 +1,15 @@
-// 강아지 테스트 사진
+// ⚠️ 병합 초안 (정선혜 브랜치용): 카드 디자인은 정선혜 원본 그대로,
+//    데이터만 develop 실 API(useDogs)로 배선. 본인 브랜치 pages/dogs/DogListPage.jsx 에 적용.
+//    favorwalktime 태그만 디자인 결정 필요(아래 주석 참고).
+
+// 강아지 기본(폴백) 사진
 import dogImg1 from '../../assets/dogImg1.jpg'
-import dogImg2 from '../../assets/dogImg2.jpeg'
 
-// 훅 연결
-import { useDogs } from "../../hooks/useDogs";
+// 훅 연결 (더미 배열 → 실 API)
+import { useDogs } from "../../hooks/useDogs"
 
-// 함수 땡겨오기
-import { genderMap, activityMap, getWalkType} from "../../constants/dogConstants"
-
+// 함수 땡겨오기 (genderMap·getWalkType 은 현재 카드에서 미사용 → 제외)
+import { activityMap } from "../../constants/dogConstants"
 
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
 
@@ -17,55 +19,18 @@ function DogListPage() {
 
     const navigate = useNavigate()
 
-    // // 정보 받기
-    // const {
-    //   dogs,
-    //   loading,
-    //   error,
-    // } = useDogs();
+    // 실 API: DogResponse[] = { dogId, name, breed:{nameKr}, birthDate, age,
+    //   weight, gender:'M'|'F', isNeutered, activityLevel:'저'|'중'|'고',
+    //   healthNotes, profileImageUrl, createdAt }
+    const { dogs, loading, error } = useDogs()
 
-    // 강아지 정보 배열(임시)
-    const dogs = [
-        {
-        id: 1,
-        name: "멍멍일",
-        birthDate: "2023-01-01",
-        ageYears:"3살",
-        breed: "리트리버",
-        gender: "F",
-        weight: 26,
-        isNeutered: true,
-        healthNotes: "특이사항 없음",
-        favorwalktime: ["오전 10~11시", "오후 2~3시", "오후 7~8시"],
-        activityLevel:"고",
-        profileImageUrl: dogImg1,
-        isMain: true
-        },
-        {
-        id: 2,
-        name: "멍멍이",
-        birthDate: "2021-01-01",
-        ageYears:"5살",
-        breed: "사모예드",
-        gender: "M",
-        weight: 21,
-        isNeutered: true,
-        healthNotes: "더위에 취약",
-        favorwalktime: ["오전 9~10시"],
-        activityLevel:"저",
-        profileImageUrl: dogImg2,
-        isMain: false
-        }
-    ]
+    if (loading) {
+      return <div className="p-4">불러오는 중...</div>
+    }
 
-    // if (loading) {
-    //   return <div>불러오는 중...</div>
-    // }
-
-    // if (error) {
-    //   return <div>목록을 불러오지 못했습니다.</div>
-    // }
-    
+    if (error) {
+      return <div className="p-4 text-danger">목록을 불러오지 못했습니다.</div>
+    }
 
 
   return (
@@ -85,7 +50,7 @@ function DogListPage() {
             </p>
           </div>
         </div>
-        
+
         {/* 등록수 */}
         <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm border">
           <p className="text-[12px] text-gray-500">등록된 프로필</p>
@@ -98,11 +63,11 @@ function DogListPage() {
       <div className='flex flex-col gap-[20px]'>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 justify-items-center">
           {dogs.map((dog, index) => (
-            
+
             <div
-              key={dog.id}
+              key={dog.dogId}
               onClick={() => navigate("/dog-profile-detail", { state: dog })}
-              className="group relative flex w-[350px] h-[470px] gap-2 
+              className="group relative flex w-[350px] h-[470px] gap-2
               overflow-hidden rounded-xl shadow
               cursor-pointer transition-all duration-200
               hover:-translate-y-1 hover:shadow-lg"
@@ -111,7 +76,7 @@ function DogListPage() {
                 {/* 강아지 이미지 */}
                 <div className="relative shrink-0">
                   <img
-                    src={dog.profileImageUrl}
+                    src={dog.profileImageUrl || dogImg1}
                     className="w-[350px] h-[470px] rounded-xl object-cover"
                   />
 
@@ -123,11 +88,13 @@ function DogListPage() {
                       via-black/40
                       to-transparent"/>
 
-                  {/* 프로필 등록일 */}
+                  {/* 프로필 등록일 (createdAt → YYYY/MM/DD) */}
                   <p className='absolute top-4 right-4
                       px-3 py-1 rounded-full
                       bg-white/80 backdrop-blur
-                      text-[12px] font-medium'>프로필 등록일 · 2026/01/01</p>
+                      text-[12px] font-medium'>
+                    프로필 등록일 · {dog.createdAt ? dog.createdAt.slice(0, 10).replaceAll("-", "/") : "—"}
+                  </p>
 
                   {/* 이름 + 간단정보 + 성향 */}
                   <div className='absolute bottom-4 left-4 flex flex-col gap-3'>
@@ -135,22 +102,29 @@ function DogListPage() {
                       <div className='flex items-center gap-2'>
                         <p className=" text-[32px] text-white font-bold">{dog.name}</p>
 
-                        {/* 첫 번째 강아지만 대표 강아지 표시 */}
-                        {dog.isMain && (
+                        {/* 첫 번째 강아지만 대표 강아지 표시 (dog.isMain → index === 0) */}
+                        {index === 0 && (
                         <span className="mt-[3px] text-[20px] font-semibold">⭐</span>
                         )}
                       </div>
 
+                      {/* birthDate(널 가드) · breed.nameKr(괄호 앞만) */}
                       <p className="ml-1 mb-2
-                        text-white/90 text-[12px]">{dog.birthDate.replaceAll("-", "/")} · {dog.breed.split("(")[0].trim()}</p>
+                        text-white/90 text-[12px]">
+                        {dog.birthDate ? dog.birthDate.replaceAll("-", "/") : "생일 미등록"} · {dog.breed?.nameKr?.split("(")[0].trim() ?? "믹스"}
+                      </p>
 
                       <div className="flex gap-[6px]">
-                        <span className="px-3 py-[2px]
-                              rounded-full bg-white/20 backdrop-blur
-                              text-[12px] text-white/90"> {activityMap[dog.activityLevel]}</span>
-                        <span className="px-3 py-[2px]
-                              rounded-full bg-white/20 backdrop-blur
-                              text-[12px] text-white/90"> {getWalkType(dog.favorwalktime)}</span>
+                        {dog.activityLevel && (
+                          <span className="px-3 py-[2px]
+                                rounded-full bg-white/20 backdrop-blur
+                                text-[12px] text-white/90"> {activityMap[dog.activityLevel]}</span>
+                        )}
+
+                        {/* 🔌 산책 유형 태그 보류: API(DogResponse)에 favorwalktime 필드가 없음.
+                            원형: <span className="...">{getWalkType(dog.favorwalktime)}</span>
+                            → 제거하거나 다른 실데이터(예: 🐾 {dog.weight}kg, 성별 등)로 대체할지 정선혜 확인.
+                            대체하려면 위 import 에 getWalkType/관련 함수 다시 추가. */}
                       </div>
                     </div>
                   </div>
