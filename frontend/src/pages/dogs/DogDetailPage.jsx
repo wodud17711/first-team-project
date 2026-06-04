@@ -64,7 +64,7 @@ function DogDetailPage() {
     },
     {
       label: "견종🐶",
-      value: dog.breed?.split("(")?.[0]?.trim() ?? "정보 없음",
+      value: dog.breed?.nameKr?.split("(")?.[0]?.trim() ?? "정보 없음"
     },
     {
       label: "성별🤍",
