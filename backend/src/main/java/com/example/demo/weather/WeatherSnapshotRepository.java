@@ -13,4 +13,6 @@ public interface WeatherSnapshotRepository
             int gridY,
             LocalDateTime baseDateTime
     );
+
+    Optional<WeatherSnapshot> findTopByOrderByBaseDateTimeDesc();
 }
