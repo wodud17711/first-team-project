@@ -23,11 +23,6 @@ class UvIdxClientTest {
     @Autowired
     private UvIdxClient uvIdxClient;
 
-    @MockitoBean
-    private UvIdxClient mockUvIdxClient;
-
-    private static final String SEOUL = "1100000000";
-
     @Test
     void areaNo가_10자리_아니면_INVALID_INPUT() {
         assertThatThrownBy(() -> uvIdxClient.fetch("11000"))
@@ -42,23 +37,5 @@ class UvIdxClientTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.INVALID_INPUT);
-    }
-
-    @Test
-    void 정상_호출이면_UVIndex_생성된다() {
-
-        UvIndex fake = new UvIndex(
-                SEOUL,
-                LocalDateTime.of(2026, 5, 26, 6, 0),
-                Map.of(0, 1, 3, 5, 6, 6)
-        );
-
-        given(mockUvIdxClient.fetch(SEOUL))
-                .willReturn(fake);
-
-        UvIndex uv = mockUvIdxClient.fetch(SEOUL);
-
-        assertThat(uv.areaNo()).isEqualTo(SEOUL);
-        assertThat(uv.at(6)).isEqualTo(6);
     }
 }
