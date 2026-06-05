@@ -1,5 +1,7 @@
 package com.example.demo.weather;
 
+import com.example.demo.weather.dto.AsosRecord;
+import com.example.demo.weather.util.GroundTempParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

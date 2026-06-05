@@ -1,5 +1,8 @@
 package com.example.demo.weather;
 
+import com.example.demo.weather.domain.WeatherSnapshot;
+import com.example.demo.weather.repository.WeatherSnapshotRepository;
+import com.example.demo.weather.service.WeatherSnapshotService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

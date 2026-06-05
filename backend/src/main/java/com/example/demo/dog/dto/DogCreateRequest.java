@@ -3,12 +3,15 @@ package com.example.demo.dog.dto;
 import com.example.demo.dog.entity.Gender;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 반려견 등록 요청. {@code POST /api/dogs}.
@@ -39,5 +42,10 @@ public record DogCreateRequest(
         String healthNotes,
 
         @Size(max = 500)
-        String profileImageUrl
+        String profileImageUrl,
+
+        List<@Min(value = 0, message = "산책 시간대는 0~23 사이여야 합니다")
+             @Max(value = 23, message = "산책 시간대는 0~23 사이여야 합니다") Integer> favorWalkTime,
+
+        Boolean isMain
 ) {}
