@@ -16,4 +16,10 @@ public interface DogRepository extends JpaRepository<Dog, Long> {
             Long dogId,
             Long userId
     );
+
+    /** 현재 대표 강아지. 유저당 1마리 강제이므로 단건. */
+    Optional<Dog> findByUserIdAndMainTrue(Long userId);
+
+    /** 소유 반려견 수. 첫 등록견 자동 대표 지정 판단에 사용. */
+    long countByUserId(Long userId);
 }

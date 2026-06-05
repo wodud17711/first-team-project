@@ -66,7 +66,9 @@ class DogServiceTest {
                 true,
                 "중",
                 "슬개골 탈구 1기",
-                "https://img.example.com/choco.jpg"
+                "https://img.example.com/choco.jpg",
+                List.of(16, 1, 3),
+                true
         );
 
         DogResponse response = dogService.register(userId, request);
@@ -78,6 +80,9 @@ class DogServiceTest {
         assertThat(response.breed()).isNotNull();
         assertThat(response.breed().breedId()).isEqualTo(breedId);
         assertThat(response.breed().nameKr()).isEqualTo("포메라니안");
+        // CSV 저장 시 중복 제거 + 오름차순 정렬되어 응답된다
+        assertThat(response.favorWalkTime()).containsExactly(1, 3, 16);
+        assertThat(response.isMain()).isTrue();
         verify(dogRepository).save(any(Dog.class));
     }
 
@@ -88,7 +93,7 @@ class DogServiceTest {
         given(dogRepository.save(any(Dog.class))).willAnswer(inv -> inv.getArgument(0));
 
         DogCreateRequest request = new DogCreateRequest(
-                "보리", null, null, null, Gender.M, null, null, null, null
+                "보리", null, null, null, Gender.M, null, null, null, null, null, null
         );
 
         DogResponse response = dogService.register(userId, request);
@@ -106,13 +111,66 @@ class DogServiceTest {
         given(dogBreedRepository.findById(breedId)).willReturn(Optional.empty());
 
         DogCreateRequest request = new DogCreateRequest(
-                "초코", breedId, null, null, null, null, null, null, null
+                "초코", breedId, null, null, null, null, null, null, null, null, null
         );
 
         assertThatThrownBy(() -> dogService.register(userId, request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode").isEqualTo(ErrorCode.BREED_NOT_FOUND);
         verify(dogRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("register: 첫 등록견은 isMain 요청과 무관하게 자동으로 대표가 된다")
+    void register_firstDog_autoMain() {
+        Long userId = 10L;
+        given(dogRepository.countByUserId(userId)).willReturn(0L);
+        given(dogRepository.save(any(Dog.class))).willAnswer(inv -> inv.getArgument(0));
+
+        DogCreateRequest request = new DogCreateRequest(
+                "보리", null, null, null, null, null, null, null, null, null, false
+        );
+
+        DogResponse response = dogService.register(userId, request);
+
+        assertThat(response.isMain()).isTrue();
+    }
+
+    @Test
+    @DisplayName("register: 두 번째 견을 대표로 등록하면 기존 대표가 해제된다 (유저당 1마리)")
+    void register_secondDogAsMain_clearsPreviousMain() {
+        Long userId = 10L;
+        Dog previousMain = newDog(1L, userId, "초코");
+        previousMain.markAsMain();
+        given(dogRepository.countByUserId(userId)).willReturn(1L);
+        given(dogRepository.findByUserIdAndMainTrue(userId)).willReturn(Optional.of(previousMain));
+        given(dogRepository.save(any(Dog.class))).willAnswer(inv -> inv.getArgument(0));
+
+        DogCreateRequest request = new DogCreateRequest(
+                "보리", null, null, null, null, null, null, null, null, null, true
+        );
+
+        DogResponse response = dogService.register(userId, request);
+
+        assertThat(response.isMain()).isTrue();
+        assertThat(previousMain.isMain()).isFalse();
+    }
+
+    @Test
+    @DisplayName("register: 두 번째 견을 대표 아님으로 등록하면 기존 대표는 유지된다")
+    void register_secondDogNotMain_keepsPreviousMain() {
+        Long userId = 10L;
+        given(dogRepository.countByUserId(userId)).willReturn(1L);
+        given(dogRepository.save(any(Dog.class))).willAnswer(inv -> inv.getArgument(0));
+
+        DogCreateRequest request = new DogCreateRequest(
+                "보리", null, null, null, null, null, null, null, null, null, false
+        );
+
+        DogResponse response = dogService.register(userId, request);
+
+        assertThat(response.isMain()).isFalse();
+        verify(dogRepository, never()).findByUserIdAndMainTrue(any());
     }
 
     // ===== findMyDogs =====
@@ -183,7 +241,7 @@ class DogServiceTest {
 
         DogUpdateRequest request = new DogUpdateRequest(
                 "초콜릿",   // 이름만 변경
-                null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null
         );
 
         DogResponse response = dogService.update(userId, dogId, request);
@@ -201,7 +259,7 @@ class DogServiceTest {
         given(dogRepository.findById(dogId)).willReturn(Optional.of(newDog(dogId, otherId, "초코")));
 
         DogUpdateRequest request = new DogUpdateRequest(
-                "이름변경", null, null, null, null, null, null, null, null
+                "이름변경", null, null, null, null, null, null, null, null, null, null
         );
 
         assertThatThrownBy(() -> dogService.update(myId, dogId, request))
@@ -218,12 +276,71 @@ class DogServiceTest {
         given(dogBreedRepository.findById(999L)).willReturn(Optional.empty());
 
         DogUpdateRequest request = new DogUpdateRequest(
-                null, 999L, null, null, null, null, null, null, null
+                null, 999L, null, null, null, null, null, null, null, null, null
         );
 
         assertThatThrownBy(() -> dogService.update(userId, dogId, request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode").isEqualTo(ErrorCode.BREED_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("update: isMain=true 로 변경하면 기존 대표가 해제되고 이 견이 대표가 된다")
+    void update_setMain_switchesMain() {
+        Long userId = 10L;
+        Long dogId = 2L;
+        Dog target = newDog(dogId, userId, "보리");
+        Dog previousMain = newDog(1L, userId, "초코");
+        previousMain.markAsMain();
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(target));
+        given(dogRepository.findByUserIdAndMainTrue(userId)).willReturn(Optional.of(previousMain));
+
+        DogUpdateRequest request = new DogUpdateRequest(
+                null, null, null, null, null, null, null, null, null, null, true
+        );
+
+        DogResponse response = dogService.update(userId, dogId, request);
+
+        assertThat(response.isMain()).isTrue();
+        assertThat(target.isMain()).isTrue();
+        assertThat(previousMain.isMain()).isFalse();
+    }
+
+    @Test
+    @DisplayName("update: favorWalkTime 에 빈 배열을 주면 전체 해제된다")
+    void update_emptyFavorWalkTime_clears() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog dog = newDog(dogId, userId, "초코");
+        dog.changeFavorWalkTime("1,3,16");
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(dog));
+
+        DogUpdateRequest request = new DogUpdateRequest(
+                null, null, null, null, null, null, null, null, null, List.of(), null
+        );
+
+        DogResponse response = dogService.update(userId, dogId, request);
+
+        assertThat(response.favorWalkTime()).isEmpty();
+        assertThat(dog.getFavorWalkTime()).isNull();
+    }
+
+    @Test
+    @DisplayName("update: favorWalkTime 이 null 이면 기존 값이 유지된다 (부분 수정)")
+    void update_nullFavorWalkTime_keepsExisting() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog dog = newDog(dogId, userId, "초코");
+        dog.changeFavorWalkTime("1,3,16");
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(dog));
+
+        DogUpdateRequest request = new DogUpdateRequest(
+                "초콜릿", null, null, null, null, null, null, null, null, null, null
+        );
+
+        DogResponse response = dogService.update(userId, dogId, request);
+
+        assertThat(response.favorWalkTime()).containsExactly(1, 3, 16);
     }
 
     // ===== delete =====
@@ -239,6 +356,55 @@ class DogServiceTest {
         dogService.delete(userId, dogId);
 
         assertThat(dog.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("delete: 대표견 삭제 시 남은 견 중 최근 등록견이 자동 대표로 승격된다")
+    void delete_mainDog_promotesNext() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog mainDog = newDog(dogId, userId, "초코");
+        mainDog.markAsMain();
+        Dog recent = newDog(3L, userId, "보리");
+        Dog older = newDog(2L, userId, "콩이");
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(mainDog));
+        // 최신순 — 첫 원소(보리)가 승격 대상
+        given(dogRepository.findByUserIdOrderByCreatedAtDesc(userId))
+                .willReturn(List.of(recent, older));
+
+        dogService.delete(userId, dogId);
+
+        assertThat(mainDog.getDeletedAt()).isNotNull();
+        assertThat(recent.isMain()).isTrue();
+        assertThat(older.isMain()).isFalse();
+    }
+
+    @Test
+    @DisplayName("delete: 마지막 대표견 삭제 시 승격 대상이 없어도 예외 없이 처리된다")
+    void delete_lastMainDog_noPromote() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog mainDog = newDog(dogId, userId, "초코");
+        mainDog.markAsMain();
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(mainDog));
+        given(dogRepository.findByUserIdOrderByCreatedAtDesc(userId)).willReturn(List.of());
+
+        dogService.delete(userId, dogId);
+
+        assertThat(mainDog.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("delete: 대표견이 아니면 승격 로직을 타지 않는다")
+    void delete_nonMainDog_noPromoteQuery() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog dog = newDog(dogId, userId, "초코");
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(dog));
+
+        dogService.delete(userId, dogId);
+
+        verify(dogRepository, never()).findByUserIdOrderByCreatedAtDesc(any());
     }
 
     @Test
@@ -260,7 +426,7 @@ class DogServiceTest {
     // ---------- helpers ----------
 
     private static Dog newDog(Long id, Long userId, String name) {
-        Dog dog = Dog.create(userId, null, name, null, null, null, false, null, null, null);
+        Dog dog = Dog.create(userId, null, name, null, null, null, false, false, null, null, null, null);
         setField(dog, "id", id);
         return dog;
     }

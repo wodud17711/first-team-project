@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.List;
 
 /**
  * 반려견 상세/목록/등록·수정 응답 공용 DTO.
@@ -26,6 +27,8 @@ public record DogResponse(
         String activityLevel,
         String healthNotes,
         String profileImageUrl,
+        List<Integer> favorWalkTime,
+        boolean isMain,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -42,6 +45,8 @@ public record DogResponse(
                 dog.getActivityLevel() == null ? null : dog.getActivityLevel().getLabel(),
                 dog.getHealthNotes(),
                 dog.getProfileImageUrl(),
+                WalkTimeCodec.toList(dog.getFavorWalkTime()),
+                dog.isMain(),
                 dog.getCreatedAt(),
                 dog.getUpdatedAt()
         );

@@ -66,6 +66,14 @@ public class Dog {
     @Column(name = "is_neutered", nullable = false)
     private boolean neutered;
 
+    /** 대표 강아지 여부. 유저당 1마리만 true (Service 에서 강제). */
+    @Column(name = "is_main", nullable = false)
+    private boolean main;
+
+    /** 선호 산책 시간대(0~23시) CSV. 예: "1,3,16". 미선택 시 null. */
+    @Column(name = "favor_walk_time", length = 100)
+    private String favorWalkTime;
+
     @Convert(converter = ActivityLevelConverter.class)
     @Column(name = "activity_level")
     private ActivityLevel activityLevel;
@@ -87,8 +95,9 @@ public class Dog {
 
     @Builder
     private Dog(Long userId, DogBreed breed, String name, LocalDate birthDate,
-                BigDecimal weight, Gender gender, boolean neutered,
-                ActivityLevel activityLevel, String healthNotes, String profileImageUrl) {
+                BigDecimal weight, Gender gender, boolean neutered, boolean main,
+                ActivityLevel activityLevel, String healthNotes, String profileImageUrl,
+                String favorWalkTime) {
         this.userId = userId;
         this.breed = breed;
         this.name = name;
@@ -96,14 +105,17 @@ public class Dog {
         this.weight = weight;
         this.gender = gender;
         this.neutered = neutered;
+        this.main = main;
         this.activityLevel = activityLevel;
         this.healthNotes = healthNotes;
         this.profileImageUrl = profileImageUrl;
+        this.favorWalkTime = favorWalkTime;
     }
 
     public static Dog create(Long userId, DogBreed breed, String name, LocalDate birthDate,
-                             BigDecimal weight, Gender gender, boolean neutered,
-                             ActivityLevel activityLevel, String healthNotes, String profileImageUrl) {
+                             BigDecimal weight, Gender gender, boolean neutered, boolean main,
+                             ActivityLevel activityLevel, String healthNotes, String profileImageUrl,
+                             String favorWalkTime) {
         return Dog.builder()
                 .userId(userId)
                 .breed(breed)
@@ -112,9 +124,11 @@ public class Dog {
                 .weight(weight)
                 .gender(gender)
                 .neutered(neutered)
+                .main(main)
                 .activityLevel(activityLevel)
                 .healthNotes(healthNotes)
                 .profileImageUrl(profileImageUrl)
+                .favorWalkTime(favorWalkTime)
                 .build();
     }
 
@@ -131,6 +145,24 @@ public class Dog {
         if (activityLevel != null) this.activityLevel = activityLevel;
         if (healthNotes != null) this.healthNotes = healthNotes;
         if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+    }
+
+    /**
+     * 선호 산책 시간대 교체. {@code null}/빈 CSV 면 전체 해제(컬럼 NULL).
+     * 부분 수정에서 빈 배열로 "전체 해제"를 표현할 수 있도록 null-skip 로직과 분리한다.
+     */
+    public void changeFavorWalkTime(String favorWalkTime) {
+        this.favorWalkTime = (favorWalkTime == null || favorWalkTime.isBlank()) ? null : favorWalkTime;
+    }
+
+    /** 대표 강아지로 지정. */
+    public void markAsMain() {
+        this.main = true;
+    }
+
+    /** 대표 강아지 해제. */
+    public void unsetMain() {
+        this.main = false;
     }
 
     public void softDelete() {
