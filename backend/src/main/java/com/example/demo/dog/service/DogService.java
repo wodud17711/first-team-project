@@ -96,7 +96,14 @@ public class DogService {
     @Transactional
     public void delete(Long userId, Long dogId) {
         Dog dog = getMyDog(userId, dogId);
+        boolean wasMain = dog.isMain();
         dog.softDelete();
+        // 대표견 삭제 시 무대표 방지 — 남은 견 중 가장 최근 등록견을 자동 대표로 승격.
+        if (wasMain) {
+            dogRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                    .findFirst()
+                    .ifPresent(Dog::markAsMain);
+        }
     }
 
     private Dog getMyDog(Long userId, Long dogId) {
