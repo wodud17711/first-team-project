@@ -12,7 +12,7 @@
 
 ## 📄 단일 진실 공급원 (Single Source of Truth)
 
-- 🔷 **실제 스키마**: [`backend/src/main/resources/schema.sql`](../backend/src/main/resources/schema.sql)
+- 🔷 **실제 스키마**: [`backend/schema.sql`](../backend/schema.sql)
 - 🔷 **시각화용 DBML**: [`docs/erd.dbml`](./erd.dbml)
   - [dbdiagram.io](https://dbdiagram.io/d) 에 붙여넣어 ERD 자동 생성
 
@@ -29,7 +29,7 @@
 | `users` | 사용자 계정 (이메일/BCrypt 비밀번호 / `role`: USER·ADMIN) |
 | `refresh_tokens` | Refresh Token 관리 (해시 저장, HttpOnly 쿠키 인증 / 단일 세션) ⭐ v1.4 |
 | `dog_breeds` | 견종 마스터 (Kaggle 시드 데이터) |
-| `dogs` | 반려견 프로필 |
+| `dogs` | 반려견 프로필 (`is_main` 대표견 1마리 강제 / `favor_walk_time` 선호 산책시간 0~23시 CSV) |
 | `user_walk_stats` | 사용자 산책 통계 (배치 집계 - 견주 유형 분석) |
 
 ### 🐾 산책 (6)
