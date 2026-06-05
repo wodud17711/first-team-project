@@ -356,13 +356,19 @@ function DogCreatePage() {
                 <div className="relative flex-1">
                   <input
                     type="text"
+                    inputMode="decimal"
                     value={form.weight}
                     placeholder={item.placeholder}
                     onChange={(e) => {
-                      setForm({
-                        ...form,
-                        weight: formatWeight(e.target.value)
-                      })
+                      let value = e.target.value;
+
+                      // 숫자 + 소수점 1개 + 소수점 이하 1자리까지만 허용
+                      if (/^\d*\.?\d{0,1}$/.test(value)) {
+                        setForm((prev) => ({
+                          ...prev,
+                          weight: value,
+                        }));
+                      }
                     }}
                     className="w-full px-4 py-3 rounded-xl bg-[#f7f7f7]
                     focus:outline-brand-300 hover:bg-[#F0F0F0]"
