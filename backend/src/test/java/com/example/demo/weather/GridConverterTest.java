@@ -1,5 +1,7 @@
 package com.example.demo.weather;
 
+import com.example.demo.weather.util.GridConverter;
+import com.example.demo.weather.util.GridCoordinate;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -2,6 +2,9 @@ package com.example.demo.walk;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.walk.client.AiClient;
+import com.example.demo.walk.dto.WalkScoreRequest;
+import com.example.demo.walk.dto.WalkScoreResult;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
