@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 // 함수 땡겨오기
-import {genders, formatWeight, activityLevels, walkTimes} from "../../constants/dogConstants"
+import {genders, activityLevels, walkTimes} from "../../constants/dogConstants"
 
 
 function DogCreatePage() {
