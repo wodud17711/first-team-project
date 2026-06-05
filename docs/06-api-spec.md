@@ -417,7 +417,9 @@ Authorization: Bearer {token}
   "isNeutered": true,
   "activityLevel": "중",
   "healthNotes": "슬개골 탈구 1기",
-  "profileImageUrl": "https://..."
+  "profileImageUrl": "https://...",
+  "favorWalkTime": [1, 3, 16],
+  "isMain": true
 }
 ```
 
@@ -427,6 +429,8 @@ Authorization: Bearer {token}
 - weight: 0.1 ~ 100
 - gender: M / F
 - activityLevel: 저 / 중 / 고 (스키마 한글 ENUM과 일치)
+- favorWalkTime: 선호 산책 시간대 정수 배열, 각 원소 0~23 (없으면 생략/`[]`). DB엔 CSV로 저장(중복 제거·오름차순)
+- isMain: 대표 강아지 여부. **유저당 1마리 강제** — 첫 등록견은 자동 대표, 이후 `true`로 등록/수정 시 기존 대표 자동 해제. PATCH에서 `isMain:false` 직접 해제는 무시(무대표 방지)
 
 **Response 201**
 ```json
@@ -445,6 +449,8 @@ Authorization: Bearer {token}
     "age": 4,
     "weight": 3.2,
     "gender": "F",
+    "favorWalkTime": [1, 3, 16],
+    "isMain": true,
     "createdAt": "2026-05-20T15:30:00"
   }
 }

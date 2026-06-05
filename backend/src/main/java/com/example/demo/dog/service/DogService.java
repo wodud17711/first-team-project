@@ -5,6 +5,7 @@ import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.dog.dto.DogCreateRequest;
 import com.example.demo.dog.dto.DogResponse;
 import com.example.demo.dog.dto.DogUpdateRequest;
+import com.example.demo.dog.dto.WalkTimeCodec;
 import com.example.demo.dog.entity.ActivityLevel;
 import com.example.demo.dog.entity.Dog;
 import com.example.demo.dog.entity.DogBreed;
@@ -38,6 +39,12 @@ public class DogService {
     @Transactional
     public DogResponse register(Long userId, DogCreateRequest request) {
         DogBreed breed = resolveBreed(request.breedId());
+        // 첫 등록견은 자동 대표. 이후엔 isMain=true 요청 시에만 대표.
+        boolean firstDog = dogRepository.countByUserId(userId) == 0;
+        boolean shouldBeMain = firstDog || Boolean.TRUE.equals(request.isMain());
+        if (shouldBeMain) {
+            clearCurrentMain(userId);
+        }
         Dog dog = Dog.create(
                 userId,
                 breed,
@@ -46,9 +53,11 @@ public class DogService {
                 request.weight(),
                 request.gender(),
                 Boolean.TRUE.equals(request.isNeutered()),
+                shouldBeMain,
                 ActivityLevel.fromLabel(request.activityLevel()),
                 request.healthNotes(),
-                request.profileImageUrl()
+                request.profileImageUrl(),
+                WalkTimeCodec.toCsv(request.favorWalkTime())
         );
         Dog saved = dogRepository.save(dog);
         return DogResponse.from(saved);
@@ -72,6 +81,15 @@ public class DogService {
                 request.healthNotes(),
                 request.profileImageUrl()
         );
+        // favorWalkTime: null=변경 없음, []=전체 해제. null-skip 과 분리 처리.
+        if (request.favorWalkTime() != null) {
+            dog.changeFavorWalkTime(WalkTimeCodec.toCsv(request.favorWalkTime()));
+        }
+        // 대표 지정 요청 시에만 전환(유저당 1마리 강제). false 로 직접 해제는 막아 무대표 상태 방지.
+        if (Boolean.TRUE.equals(request.isMain()) && !dog.isMain()) {
+            clearCurrentMain(userId);
+            dog.markAsMain();
+        }
         return DogResponse.from(dog);
     }
 
@@ -88,6 +106,11 @@ public class DogService {
             throw new BusinessException(ErrorCode.NOT_YOUR_DOG);
         }
         return dog;
+    }
+
+    /** 현재 대표 강아지가 있으면 해제. 유저당 대표 1마리 강제용. */
+    private void clearCurrentMain(Long userId) {
+        dogRepository.findByUserIdAndMainTrue(userId).ifPresent(Dog::unsetMain);
     }
 
     private DogBreed resolveBreed(Long breedId) {
