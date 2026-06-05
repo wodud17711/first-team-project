@@ -99,7 +99,7 @@ public class WeatherClient {
     // ============================================================
     // GRID VALIDATION
     // ============================================================
-    private void validateGrid(int nx, int ny) {
+    public static void validateGrid(int nx, int ny) {
 
         if (nx < 1 || nx > GRID_NX_MAX
                 || ny < 1 || ny > GRID_NY_MAX) {
@@ -114,7 +114,7 @@ public class WeatherClient {
     // ============================================================
     // BASE TIME CALCULATION
     // ============================================================
-    private BaseDateTime resolveBaseDateTime(LocalDateTime now) {
+    public static BaseDateTime resolveBaseDateTime(LocalDateTime now) {
 
         LocalDateTime threshold =
                 now.minusMinutes(PUBLISH_DELAY_MINUTES);
@@ -140,7 +140,7 @@ public class WeatherClient {
     // ============================================================
     // PARSE RESPONSE → DOMAIN
     // ============================================================
-    private WeatherSnapshot parse(KmaForecastResponse response, int nx, int ny) {
+    public static WeatherSnapshot parse(KmaForecastResponse response, int nx, int ny) {
 
         List<KmaForecastResponse.Item> items = extractItems(response);
 
@@ -239,5 +239,5 @@ public class WeatherClient {
         }
     }
 
-    record BaseDateTime(String date, String time) {}
+    public record BaseDateTime(String date, String time) {}
 }

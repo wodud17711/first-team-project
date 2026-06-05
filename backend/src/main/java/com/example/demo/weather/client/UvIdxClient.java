@@ -82,7 +82,7 @@ public class UvIdxClient {
     // ============================================================
     // VALIDATION
     // ============================================================
-    private void validateAreaNo(String areaNo) {
+    public static void validateAreaNo(String areaNo) {
 
         if (areaNo == null || !areaNo.matches("\\d{10}")) {
             throw new BusinessException(
@@ -95,7 +95,7 @@ public class UvIdxClient {
     // ============================================================
     // BASE TIME
     // ============================================================
-    private String resolveBaseTime(LocalDateTime now) {
+    public static String resolveBaseTime(LocalDateTime now) {
 
         LocalDate date = now.toLocalDate();
         int hour = now.getHour();
@@ -115,7 +115,7 @@ public class UvIdxClient {
     // ============================================================
     // PARSE
     // ============================================================
-    private UvIndex parse(KmaUvResponse response, String areaNo) {
+    public static UvIndex parse(KmaUvResponse response, String areaNo) {
 
         KmaUvResponse.Item item = extractItem(response);
 
@@ -139,7 +139,7 @@ public class UvIdxClient {
     // ============================================================
     // INTERNAL HELPERS
     // ============================================================
-    private KmaUvResponse.Item extractItem(KmaUvResponse response) {
+    private static KmaUvResponse.Item extractItem(KmaUvResponse response) {
 
         if (response == null
                 || response.response() == null
@@ -176,7 +176,7 @@ public class UvIdxClient {
         return items.get(0);
     }
 
-    private String hourValue(KmaUvResponse.Item item, int offset) {
+    private static String hourValue(KmaUvResponse.Item item, int offset) {
         return switch (offset) {
             case 0 -> item.h0();
             case 3 -> item.h3();
@@ -191,7 +191,7 @@ public class UvIdxClient {
         };
     }
 
-    private Integer parseUv(String raw) {
+    private static Integer parseUv(String raw) {
 
         if (raw == null || raw.isBlank()) {
             return null;

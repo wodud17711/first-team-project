@@ -1,16 +1,14 @@
 package com.example.demo.weather;
 
-import com.example.demo.common.exception.BusinessException;
-import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.weather.client.AsosClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
@@ -20,27 +18,42 @@ class AsosClientTest {
     private AsosClient asosClient;
 
     @MockitoBean
-    private AsosClient mockAsosClient;
+    private AsosClient mockClient;
 
+    // =========================
+    // 시간 계산 로직
+    // =========================
     @Test
-    void 지면온도_조회_성공() {
+    void resolve_base_time_after_delay() {
 
-        given(mockAsosClient.fetchGroundTemp(anyDouble(), anyDouble()))
-                .willReturn(25.0);
+        String tm = AsosClient.resolveBaseTime(
+                LocalDateTime.of(2026, 5, 26, 14, 30)
+        );
 
-        Double temp = mockAsosClient.fetchGroundTemp(37.5, 127.0);
-
-        assertThat(temp).isEqualTo(25.0);
+        assertThat(tm).isEqualTo("202605261400");
     }
 
     @Test
-    void null_응답이면_null_반환() {
+    void resolve_base_time_midnight() {
 
-        given(mockAsosClient.fetchGroundTemp(anyDouble(), anyDouble()))
-                .willReturn(null);
+        String tm = AsosClient.resolveBaseTime(
+                LocalDateTime.of(2026, 5, 26, 0, 5)
+        );
 
-        Double temp = mockAsosClient.fetchGroundTemp(37.5, 127.0);
+        assertThat(tm).isEqualTo("202605252300");
+    }
 
-        assertThat(temp).isNull();
+    // =========================
+    // 외부 호출은 mock으로 고정
+    // =========================
+    @Test
+    void 지면온도_조회_mock_성공() {
+
+        given(mockClient.fetchGroundTemp(37.5, 127.0))
+                .willReturn(25.0);
+
+        Double temp = mockClient.fetchGroundTemp(37.5, 127.0);
+
+        assertThat(temp).isEqualTo(25.0);
     }
 }

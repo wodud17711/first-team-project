@@ -76,7 +76,7 @@ public class AsosClient {
     // ============================================================
     // BASE TIME
     // ============================================================
-    private String resolveBaseTime(LocalDateTime now) {
+    public static String resolveBaseTime(LocalDateTime now) {
 
         LocalDateTime observed = now
                 .minusMinutes(OBSERVATION_DELAY_MINUTES)
