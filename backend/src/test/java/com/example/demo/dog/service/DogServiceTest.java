@@ -359,6 +359,55 @@ class DogServiceTest {
     }
 
     @Test
+    @DisplayName("delete: 대표견 삭제 시 남은 견 중 최근 등록견이 자동 대표로 승격된다")
+    void delete_mainDog_promotesNext() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog mainDog = newDog(dogId, userId, "초코");
+        mainDog.markAsMain();
+        Dog recent = newDog(3L, userId, "보리");
+        Dog older = newDog(2L, userId, "콩이");
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(mainDog));
+        // 최신순 — 첫 원소(보리)가 승격 대상
+        given(dogRepository.findByUserIdOrderByCreatedAtDesc(userId))
+                .willReturn(List.of(recent, older));
+
+        dogService.delete(userId, dogId);
+
+        assertThat(mainDog.getDeletedAt()).isNotNull();
+        assertThat(recent.isMain()).isTrue();
+        assertThat(older.isMain()).isFalse();
+    }
+
+    @Test
+    @DisplayName("delete: 마지막 대표견 삭제 시 승격 대상이 없어도 예외 없이 처리된다")
+    void delete_lastMainDog_noPromote() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog mainDog = newDog(dogId, userId, "초코");
+        mainDog.markAsMain();
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(mainDog));
+        given(dogRepository.findByUserIdOrderByCreatedAtDesc(userId)).willReturn(List.of());
+
+        dogService.delete(userId, dogId);
+
+        assertThat(mainDog.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("delete: 대표견이 아니면 승격 로직을 타지 않는다")
+    void delete_nonMainDog_noPromoteQuery() {
+        Long userId = 10L;
+        Long dogId = 1L;
+        Dog dog = newDog(dogId, userId, "초코");
+        given(dogRepository.findById(dogId)).willReturn(Optional.of(dog));
+
+        dogService.delete(userId, dogId);
+
+        verify(dogRepository, never()).findByUserIdOrderByCreatedAtDesc(any());
+    }
+
+    @Test
     @DisplayName("delete: 남의 반려견 삭제 시 → NOT_YOUR_DOG")
     void delete_notOwner() {
         Long myId = 10L;

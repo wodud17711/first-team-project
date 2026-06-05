@@ -56,7 +56,9 @@ class WalkScoreServiceTest {
                 BigDecimal.valueOf(5.0),
                 Gender.M,
                 true,
+                false,
                 ActivityLevel.MEDIUM,
+                null,
                 null,
                 null
         );
