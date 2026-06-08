@@ -66,34 +66,7 @@ public class WeatherClient {
         KmaForecastResponse response =
                 call(nx, ny, base.date(), base.time());
 
-        WeatherSnapshot snapshot =
-                parse(response, nx, ny);
-
-        double[] latLon =
-                GridConverter.toLatLon(
-                        nx,
-                        ny
-                );
-
-        var airQuality =
-                airKoreaClient.fetchAirQuality(
-                        latLon[0],
-                        latLon[1]
-                );
-
-        return WeatherSnapshot.create(
-                snapshot.getGridX(),
-                snapshot.getGridY(),
-                snapshot.getBaseDateTime(),
-                snapshot.getTemperature(),
-                snapshot.getHumidity(),
-                snapshot.getWindSpeed(),
-                snapshot.getFeelsLikeTemperature(),
-                snapshot.getGroundTemperature(),
-                snapshot.getUvIndex(),
-                airQuality.pm10(),
-                airQuality.pm25()
-        );
+        return parse(response, nx, ny);
     }
 
     // ============================================================

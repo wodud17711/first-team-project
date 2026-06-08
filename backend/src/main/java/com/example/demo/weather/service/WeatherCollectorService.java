@@ -24,24 +24,21 @@ public class WeatherCollectorService {
             double lon
     ) {
 
-        GridCoordinate grid =
-                GridConverter.toGrid(
-                        lat,
-                        lon
-                );
+        // 1. 격자 변환 (외부 API와 무관)
+        GridCoordinate grid = GridConverter.toGrid(lat, lon);
 
+        // 2. 날씨 데이터 조회 (KMA)
         WeatherSnapshot weather =
                 weatherClient.fetchCurrent(
                         grid.nx(),
                         grid.ny()
                 );
 
+        // 3. 미세먼지 데이터 조회 (AirKorea)
         AirQuality airQuality =
-                airKoreaClient.fetchAirQuality(
-                        lat,
-                        lon
-                );
+                airKoreaClient.fetchAirQuality(lat, lon);
 
+        // 4. 도메인 조립 (여기가 collector 책임)
         WeatherSnapshot snapshot =
                 WeatherSnapshot.create(
                         weather.getGridX(),
@@ -57,8 +54,7 @@ public class WeatherCollectorService {
                         airQuality.pm25()
                 );
 
-        return weatherSnapshotService.saveIfAbsent(
-                snapshot
-        );
+        // 5. 저장 (idempotent)
+        return weatherSnapshotService.saveIfAbsent(snapshot);
     }
 }
