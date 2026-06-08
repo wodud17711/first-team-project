@@ -159,7 +159,7 @@ function DogCreatePage() {
     }
   }
 
-  // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
+  // 확인 클릭 시, 알림창 + 페이지 이동
   const handleSubmit = async () => {
     if (!form.name.trim()) {
     alert("이름을 입력해주세요.")
@@ -224,7 +224,7 @@ function DogCreatePage() {
     }
   }
 
-  // 취소 클릭 시, 경고창 + 페이지 이동(지금은 실제로 취소기능 X)
+  // 취소 클릭 시, 경고창 + 페이지 이동
   const handleGoDetail = () => {
     const confirmMove = window.confirm(
       "변경사항이 저장되지 않을 수 있습니다!\n취소하시겠습니까?"

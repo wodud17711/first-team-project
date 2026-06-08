@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { searchBreeds } from "../../api/breeds";
+import { updateDog } from "../../api/dogs"
+import { getDog } from "../../api/dogs"
 
 // 강아지 기본(폴백) 사진
 import dogImg1 from '../../assets/dogImg1.jpg'
@@ -24,12 +26,50 @@ function DogEditPage() {
   
   const navigate = useNavigate()
 
-  // 목록 만든 강아지 데이터 받기
-  const location = useLocation()
-  const dog = location.state || {}
+  // 강아지 정보 받기
+  const { dogId } = useParams()
+
+  const [dog, setDog] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDog = async () => {
+      try {
+        const data = await getDog(dogId)
+        setDog(data)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDog()
+  }, [dogId])
+
+  useEffect(() => {
+    if (!dog) return
+
+    setPreviewImg(dog.profileImageUrl || null)
+
+    setIsMain(dog.isMain ?? false)
+
+    setBreedKeyword(dog.breed?.nameKr || "")
+
+    setForm({
+      name: dog.name || "",
+      birthDate: dog.birthDate || "",
+      breedId: dog.breed?.breedId || "",
+      gender: dog.gender || "",
+      weight: dog.weight || "",
+      isNeutered: dog.isNeutered ?? "",
+      activityLevel: dog.activityLevel || "",
+      favorWalkTime: dog.favorWalkTime || [],
+      healthNotes: dog.healthNotes || "",
+    })
+  }, [dog])
+
 
   // 강아지 이미지 주소 저장
-  const [previewImg, setPreviewImg] = useState(dog.profileImageUrl)
+  const [previewImg, setPreviewImg] = useState(null)
 
   // 강아지 이미지 변경 함수
   const handleImageChange = (e) => {
@@ -42,41 +82,28 @@ function DogEditPage() {
   }
 
   // 대표 강아지 설정 여부
-  const [isMain, setIsMain] = useState(dog.isMain ?? false)
+  const [isMain, setIsMain] = useState(false)
 
   // 견종 검색 state
-  const [breedKeyword, setBreedKeyword] = useState(dog.breed?.nameKr || "")
+  const [breedKeyword, setBreedKeyword] = useState("")
   const [breedResults, setBreedResults] = useState([])
   const [openBreed, setOpenBreed] = useState(false)
   const [mixMode, setMixMode] = useState(false)
 
   const breedRef = useRef(null)
 
-  // 인풋 코드 줄이기
-  const inputs = [
-    { label: "이름", name: "name" },
-    { label: "생년월일", name: "birthDate" },
-    { label: "견종", name: "breed" },
-    { label: "성별", name: "gender" },
-    { label: "체중", name: "weight" },
-    { label: "중성화", name: "isNeutered" },
-    { label: "활동량", name: "activityLevel" },
-    { label: "선호 산책 시간", name: "favorWalkTime" },
-    { label: "건강 특이사항", name: "healthNotes" },
-  ]
 
   // 수정용 state
   const [form, setForm] = useState({
-    name: dog.name || "",
-    birthDate: dog.birthDate || "",
-    breed: dog.breed || "",
-    breedId: dog.breedId || "",
-    gender: dog.gender || "",
-    weight: dog.weight || "",
-    isNeutered: dog.isNeutered ?? "",
-    activityLevel: dog.activityLevel || "",
-    favorWalkTime: dog.favorWalkTime || [],
-    healthNotes: dog.healthNotes || "",
+    name: "",
+    birthDate: "",
+    breedId: "",
+    gender: "",
+    weight: "",
+    isNeutered: "",
+    activityLevel: "",
+    favorWalkTime: [],
+    healthNotes: "",
   })
 
   // input 변경 함수
@@ -163,7 +190,7 @@ function DogEditPage() {
   }
 
   // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name.trim()) {
     alert("이름을 입력해주세요.")
     return
@@ -200,17 +227,20 @@ function DogEditPage() {
     "수정을 완료하시겠습니까?"
   )
     if (confirmEdit) {
-      navigate("/dog-profile-detail", {
-        state: {
-          dog: {
-            ...dog,
-            ...form,
-            profileImageUrl: previewImg,
-            isMain,
-          },
-          index,
-        }
-      })
+      try {
+        await updateDog(dog.dogId, {
+          ...form,
+          profileImageUrl: previewImg,
+          isMain,
+        })
+
+        alert("수정되었습니다.")
+
+        navigate(`/dog-profile-detail/${dog.dogId}`)
+      } catch (err) {
+        console.error(err)
+        alert("수정 실패")
+      }
     }
   }
 
@@ -221,11 +251,7 @@ function DogEditPage() {
     )
 
     if (confirmMove) {
-      navigate("/dog-profile-detail", {
-        state: {
-          dog,
-        },
-      })
+      navigate(`/dog-profile-detail/${dogId}`)
     }
   }
 
