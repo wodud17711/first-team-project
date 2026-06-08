@@ -1,5 +1,7 @@
 """
-산책 위험도 룰베이스 테스트 (10 케이스)
+산책 위험도 룰베이스 테스트 (24 케이스)
+- 점수/등급/사유 문장 (17): 폭염·한파·미세먼지·자외선·노령견·퍼피·강풍·강수 등
+- reason_codes (#70, 7): 코드↔문장 1:1 정합, 레지스트리 유효성, 특정 코드 발화, ALL_CLEAR
 실행:
   - 그냥:   python ai/rules/test_walk_risk.py
   - pytest: pytest ai/rules/test_walk_risk.py
@@ -11,7 +13,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from walk_risk import DogInfo, WeatherInfo, RiskLevel, calculate_walk_risk  # noqa: E402
+from walk_risk import (  # noqa: E402
+    DogInfo, WeatherInfo, RiskLevel, calculate_walk_risk, RULES,
+)
+
+# 룰 레지스트리의 모든 코드 + 사유 없음 폴백. reason_codes 유효성 검증용.
+VALID_CODES = {r.code for r in RULES} | {"ALL_CLEAR"}
 
 
 # --- 견종 프리셋 ---
@@ -150,6 +157,63 @@ def test_완벽한_날씨_사유메시지():
     assert r.score == 100
     assert r.level == RiskLevel.SAFE
     assert "좋은 날씨" in r.reasons[0]
+
+
+# ============================================================
+# reason_codes 검증 (#70 — FE 위험사유 매핑의 정본)
+# ============================================================
+def test_reason_codes_1대1_정합():
+    # 여러 시나리오에서 reasons(문장)와 reason_codes(코드)가 길이·인덱스 1:1
+    scenarios = [
+        (MALTESE, WeatherInfo(temperature=32, feels_like=35, humidity=75,
+                              ground_temperature=55, pm10=50)),
+        (BULLDOG, WeatherInfo(temperature=30, feels_like=32, ground_temperature=42,
+                              pm10=200, pm25=90, uv_index=10)),
+        (GOLDEN, WeatherInfo(temperature=18, feels_like=18, humidity=45,
+                             ground_temperature=20, pm10=15)),  # 사유 없음
+    ]
+    for dog, w in scenarios:
+        r = calculate_walk_risk(dog, w)
+        assert len(r.reasons) == len(r.reason_codes), (dog.breed, r.reasons, r.reason_codes)
+        assert len(r.reason_codes) >= 1
+
+
+def test_reason_codes_레지스트리_유효():
+    # 출력되는 모든 코드는 RULES 레지스트리(또는 ALL_CLEAR)에 존재해야 함
+    r = calculate_walk_risk(BULLDOG, WeatherInfo(temperature=30, feels_like=32,
+                            ground_temperature=42, pm10=200, pm25=90, uv_index=10))
+    for c in r.reason_codes:
+        assert c in VALID_CODES, c
+
+
+def test_reason_code_지면화상_SEVERE():
+    r = calculate_walk_risk(GOLDEN, WeatherInfo(temperature=20, ground_temperature=55))
+    assert "GROUND_TEMP_SEVERE" in r.reason_codes
+
+
+def test_reason_code_미세먼지_매우나쁨():
+    r = calculate_walk_risk(GOLDEN, WeatherInfo(temperature=18, ground_temperature=20,
+                            pm10=200, pm25=90))
+    assert "PM_VERY_BAD" in r.reason_codes
+
+
+def test_reason_code_단두종_더위():
+    r = calculate_walk_risk(BULLDOG, WeatherInfo(temperature=30, ground_temperature=25))
+    assert "BRACHY_HEAT" in r.reason_codes
+
+
+def test_reason_code_자외선_매우높음():
+    r = calculate_walk_risk(GOLDEN, WeatherInfo(temperature=22, feels_like=22,
+                            ground_temperature=24, uv_index=10))
+    assert "UV_VERY_HIGH" in r.reason_codes
+
+
+def test_reason_code_완벽한날씨_ALL_CLEAR():
+    r = calculate_walk_risk(GOLDEN, WeatherInfo(temperature=18, feels_like=18,
+                            humidity=45, ground_temperature=20, pm10=15, pm25=8,
+                            wind_speed=1))
+    assert r.reason_codes == ["ALL_CLEAR"]
+    assert len(r.reasons) == 1
 
 
 # ============================================================

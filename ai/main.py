@@ -16,10 +16,15 @@ from rules.walk_risk import RULES, DogInfo, WeatherInfo, calculate_walk_risk
 from schemas import ScoreRequest, ScoreResponse
 
 
-def _top_reasons(dog: DogInfo, weather: WeatherInfo, n: int = 3) -> list[str]:
-    """매칭된 룰을 감점 큰 순으로 정렬해 상위 n개 사유만 반환 (FE 카드용)."""
-    matched = [(r.reason(dog, weather), r.penalty) for r in RULES if r.predicate(dog, weather)]
-    return [reason for reason, _ in sorted(matched, key=lambda x: -x[1])[:n]]
+def _top_matched(dog: DogInfo, weather: WeatherInfo, n: int = 3) -> list[tuple[str, str]]:
+    """매칭된 룰을 감점 큰 순으로 정렬해 상위 n개 (code, reason) 쌍을 반환 (FE 카드용)."""
+    matched = [
+        (r.code, r.reason(dog, weather), r.penalty)
+        for r in RULES
+        if r.predicate(dog, weather)
+    ]
+    matched.sort(key=lambda x: -x[2])
+    return [(code, reason) for code, reason, _ in matched[:n]]
 
 
 app = FastAPI(
@@ -39,9 +44,12 @@ def score(req: ScoreRequest) -> ScoreResponse:
     dog = DogInfo(**req.dog.model_dump())
     weather = WeatherInfo(**req.weather.model_dump())
     result = calculate_walk_risk(dog, weather)
+    top = _top_matched(dog, weather)
     return ScoreResponse(
         score=result.score,
         level=result.level.value,
         reasons=result.reasons,
-        top_reasons=_top_reasons(dog, weather),
+        reason_codes=result.reason_codes,
+        top_reasons=[reason for _, reason in top],
+        top_reason_codes=[code for code, _ in top],
     )
