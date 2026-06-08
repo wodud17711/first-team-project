@@ -6,6 +6,7 @@ import com.example.demo.common.response.ApiResponse;
 import com.example.demo.walk.dto.WalkScoreResponse;
 import com.example.demo.walk.dto.WalkScoreResult;
 import com.example.demo.walk.service.WalkScoreService;
+import com.example.demo.weather.service.WeatherCollectorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,14 +20,23 @@ public class WalkController {
 
     private final WalkScoreService walkScoreService;
 
+    private final WeatherCollectorService weatherCollectorService;
+
     @GetMapping("/score")
     public ResponseEntity<ApiResponse<WalkScoreResponse>> getWalkScore(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam Long dogId
+            @RequestParam Long dogId,
+            @RequestParam double lat,
+            @RequestParam double lon
     ) {
 
         Long userId = resolveUserId(
                 userDetails
+        );
+
+        weatherCollectorService.collect(
+                lat,
+                lon
         );
 
         WalkScoreResult result =

@@ -2,10 +2,10 @@ package com.example.demo.weather.client;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.weather.AirKoreaClient;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.dto.KmaForecastResponse;
 import com.example.demo.weather.service.FeelsLikeCalculator;
-import com.example.demo.weather.service.WeatherSnapshotService;
 import com.example.demo.weather.util.GridConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -40,20 +40,23 @@ public class WeatherClient {
 
     private final RestClient restClient;
     private final String apiKey;
+    private final AirKoreaClient airKoreaClient;
 
     public WeatherClient(
             @Value("${weather.base-url}") String baseUrl,
-            @Value("${weather.api-key}") String apiKey
+            @Value("${weather.api-key}") String apiKey,
+            AirKoreaClient airKoreaClient
     ) {
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();
         this.apiKey = apiKey;
+        this.airKoreaClient = airKoreaClient;
     }
 
     // ============================================================
-    // PUBLIC API (외부 노출 1개만 유지)
-    // ============================================================
+// PUBLIC API (외부 노출 1개만 유지)
+// ============================================================
     public WeatherSnapshot fetchCurrent(int nx, int ny) {
 
         validateGrid(nx, ny);
@@ -63,7 +66,34 @@ public class WeatherClient {
         KmaForecastResponse response =
                 call(nx, ny, base.date(), base.time());
 
-        return parse(response, nx, ny);
+        WeatherSnapshot snapshot =
+                parse(response, nx, ny);
+
+        double[] latLon =
+                GridConverter.toLatLon(
+                        nx,
+                        ny
+                );
+
+        var airQuality =
+                airKoreaClient.fetchAirQuality(
+                        latLon[0],
+                        latLon[1]
+                );
+
+        return WeatherSnapshot.create(
+                snapshot.getGridX(),
+                snapshot.getGridY(),
+                snapshot.getBaseDateTime(),
+                snapshot.getTemperature(),
+                snapshot.getHumidity(),
+                snapshot.getWindSpeed(),
+                snapshot.getFeelsLikeTemperature(),
+                snapshot.getGroundTemperature(),
+                snapshot.getUvIndex(),
+                airQuality.pm10(),
+                airQuality.pm25()
+        );
     }
 
     // ============================================================

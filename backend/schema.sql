@@ -143,6 +143,7 @@ CREATE TABLE dogs (
 -- ⚠️ WeatherSnapshot 엔티티(JPA, ddl-auto=create)가 실제 생성하는 테이블 정의를 반영.
 --    기상청 단기예보는 위경도가 아닌 격자(nx, ny)+발표시각 단위라 같은 격자+시각은 같은 결과(UNIQUE).
 --    측정값은 엔티티 필드 타입(double/Integer)을 그대로 따른다.
+--    PM10/PM25는 AirKoreaClient가 수집한 미세먼지 농도(μg/m³)로, 산책지수 계산 입력값으로 사용된다.
 CREATE TABLE weather_snapshots (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '날씨 스냅샷 ID',
     grid_x INT NOT NULL COMMENT '기상청 격자 X (nx)',
@@ -154,8 +155,8 @@ CREATE TABLE weather_snapshots (
     feels_like_temperature DOUBLE NOT NULL COMMENT '체감온도 (°C)',
     ground_temperature DOUBLE COMMENT '지면온도 (°C) - ASOS(GroundTempParser) 보강, 발바닥 화상 판단용',
     uv_index INT COMMENT '자외선지수 (생활기상지수 V5, 0~11+) - UvIdxClient 보강, 룰 v1.2 입력',
-    pm10 INT COMMENT '',
-    pm25 INT COMMENT '',
+    pm10 INT COMMENT '미세먼지(PM10, μg/m³) - AirKoreaClient 수집, 산책지수 입력',
+    pm25 INT COMMENT '초미세먼지(PM2.5, μg/m³) - AirKoreaClient 수집, 산책지수 입력',
     UNIQUE KEY uk_weather_grid_time (grid_x, grid_y, base_date_time),
     INDEX idx_weather_grid_time (grid_x, grid_y, base_date_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='기상청 날씨 스냅샷 (격자+발표시각 단위)';
