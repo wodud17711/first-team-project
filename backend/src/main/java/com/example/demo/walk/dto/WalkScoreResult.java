@@ -10,7 +10,13 @@ public record WalkScoreResult(
         String level,
         List<String> reasons,
 
+        @JsonProperty("reason_codes")
+        List<String> reasonCodes,
+
         @JsonProperty("top_reasons")
-        List<String> topReasons
+        List<String> topReasons,
+
+        @JsonProperty("top_reason_codes")
+        List<String> topReasonCodes
 ) {
 }

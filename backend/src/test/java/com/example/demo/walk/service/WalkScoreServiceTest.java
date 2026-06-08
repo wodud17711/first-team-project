@@ -85,7 +85,9 @@ class WalkScoreServiceTest {
                         85,
                         "주의",
                         List.of("기온 높음"),
-                        List.of("기온 높음")
+                        List.of("FEELS_HOT"),
+                        List.of("기온 높음"),
+                        List.of("FEELS_HOT")
                 );
 
         given(
