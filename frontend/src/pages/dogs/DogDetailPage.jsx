@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { deleteDog, getDog } from "../../api/dogs"
 
 // 강아지 기본(폴백) 사진
@@ -34,10 +34,18 @@ function DogDetailPage() {
 
 
   // 👉 로딩/빈 데이터 상태 UI
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        불러오는 중...
+      </div>
+    )
+  }
+
   if (!dog) {
     return (
       <div className="p-6 text-center text-gray-500">
-        선택된 강아지 정보에 문제가 생겼어요! 🐶
+        선택된 반려견 프로필 정보를 가져오는데 문제가 생겼어요! 🐶
         <div className="mt-4">
           <button
             onClick={() => navigate("/dog-profile-list")}
@@ -158,7 +166,7 @@ function DogDetailPage() {
       alert("삭제되었습니다.")
 
       navigate("/dog-profile-list")
-    } catch (err) {
+    } catch {
       alert("삭제에 실패했습니다.")
     }
   }

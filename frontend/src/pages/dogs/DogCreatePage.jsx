@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { searchBreeds } from "../../api/breeds";
 import { createDog } from "../../api/dogs"
 
@@ -48,19 +48,6 @@ function DogCreatePage() {
   const [mixMode, setMixMode] = useState(false)
 
   const breedRef = useRef(null)
-
-  // 인풋 코드 줄이기
-  const inputs = [
-    { label: "이름", name: "name" },
-    { label: "생년월일", name: "birthDate" },
-    { label: "견종", name: "breed" },
-    { label: "성별", name: "gender" },
-    { label: "체중", name: "weight" },
-    { label: "중성화", name: "isNeutered" },
-    { label: "활동량", name: "activityLevel" },
-    { label: "선호 산책 시간", name: "favorWalkTime" },
-    { label: "건강 특이사항", name: "healthNotes" },
-  ]
 
   // 입력용 state
   const [form, setForm] = useState({
