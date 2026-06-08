@@ -12,7 +12,7 @@ import com.example.demo.walk.dto.WalkScoreResult;
 import com.example.demo.weather.AirQuality;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.forecast.ForecastSlot;
-import com.example.demo.weather.repository.ForecastRepository;
+import com.example.demo.weather.repository.ForecastCacheRepository;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class WalkOptimalTimeService {
 
     private final DogRepository dogRepository;
     private final WeatherSnapshotRepository weatherSnapshotRepository;
-    private final ForecastRepository forecastRepository; // (캐시된 단기예보)
+    private final ForecastCacheRepository forecastRepository; // (캐시된 단기예보)
     private final AiClient aiClient;
     private final AirQuality airQuality;
 
