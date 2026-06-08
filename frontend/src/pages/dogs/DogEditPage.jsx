@@ -44,6 +44,9 @@ function DogEditPage() {
   const [openBreed, setOpenBreed] = useState(false)
   const [mixMode, setMixMode] = useState(false)
 
+  // 선호 선택 시간 목록 펼쳐져있는지 여부
+  const [openWalkTime, setOpenWalkTime] = useState(false)
+
   // 수정용 state
   const [form, setForm] = useState({
     name: "",
@@ -56,7 +59,6 @@ function DogEditPage() {
     favorWalkTime: [],
     healthNotes: "",
   })
-
 
   // refs
   const breedRef = useRef(null)
@@ -97,31 +99,6 @@ function DogEditPage() {
       healthNotes: dog.healthNotes || "",
     })
   }, [dog])
-
-  // 👉 로딩/빈 데이터 상태 UI
-  if (loading) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        불러오는 중...
-      </div>
-    )
-  }
-  
-  if (!dog) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        선택된 반려견 프로필 정보를 가져오는데 문제가 생겼어요! 🐶
-        <div className="mt-4">
-          <button
-            onClick={() => navigate("/dog-profile-list")}
-            className="px-4 py-2 bg-sky-500 text-white rounded-xl"
-          >
-            목록으로
-          </button>
-        </div>
-      </div>
-    )
-  }
 
 
   // 강아지 이미지 변경 함수
@@ -171,8 +148,7 @@ function DogEditPage() {
   }
 
 
-  // 선호 선택 시간 목록 펼쳐져있는지 여부
-  const [openWalkTime, setOpenWalkTime] = useState(false)
+  
 
   // 선호 선택 시간 + 견종 선택 버튼 누르지 않아도 목록 밖 화면 빈 곳 아무대나 눌렀을 때 목록창 꺼지게
   useEffect(() => {
@@ -281,6 +257,31 @@ function DogEditPage() {
     if (confirmMove) {
       navigate(`/dog-profile-detail/${dogId}`)
     }
+  }
+
+  // 👉 로딩/빈 데이터 상태 UI
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        불러오는 중...
+      </div>
+    )
+  }
+  
+  if (!dog) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        선택된 반려견 프로필 정보를 가져오는데 문제가 생겼어요! 🐶
+        <div className="mt-4">
+          <button
+            onClick={() => navigate("/dog-profile-list")}
+            className="px-4 py-2 bg-sky-500 text-white rounded-xl"
+          >
+            목록으로
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
