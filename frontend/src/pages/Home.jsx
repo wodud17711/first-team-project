@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 
 // 컴포넌트
 import WeatherCard from '../components/WeatherCard'
-import WalkScore from '../components/WalkScore'
+import WalkScore from '../components/WalkScore/WalkScore'
 
 // hooks (실 API 연결)
 import { useMe } from '../hooks/useMe'
@@ -29,6 +29,9 @@ function Home() {
   const { dogs } = useDogs()
   const { logout } = useAuth()
 
+  // 유저패널에 대표 강아지만 보이게
+  const mainDog = dogs.find(dog => dog.isMain);
+
   // 산책지수: 첫 번째 반려견 기준으로 실 API 조회 (dogId 없으면 미호출)
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
@@ -46,12 +49,10 @@ function Home() {
       
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
         {/* 상단 콘텐츠 */}
-        <section className="
-          w-full mx-auto mt-6
-          grid grid-cols-[2.5fr_1fr] gap-4
-        ">
-          {/* 왼쪽 콘텐츠 - 산책지수 + 날씨 */}
-          <div className='flex flex-col gap-4'>
+        <section className="grid grid-cols-[2.5fr_1fr] gap-4 mt-6 w-full overflow-hidden">
+
+          {/* LEFT - 산책지수 */}
+          <div>
             <WalkScore
               score={walk?.score}
               level={walk?.level}
@@ -60,65 +61,99 @@ function Home() {
               notReady={walkNotReady}
               hasDog={firstDogId != null}
             />
-            <WeatherCard />
           </div>
 
-          {/* 오른쪽 콘텐츠 - 로그인(유저 패널) */}
-          <div className="mt-[225px] flex flex-col bg-white rounded-xl shadow p-4">
-            <p className='text-[20px] font-bold'>안녕하세요, {me?.nickname ?? '게스트'}님!</p>
+          {/* RIGHT - 세로로 쌓이는 영역 */}
+          <div className="flex flex-col gap-4 min-w-0">
 
-            {/* 강아지 프로필 (useDogs 실 API) */}
-            <div className='flex flex-col mt-2 gap-2'>
-              {dogs.length === 0 ? (
-                <p className='text-[13px] text-gray-500 py-4 text-center'>
-                  아직 등록된 반려견이 없어요
-                </p>
-              ) : (
-                dogs.map((dog) => (
-                  <div key={dog.dogId} className='flex items-center bg-brand-100 rounded-lg shadow p-3 gap-3'>
+            {/* 유저 패널 */}
+            <div className="flex flex-col bg-white rounded-xl shadow p-4 w-full max-w-full">
+
+              {/* 인사 */}
+              <p className="text-[20px] font-bold">
+                안녕하세요, {me?.nickname ?? '게스트'}님!
+              </p>
+
+              {/* 강아지 리스트 */}
+              <div className="flex flex-col mt-2 gap-2">
+
+                {!mainDog ? (
+                  <p className="text-[13px] text-gray-500 py-4 text-center">
+                    아직 등록된 반려견이 없어요
+                  </p>
+                ) : (
+                  <div
+                    key={mainDog.dogId}
+                    className="flex items-center bg-brand-100 rounded-lg shadow p-3 gap-3"
+                  >
+
                     <img
-                      src={dog.profileImageUrl || dogImg1}
-                      alt='강아지사진'
-                      className='w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover'
+                      src={mainDog.profileImageUrl || dogImg1}
+                      alt="강아지사진"
+                      className="w-[85px] h-[85px] border-4 border-white shadow rounded-full object-cover"
                     />
+
                     <div>
-                      <p className='text-[20px] font-bold'>{dog.name}</p>
-                      <p className='text-[12px]'>
-                        🎂 {dog.birthDate ?? '생일 미등록'}
-                        {dog.age != null && ` (${dog.age}살)`}
+                      <p className="text-[20px] font-bold">
+                        {mainDog.name}
                       </p>
-                      <p className='text-[12px]'>🐶 {dog.breed?.nameKr ?? '믹스'} · {dog.weight}kg</p>
-                      {dog.activityLevel && (
-                        <div className='flex gap-1 mt-1'>
-                          <span className='
-                          px-2 py-[2px]
-                          rounded-full
-                          bg-sun-200 text-sun-700
-                          text-[11px] font-bold
-                          '>
-                            활동량 {dog.activityLevel}
+
+                      <p className="text-[12px]">
+                        🎂 {mainDog.birthDate ?? '생일 미등록'}
+                        {mainDog.age != null && ` (${mainDog.age}살)`}
+                      </p>
+
+                      <p className="text-[12px]">
+                        🐶 {mainDog.breed?.nameKr ?? '믹스'}
+                      </p>
+
+                      {mainDog.activityLevel && (
+                        <div className="flex gap-1 mt-1">
+                          <span className="px-2 py-[2px] rounded-full bg-sun-200 text-sun-700 text-[11px] font-bold">
+                            활동량 {mainDog.activityLevel}
                           </span>
                         </div>
                       )}
                     </div>
+
                   </div>
-                ))
-              )}
+                )}
+              </div>
+
+              {/* 하단 메뉴 */}
+              <div className="mt-auto pt-4">
+
+                <div className="flex justify-center items-center gap-4">
+                  <p className="text-[14px]">마이페이지</p>
+
+                  <div className="w-px h-[14px] bg-gray-300" />
+
+                  <button
+                    onClick={() => navigate("/dog-profile-list")}
+                    className="text-[14px]"
+                  >
+                    반려견 프로필
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full p-2 bg-brand-500 rounded-xl mt-3"
+                >
+                  로그아웃
+                </button>
+
+              </div>
+
             </div>
 
-            <div className='mt-auto'>
-              <div className='flex justify-center items-center gap-4'>
-                <p className='text-[14px]'>마이페이지</p>
-                <div className='w-px h-[14px] bg-gray-300 flex items-center'/>
-                <button onClick={() => navigate("/dog-profile-list")}
-                        className='text-[14px]'>반려견 프로필</button>
-              </div>
-              <button onClick={handleLogout}
-                      className='w-full p-2 bg-brand-500 rounded-xl'>로그아웃</button>
+            {/* 시간별 날씨 */}
+            <div className="w-full max-w-full overflow-hidden">
+              <WeatherCard />
             </div>
-            
+
           </div>
-          
+
         </section>
 
       
