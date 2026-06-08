@@ -156,8 +156,8 @@
 | --- | --- | --- | --- |
 | POST | `/api/walks/start` | 산책 시작 | ✅ |
 | POST | `/api/walks/{walkId}/end` | 산책 종료 + 피드백 | ✅ |
-| POST | `/api/walks/{walkId}/locations` | 산책 중 GPS 좌표 기록 (러닝 모드, Phase 3) | ✅ |
-| GET | `/api/walks` | 산책 기록 목록 | ✅ |
+| POST | `/api/walks/{walkId}/locations` | 산책 중 GPS 좌표 기록 (Phase 3) | 보류 |
+| GET | `/api/walks/history?dogId={id}` | 반려견별 산책 이력 (최신순) | ✅ |
 | GET | `/api/walks/{walkId}` | 산책 기록 상세 (GPS 경로 포함) | ✅ |
 | GET | `/api/walks/statistics` | 주간/월간 통계 | ✅ |
 | GET | `/api/walks/calendar` | 산책 캘린더 (월별) | ✅ |
@@ -528,10 +528,7 @@ Authorization: Bearer {token}
 **Request Body**
 ```json
 {
-  "dogId": 1,
-  "walkRouteId": 5,
-  "startLat": 37.5665,
-  "startLng": 126.9780
+  "dogId": 1
 }
 ```
 
@@ -541,17 +538,22 @@ Authorization: Bearer {token}
   "success": true,
   "data": {
     "walkId": 100,
+    "dogId": 1,
     "startTime": "2026-05-20T18:00:00",
-    "weatherSnapshot": {
-      "temperature": 25.0,
-      "condition": "맑음",
-      "riskScore": 85
-    }
-  }
+    "endTime": null,
+    "durationMinutes": null,
+    "distanceKm": null,
+    "memo": null,
+    "userFeedback": null,
+    "inProgress": true
+  },
+  "message": null,
+  "errorCode": null
 }
 ```
 
 **Error**
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
 - 409: 진행 중인 산책 있음 (`WALK_ALREADY_IN_PROGRESS`)
 
 ---
@@ -567,9 +569,12 @@ Authorization: Bearer {token}
 ```json
 {
   "userFeedback": "오늘 너무 즐거웠어요!",
-  "distanceKm": 2.5
+  "distanceKm": 2.5,
+  "memo": "한강 산책"
 }
 ```
+
+> 모든 필드는 선택값이다. `distanceKm`는 실시간 GPS 트래킹 전까지 수동 입력/생략한다.
 
 **Response 200**
 ```json
@@ -577,44 +582,67 @@ Authorization: Bearer {token}
   "success": true,
   "data": {
     "walkId": 100,
+    "dogId": 1,
     "startTime": "2026-05-20T18:00:00",
     "endTime": "2026-05-20T18:45:00",
     "durationMinutes": 45,
     "distanceKm": 2.5,
-    "completedMissions": 2
-  }
+    "memo": "한강 산책",
+    "userFeedback": "오늘 너무 즐거웠어요!",
+    "inProgress": false
+  },
+  "message": null,
+  "errorCode": null
 }
 ```
+
+**Error**
+- 403: 본인 산책 기록 아님 (`FORBIDDEN`)
+- 404: 산책 기록 없음 (`WALK_NOT_FOUND`)
+- 409: 이미 종료된 산책 (`WALK_ALREADY_ENDED`)
 
 ---
 
-### 📍 산책 중 GPS 좌표 기록 (러닝 모드)
+### 🚶 반려견별 산책 이력
 
 ```
-POST /api/walks/{walkId}/locations
+GET /api/walks/history?dogId=1
 Authorization: Bearer {token}
 ```
 
-**Request Body** (배치로 여러 좌표 한 번에 전송)
-```json
-{
-  "locations": [
-    {"lat": 37.5665, "lng": 126.9780, "recordedAt": "2026-05-20T18:00:10"},
-    {"lat": 37.5666, "lng": 126.9782, "recordedAt": "2026-05-20T18:00:20"},
-    {"lat": 37.5668, "lng": 126.9785, "recordedAt": "2026-05-20T18:00:30"}
-  ]
-}
-```
+**Query Parameters**
 
-**Response 201**
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| dogId | Long | ✅ | 반려견 ID (본인 소유 강아지만 조회 가능) |
+
+**Response 200**
 ```json
 {
   "success": true,
-  "data": {
-    "savedCount": 3
-  }
+  "data": [
+    {
+      "walkId": 100,
+      "dogId": 1,
+      "startTime": "2026-05-20T18:00:00",
+      "endTime": "2026-05-20T18:45:00",
+      "durationMinutes": 45,
+      "distanceKm": 2.5,
+      "memo": "한강 산책",
+      "userFeedback": "오늘 너무 즐거웠어요!",
+      "inProgress": false
+    }
+  ],
+  "message": null,
+  "errorCode": null
 }
 ```
+
+**Error**
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
+- 404: 반려견 없음 (`DOG_NOT_FOUND`)
+
+> 실시간 GPS 트래킹과 `walk_locations` 기록은 Phase 3 범위로 분리한다. MVP에서는 `POST /api/walks/{walkId}/locations`를 구현하지 않는다.
 
 ---
 
