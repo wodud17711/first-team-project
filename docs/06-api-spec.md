@@ -150,6 +150,25 @@
 | GET | `/api/walk/score` | 오늘의 산책 위험도 점수 | ✅ |
 | GET | `/api/walk/score/optimal-time` | 최적 산책 시간 추천 (Phase 3) | ✅ |
 
+#### 📌 `GET /api/walk/score` 계약 · 결정 (MVP/데모)
+
+> 외부 API 한도(기상청·에어코리아 **1일 1,000회**)와 데모 범위에 따른 확정 설계.
+> 위반 시 한도 폭발·중복 호출 발생. (2026-06 PM 결정, PR #71 정렬 근거)
+
+- **요청 파라미터: `dogId` 만.** `/score` 에 **`lat`/`lon` 추가 금지.**
+  - 위치는 **데모 = 부산 고정**. 사용자별 실위치(lat/lon)는 **Phase 3(실시간 GPS)** 에서 도입.
+- **날씨·대기질 수집은 `/score` 요청과 분리한다.**
+  - 수집은 **`@Scheduled` 집계 잡**이 부산 좌표(고정 상수/설정)로 KMA·AirKorea 를 호출해
+    `weather_snapshots` 를 채운다. **`/score` 요청 경로에서 외부 API 직접 호출 금지.**
+  - `/score` 는 **최신 캐시 스냅샷 1건을 읽기만** 한다(`findTopByOrderByBaseDateTimeDesc`).
+  - `saveIfAbsent` 는 DB 중복만 막을 뿐 외부 호출은 못 막으므로, 호출 자체를 스케줄로 분리.
+  - AirKorea 는 **수집당 1회만** 호출(`WeatherClient.fetchCurrent` ↔ collector 중복 호출 금지).
+- **응답 필드**: `score`(0~100), `level`('안전'\|'주의'\|'위험'), `reasons`(string[]),
+  `topReasons`(string[]). 룰 코드(`reasonCodes`/`topReasonCodes`)는
+  `feature/risk-reason-mapping` 에서 추가 — FE 위험사유 카테고리·아이콘 매핑용.
+- **컬럼명 정합**: `weather_snapshots` 미세먼지 컬럼은 `schema.sql` 과 JPA `@Column` 명을
+  일치시킨다(`pm10`/`pm25` 기준).
+
 ### 🚶 Walk (산책 기록) - 7개
 
 | 메서드 | URL | 설명 | 인증 |
