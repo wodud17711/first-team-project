@@ -46,6 +46,11 @@ class ScoreResponse(BaseModel):
     score: int = Field(ge=0, le=100)
     level: Literal["안전", "주의", "위험"]
     reasons: list[str]
+    # reasons[i] 와 1:1 대응하는 룰 식별 코드(GROUND_TEMP_SEVERE 등). FE 가 문구 대신
+    # 코드로 카테고리·아이콘을 매핑. 사유 없음(100점)은 ["ALL_CLEAR"].
+    reason_codes: list[str]
     # 매칭된 룰 중 감점 큰 순 상위 3개. FE 카드에 '제일 큰 사유'만 보여주고 싶을 때 사용.
     # 모든 룰을 통과해 100점이면 빈 리스트.
     top_reasons: list[str]
+    # top_reasons[i] 와 1:1 대응하는 룰 코드.
+    top_reason_codes: list[str]
