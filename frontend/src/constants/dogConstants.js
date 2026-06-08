@@ -32,26 +32,16 @@ export const getWalkType = (times) => {
 
 // 성별 선택 버튼
 export const genders = [
-  { value: "남아" },
-  { value: "여아" },
+  { value: "M", label: "남아"},
+  { value: "F", label: "여아"},
 ]
 
-// 체중
-export const formatWeight = (value) => {
-  value = value.replace(/[^0-9.]/g, "")
+// 중성화 선택 버튼
+export const neuteredOptions = [
+  { value: true, label: "중성화 O"},
+  { value: false, label: "중성화 X"},
+]
 
-  const parts = value.split(".")
-
-  if (parts.length > 2) {
-    value = parts[0] + "." + parts[1]
-  }
-
-  if (parts[1]?.length > 1) {
-    value = parts[0] + "." + parts[1].slice(0, 1)
-  }
-
-  return value
-}
 
 // 활동량 저, 중, 고에 따른 태그이름
 export const activityLevels = [

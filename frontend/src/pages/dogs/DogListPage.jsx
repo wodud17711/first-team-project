@@ -17,10 +17,37 @@ function DogListPage() {
 
     const navigate = useNavigate()
 
+    // 산책 태그
+    const getWalkType = (favorWalkTime = []) => {
+      const hasMorning = favorWalkTime.some((hour) => hour < 12)
+      const hasAfternoon = favorWalkTime.some((hour) => hour >= 12)
+
+      if (hasMorning && hasAfternoon) {
+        return "종일 산책형"
+      }
+
+      if (hasMorning) {
+        return "오전 산책형"
+      }
+
+      if (hasAfternoon) {
+        return "오후 산책형"
+      }
+
+      return "🐾 산책형"
+    }
+
+    
     // 실 API: DogResponse[] = { dogId, name, breed:{nameKr}, birthDate, age,
     //   weight, gender:'M'|'F', isNeutered, activityLevel:'저'|'중'|'고',
     //   healthNotes, profileImageUrl, createdAt }
     const { dogs, loading, error } = useDogs()
+
+    // 대표 강아지게 목록의 제일 처음에 오게
+    const sortedDogs = [...dogs].sort((a, b) => {
+      if (a.isMain === b.isMain) return 0
+      return a.isMain ? -1 : 1
+    })
 
     if (loading) {
       return <div className="p-4">불러오는 중...</div>
@@ -60,11 +87,11 @@ function DogListPage() {
       {/* 프로필 목록 */}
       <div className='flex flex-col gap-[20px]'>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 justify-items-center">
-          {dogs.map((dog, index) => (
+          {sortedDogs.map((dog) => (
 
             <div
               key={dog.dogId}
-              onClick={() => navigate("/dog-profile-detail", { state: { dog, index } })}
+              onClick={() => navigate(`/dog-profile-detail/${dog.dogId}`)}
               className="group relative flex w-[350px] h-[470px] gap-2
               overflow-hidden rounded-xl shadow
               cursor-pointer transition-all duration-200
@@ -100,9 +127,9 @@ function DogListPage() {
                       <div className='flex items-center gap-2'>
                         <p className=" text-[32px] text-white font-bold">{dog.name}</p>
 
-                        {/* 첫 번째 강아지만 대표 강아지 표시 (dog.isMain → index === 0) */}
-                        {index === 0 && (
-                        <span className="mt-[3px] text-[20px] font-semibold">⭐</span>
+                        {/* 대표 강아지 표시 (dog.isMain) */}
+                        {dog.isMain && (
+                          <span className="mt-[3px] text-[20px] font-semibold">⭐</span>
                         )}
                       </div>
 
@@ -119,10 +146,11 @@ function DogListPage() {
                                 text-[12px] text-white/90"> {activityMap[dog.activityLevel]}</span>
                         )}
 
-                        {/* 🔌 산책 유형 태그 보류: API(DogResponse)에 favorwalktime 필드가 없음.
-                            원형: <span className="...">{getWalkType(dog.favorwalktime)}</span>
-                            → 제거하거나 다른 실데이터(예: 🐾 {dog.weight}kg, 성별 등)로 대체할지 정선혜 확인.
-                            대체하려면 위 import 에 getWalkType/관련 함수 다시 추가. */}
+                        {dog.favorWalkTime?.length > 0 && (
+                          <span className="px-3 py-[2px] rounded-full bg-white/20 backdrop-blur text-[12px] text-white/90">
+                            {getWalkType(dog.favorWalkTime)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
