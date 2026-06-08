@@ -90,8 +90,8 @@ function DogDetailPage() {
     },
     {
       label: "선호 산책 시간🌳",
-      value: Array.isArray(dog.favorwalktime) && dog.favorwalktime.length > 0
-              ? dog.favorwalktime.join(", ")
+      value: Array.isArray(dog.favorWalkTime) && dog.favorWalkTime.length > 0
+              ? dog.favorWalkTime.join(", ")
               : "정보 없음",
     },
     {

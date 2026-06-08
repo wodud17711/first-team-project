@@ -61,7 +61,7 @@ function DogEditPage() {
     { label: "체중", name: "weight" },
     { label: "중성화", name: "isNeutered" },
     { label: "활동량", name: "activityLevel" },
-    { label: "선호 산책 시간", name: "favorwalktime" },
+    { label: "선호 산책 시간", name: "favorWalkTime" },
     { label: "건강 특이사항", name: "healthNotes" },
   ]
 
@@ -75,7 +75,7 @@ function DogEditPage() {
     weight: dog.weight || "",
     isNeutered: dog.isNeutered ?? "",
     activityLevel: dog.activityLevel || "",
-    favorwalktime: dog.favorwalktime || [],
+    favorWalkTime: dog.favorWalkTime || [],
     healthNotes: dog.healthNotes || "",
   })
 
@@ -139,32 +139,28 @@ function DogEditPage() {
   }, [])
 
   // 선호 산책 시간 - 제거 가능하게, 최대 3개 선택가능하게
-  const handleWalkTime = (time) => {
-    const isSelected = form.favorwalktime.includes(time);
+  const handleWalkTime = (hour) => {
+    const isSelected = form.favorWalkTime.includes(hour);
 
     // 제거
     if (isSelected) {
       setForm({
         ...form,
-        favorwalktime: form.favorwalktime.filter((t) => t !== time),
+        favorWalkTime: form.favorWalkTime.filter((h) => h !== hour),
       });
       return;
     }
 
     // 추가 (최대 3개 제한만 유지)
-    if (form.favorwalktime.length < 3) {
-      const updated = [...form.favorwalktime, time];
-
-      updated.sort(
-        (a, b) => walkTimes.indexOf(a) - walkTimes.indexOf(b)
-      );
-
+    if (form.favorWalkTime.length < 3) {
       setForm({
         ...form,
-        favorwalktime: updated,
-      });
+        favorWalkTime: [...form.favorWalkTime, hour].sort(
+          (a, b) => a - b
+        ),
+      })
     }
-  };
+  }
 
   // 확인 클릭 시, 알림창 + 페이지 이동(지금은 실제로 수정기능 X)
   const handleSubmit = () => {
@@ -196,7 +192,7 @@ function DogEditPage() {
     alert("활동량을 선택해주세요.")
     return
   }
-  if (form.favorwalktime.length === 0) {
+  if (form.favorWalkTime.length === 0) {
     alert("선호 산책 시간을 1개 이상 선택해주세요.")
     return
   }
@@ -320,7 +316,7 @@ function DogEditPage() {
                   onChange={handleChange}
                   className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
                                       focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
-                  placeholder="생년월일(8자리)를 입력하세요"
+                  placeholder="생년월일(YYYY-MM-DD)을 입력하세요"
                 />
               </div>
               
@@ -525,24 +521,24 @@ function DogEditPage() {
                     type="button"
                     onClick={() => setOpenWalkTime(!openWalkTime)}
                     className={`w-full px-3 py-4 bg-[#f7f7f7] rounded-xl border border-gray-100 text-left text-[16px] hover:bg-[#F0F0F0] transition
-                                ${form.favorwalktime.length > 0 ? "text-black" : "text-gray-400"}
+                                ${form.favorWalkTime.length > 0 ? "text-black" : "text-gray-400"}
                                 ${openWalkTime ? "outline outline-2 outline-brand-300" : ""}`}
                   >
-                    {form.favorwalktime.length > 0
-                      ? form.favorwalktime.join(", ")
-                      : "선호 산책 시간을 선택하세요"}
+                    {form.favorWalkTime.length > 0
+                    ? form.favorWalkTime.map((h) => walkTimes[h]).join(", ")
+                    : "선호 산책 시간을 선택하세요"}
                   </button>
 
                   {openWalkTime && (
                     <div className="absolute top-full mt-2 w-full bg-white border rounded-xl px-2 py-4 shadow z-10">
                       <div className="flex flex-wrap justify-center gap-2">
-                        {walkTimes.map((time) => (
+                        {walkTimes.map((time, hour) => (
                           <button
-                            key={time}
+                            key={hour}
                             type="button"
-                            onClick={() => handleWalkTime(time)}
+                            onClick={() => handleWalkTime(hour)}
                             className={`w-[120px] px-3 py-2 rounded border border-gray-300 text-[12px] 
-                              ${form.favorwalktime.includes(time)
+                              ${form.favorWalkTime.includes(hour)
                                 ? "bg-brand-200 border-brand-500"
                                 : "bg-white hover:bg-[#F0F0F0] transition"
                               }`}
