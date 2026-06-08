@@ -1,29 +1,51 @@
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import { deleteDog, getDog } from "../../api/dogs"
 
 // 강아지 기본(폴백) 사진
 import dogImg1 from '../../assets/dogImg1.jpg'
 
 // 함수 땡겨오기
-import { genderMap, activityMap} from "../../constants/dogConstants"
+import { genderMap, activityMap, walkTimes} from "../../constants/dogConstants"
+import { useEffect, useState } from "react"
 
 function DogDetailPage() {
 
   const navigate = useNavigate()
 
-  // 목록에서 만든 강아지 데이터 받기
-  const location = useLocation()
- 
-  const state = location.state
+  const { dogId } = useParams()
 
-  // 👉 dog 없으면 기본값으로 "빈 객체" 처리
-  const dog = state?.dog ?? null
-  const index = state?.index ?? 0
+  const [dog, setDog] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDog = async () => {
+      try {
+        const data = await getDog(dogId)
+        setDog(data)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDog()
+  }, [dogId])
+
 
   // 👉 로딩/빈 데이터 상태 UI
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        불러오는 중...
+      </div>
+    )
+  }
+
   if (!dog) {
     return (
       <div className="p-6 text-center text-gray-500">
-        선택된 강아지 정보에 문제가 생겼어요! 🐶
+        선택된 반려견 프로필 정보를 가져오는데 문제가 생겼어요! 🐶
         <div className="mt-4">
           <button
             onClick={() => navigate("/dog-profile-list")}
@@ -90,9 +112,11 @@ function DogDetailPage() {
     },
     {
       label: "선호 산책 시간🌳",
-      value: Array.isArray(dog.favorwalktime) && dog.favorwalktime.length > 0
-              ? dog.favorwalktime.join(", ")
-              : "정보 없음",
+      value:
+        Array.isArray(dog.favorWalkTime) &&
+        dog.favorWalkTime.length > 0 ? dog.favorWalkTime
+              .map((hour) => walkTimes[hour]).join(", ")
+          : "정보 없음",
     },
     {
       label: "건강 특이사항🩹",
@@ -129,13 +153,22 @@ function DogDetailPage() {
   )
 
   // 삭제 클릭 시, 경고창 + 페이지 이동(지금은 실제로 삭제기능 X)
-  const handleSubmit = () => {
+  const handleDelete = async () => {
     const confirmDelete = window.confirm(
       "정말 삭제하시겠습니까?"
     )
-    if (confirmDelete) {
+
+    if (!confirmDelete) return
+
+    try {
+      await deleteDog(dog.dogId)
+
+      alert("삭제되었습니다.")
+
       navigate("/dog-profile-list")
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+    } catch {
+      alert("삭제에 실패했습니다.")
+    }
   }
 
 
@@ -194,7 +227,7 @@ function DogDetailPage() {
                 <h2 className="text-[36px] font-extrabold text-sky-900">
                   {dog.name}
                 </h2>
-                {index === 0 && (
+                {dog.isMain && (
                   <span className="px-2 py-1 text-[12px] rounded-full bg-sky-200/80 text-sky-900 font-semibold">
                     대표
                   </span>
@@ -225,14 +258,14 @@ function DogDetailPage() {
       {/* 수정, 삭제 버튼 */}
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <button
-          onClick={() => navigate("/dog-profile-edit", { state: dog })}
+          onClick={() => navigate(`/dog-profile-edit/${dog.dogId}`)}
           className="px-4 py-2 w-[90px] bg-sky-500 text-white text-[14px] font-bold rounded-xl hover:bg-sky-600 transition"
         >
           수정
         </button>
 
         <button
-          onClick={handleSubmit}
+          onClick={handleDelete}
           className="px-4 py-2 w-[90px] bg-red-500 text-white text-[14px] font-bold rounded-xl hover:bg-red-600 transition"
         >
           삭제
