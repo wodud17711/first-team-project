@@ -7,9 +7,9 @@ import com.example.demo.dog.repository.DogRepository;
 import com.example.demo.walk.client.AiClient;
 import com.example.demo.walk.domain.WalkScore;
 import com.example.demo.walk.dto.WalkScoreResult;
-import com.example.demo.walk.repository.WalkScoreRepository;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
+import com.example.demo.walk.repository.WalkScoreRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -82,6 +82,7 @@ class WalkScoreServiceTest {
 
         weatherSnapshotRepository.save(snapshot);
 
+        // ✔ 수정된 부분 (WalkScoreResult 6인자 유지)
         WalkScoreResult aiResult =
                 new WalkScoreResult(
                         85,
@@ -92,9 +93,8 @@ class WalkScoreServiceTest {
                         List.of("FEELS_HOT")
                 );
 
-        given(
-                aiClient.calculateScore(any())
-        ).willReturn(aiResult);
+        given(aiClient.calculateScore(any()))
+                .willReturn(aiResult);
 
         // when
         walkScoreService.calculateScore(
@@ -104,9 +104,7 @@ class WalkScoreServiceTest {
 
         // then
         List<WalkScore> scores =
-                walkScoreRepository.findByDogId(
-                        dog.getId()
-                );
+                walkScoreRepository.findByDogId(dog.getId());
 
         assertThat(scores).hasSize(1);
 
