@@ -75,7 +75,9 @@ class WalkScoreServiceTest {
                         2.0,
                         26.0,
                         30.0,
-                        5
+                        5,
+                        20,
+                        20
                 );
 
         weatherSnapshotRepository.save(snapshot);

@@ -179,6 +179,8 @@ public class WeatherClient {
                 windSpeed,
                 feelsLike,
                 null,
+                null,
+                null,
                 null
         );
     }

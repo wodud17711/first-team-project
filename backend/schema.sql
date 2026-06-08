@@ -154,6 +154,8 @@ CREATE TABLE weather_snapshots (
     feels_like_temperature DOUBLE NOT NULL COMMENT '체감온도 (°C)',
     ground_temperature DOUBLE COMMENT '지면온도 (°C) - ASOS(GroundTempParser) 보강, 발바닥 화상 판단용',
     uv_index INT COMMENT '자외선지수 (생활기상지수 V5, 0~11+) - UvIdxClient 보강, 룰 v1.2 입력',
+    pm10 INT COMMENT '',
+    pm25 INT COMMENT '',
     UNIQUE KEY uk_weather_grid_time (grid_x, grid_y, base_date_time),
     INDEX idx_weather_grid_time (grid_x, grid_y, base_date_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='기상청 날씨 스냅샷 (격자+발표시각 단위)';

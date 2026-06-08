@@ -83,6 +83,8 @@ public class WeatherSnapshot {
             name = "uv_index"
     )
     private Integer uvIndex;
+    private Integer pm10;
+    private Integer pm25;
 
     @Builder
     private WeatherSnapshot(
@@ -119,7 +121,9 @@ public class WeatherSnapshot {
             double windSpeed,
             double feelsLikeTemperature,
             Double groundTemperature,
-            Integer uvIndex
+            Integer uvIndex,
+            Integer pm10,
+            Integer pm25
     ) {
 
         return WeatherSnapshot.builder()
