@@ -49,32 +49,32 @@ function WalkScoreCard({
             {weatherItems.map((item, index) => (
                 <div key={index} className="flex items-center">
 
-                {/* 여기에서 바로 렌더링 */}
-                <div className="flex flex-col items-center px-[24px]">
+                  {/* 여기에서 바로 렌더링 */}
+                  <div className="flex flex-col items-center px-[28px]">
 
-                    <p className="text-[12px] text-gray-400">
-                    {item.label}
-                    </p>
+                      <p className="text-[12px] text-gray-400">
+                      {item.label}
+                      </p>
 
-                    <div className="h-[35px] flex items-center justify-center">
-                    {item.icon ? (
-                        <img
-                        src={item.icon}
-                        className="w-[20px] h-[20px] object-contain"
-                        />
-                    ) : (
-                        <p className="text-[16px] font-bold">
-                        {item.value}
-                        </p>
-                    )}
-                    </div>
+                      <div className="h-[35px] flex items-center justify-center">
+                      {item.icon ? (
+                          <img
+                          src={item.icon}
+                          className="w-[20px] h-[20px] object-contain"
+                          />
+                      ) : (
+                          <p className="text-[16px] font-bold">
+                          {item.value}
+                          </p>
+                      )}
+                      </div>
 
-                </div>
+                  </div>
 
-                {/* 구분선 */}
-                {index !== weatherItems.length - 1 && (
-                    <div className="w-px h-8 bg-gray-200" />
-                )}
+                  {/* 구분선 */}
+                  {index !== weatherItems.length - 1 && (
+                  <div className="w-px h-8 bg-gray-200" />
+                  )}
 
                 </div>
             ))}

@@ -155,7 +155,7 @@ function WalkScore(props) {
       <WalkScoreHeader title={title} desc={desc} />
 
       {/* spacer */}
-      <div className="h-[120px]" />
+      <div className="h-[200px]" />
 
       {/* 카드 */}
       <WalkScoreCard
