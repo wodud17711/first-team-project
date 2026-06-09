@@ -36,6 +36,7 @@ public enum ErrorCode {
     // ===== Walk =====
     WALK_NOT_FOUND(HttpStatus.NOT_FOUND, "산책 기록을 찾을 수 없습니다"),
     WALK_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "이미 진행 중인 산책이 있습니다"),
+    WALK_ALREADY_ENDED(HttpStatus.CONFLICT, "이미 종료된 산책입니다"),
 
     // ===== Community =====
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "글을 찾을 수 없습니다"),
