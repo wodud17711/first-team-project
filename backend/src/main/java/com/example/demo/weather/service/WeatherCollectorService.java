@@ -2,21 +2,31 @@ package com.example.demo.weather.service;
 
 import com.example.demo.weather.AirKoreaClient;
 import com.example.demo.weather.AirQuality;
+import com.example.demo.weather.client.AsosClient;
+import com.example.demo.weather.client.UvIdxClient;
 import com.example.demo.weather.client.WeatherClient;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.util.GridCoordinate;
 import com.example.demo.weather.util.GridConverter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WeatherCollectorService {
 
     private final WeatherClient weatherClient;
     private final AirKoreaClient airKoreaClient;
+
+    private final AsosClient asosClient;
+    private final UvIdxClient uvIdxClient;
+
     private final WeatherSnapshotService weatherSnapshotService;
+
+    private static final String BUSAN_AREA_NO = "2600000000";
 
     @Transactional
     public WeatherSnapshot collect(
@@ -38,6 +48,28 @@ public class WeatherCollectorService {
         AirQuality airQuality =
                 airKoreaClient.fetchAirQuality(lat, lon);
 
+        Double groundTemperature = null;
+
+        try {
+            groundTemperature =
+                    asosClient.fetchGroundTemp(
+                            lat,
+                            lon
+                    );
+        } catch (Exception e) {
+            log.warn("ASOS collect failed", e);
+        }
+
+        Integer uvIndex = null;
+
+        try {
+            uvIndex =
+                    uvIdxClient.fetch(BUSAN_AREA_NO)
+                            .current();
+        } catch (Exception e) {
+            log.warn("UV collect failed", e);
+        }
+
         // 4. 도메인 조립 (여기가 collector 책임)
         WeatherSnapshot snapshot =
                 WeatherSnapshot.create(
@@ -48,8 +80,8 @@ public class WeatherCollectorService {
                         weather.getHumidity(),
                         weather.getWindSpeed(),
                         weather.getFeelsLikeTemperature(),
-                        weather.getGroundTemperature(),
-                        weather.getUvIndex(),
+                        groundTemperature,
+                        uvIndex,
                         airQuality.pm10(),
                         airQuality.pm25()
                 );
