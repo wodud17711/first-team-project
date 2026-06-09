@@ -145,16 +145,16 @@ public class WalkOptimalTimeService {
 
                 forecast.windSpeed(),
 
-                snapshot.getGroundTemperature() != null
-                        ? snapshot.getGroundTemperature()
-                        : 25.0,
+                snapshot.getGroundTemperature(),
 
                 snapshot.getPm10(),
                 snapshot.getPm25(),
 
-                "없음",
+                forecast.precipitationType(),
 
-                forecast.uvIndex()
+                snapshot.getUvIndex() != null
+                        ? snapshot.getUvIndex()
+                        : 0
         );
     }
 }

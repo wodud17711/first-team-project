@@ -8,5 +8,5 @@ public record ForecastSlot(
         double feelsLike,
         double humidity,
         double windSpeed,
-        int uvIndex
+        String precipitationType
 ) {}
