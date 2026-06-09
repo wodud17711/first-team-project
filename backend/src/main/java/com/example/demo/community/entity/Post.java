@@ -2,7 +2,6 @@ package com.example.demo.community.entity;
 
 import com.example.demo.user.entity.User;
 import jakarta.persistence.*;
-import jdk.jfr.Category;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -78,5 +77,9 @@ public class Post {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void increaseViewCount() {
+        this.viewCount = this.viewCount + 1;
     }
 }

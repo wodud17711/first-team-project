@@ -3,6 +3,9 @@ package com.example.demo.community.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -24,4 +27,18 @@ public class Category {
 
     @Column(name = "display_order")
     private Integer displayOrder;
+
+    // ✅ 추가: subTag 파싱 헬퍼
+    public List<String> getSubTagList() {
+        if (subTags == null || subTags.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(
+                subTags.replace("[", "")
+                        .replace("]", "")
+                        .replace("\"", "")
+                        .split(",")
+        ).map(String::trim).toList();
+    }
 }
