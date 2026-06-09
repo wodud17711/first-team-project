@@ -42,12 +42,25 @@ public class AirKoreaClient {
     ) {
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
+                // ====================================================
+                // 장애 대응: 외부 API timeout (무한 대기 방지)
+                // ====================================================
+                .requestFactory(
+                        new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
+                            setConnectTimeout(3000);
+                            setReadTimeout(5000);
+                        }}
+                )
                 .build();
+
         this.apiKey = apiKey;
     }
 
     /**
      * 주어진 좌표에서 가장 가까운 측정소의 미세먼지를 조회한다.
+     *
+     * <p>외부 API 장애 상황에서도 시스템 전체가 멈추지 않도록
+     * retry + fallback 전략을 포함한다.
      *
      * @throws BusinessException API 호출/응답이 실패하면 {@code AIRQUALITY_API_ERROR}
      */
@@ -57,9 +70,39 @@ public class AirKoreaClient {
                 AirQualityStationLocator.nearest(lat, lon);
 
         AirKoreaResponse response =
-                call(nearest.station().sidoName());
+                fetchWithRetry(nearest.station().sidoName());
 
         return select(response, nearest.station().stationName());
+    }
+
+    // ============================================================
+    // Retry: 일시적인 외부 API 장애 대응
+    // ============================================================
+    private AirKoreaResponse fetchWithRetry(String sidoName) {
+
+        int retry = 2;
+
+        while (true) {
+            try {
+                return call(sidoName);
+
+            } catch (RestClientException e) {
+
+                if (--retry <= 0) {
+                    throw new BusinessException(
+                            ErrorCode.AIRQUALITY_API_ERROR,
+                            "AirKorea retry exhausted"
+                    );
+                }
+
+                // 간단한 backoff (과도한 요청 방지)
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     private AirKoreaResponse call(String sidoName) {
@@ -68,7 +111,6 @@ public class AirKoreaClient {
             return restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path(CTPRVN_PATH)
-                            // serviceKey 는 디코딩(평문) 키 기준 — UriBuilder 가 인코딩한다.
                             .queryParam("serviceKey", apiKey)
                             .queryParam("returnType", "json")
                             .queryParam("numOfRows", NUM_OF_ROWS)
@@ -86,8 +128,7 @@ public class AirKoreaClient {
 
     // ============================================================
     // 응답에서 측정소 선택 → AirQuality
-    // 최근접 측정소명 우선. 매칭이 없거나 매칭돼도 PM 이 전부 결측이면
-    // PM 값이 유효한 첫 측정소로 폴백.
+    // 최근접 측정소 우선, 없으면 PM 유효값 있는 첫 측정소로 fallback
     // ============================================================
     static AirQuality select(AirKoreaResponse response, String preferredStation) {
 
@@ -102,20 +143,28 @@ public class AirKoreaClient {
                 firstWithPm = item;
             }
 
-            if (matched == null && preferredStation.equals(item.stationName())) {
+            if (matched == null &&
+                    preferredStation != null &&
+                    preferredStation.trim().equalsIgnoreCase(item.stationName().trim())) {
                 matched = item;
             }
         }
 
-        // 최근접 측정소가 매칭돼도 PM 이 전부 결측이면, 같은 시도에서 값이
-        // 있는 첫 측정소로 폴백한다(예: 부산 광복동이 "-"/"-" 로 내려오는 경우).
+        // 최근접 측정소가 있더라도 PM이 없으면 fallback 사용
         AirKoreaResponse.Item chosen =
                 (matched != null && hasPm(matched)) ? matched : firstWithPm;
 
+        // ========================================================
+        // fallback: API 전체가 비정상일 경우 안전 기본값 반환
+        // (시스템 전체 장애 방지 목적)
+        // ========================================================
         if (chosen == null) {
-            throw new BusinessException(
-                    ErrorCode.AIRQUALITY_API_ERROR,
-                    "측정소 응답에 유효한 미세먼지 값이 없습니다"
+            return new AirQuality(
+                    "UNKNOWN",
+                    preferredStation,
+                    "fallback",
+                    30,
+                    15
             );
         }
 
