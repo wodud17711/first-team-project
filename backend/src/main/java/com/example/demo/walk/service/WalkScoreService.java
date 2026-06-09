@@ -132,17 +132,12 @@ public class WalkScoreService {
                         ? snapshot.getGroundTemperature()
                         : 25.0,
 
-                // TODO: AirKorea 연동 후 미세먼지(PM10) 실제 값 적용
-                // 현재는 외부 연동 전 단계라 기본값 사용
-                0,
+                snapshot.getPm10(),
 
-                // TODO: AirKorea 연동 후 미세먼지(PM2.5) 실제 값 적용
-                // 현재는 외부 연동 전 단계라 기본값 사용
-                0,
+                snapshot.getPm25(),
 
                 // TODO: AirKorea 연동 후 대기질 등급 실제 값 적용
-                // 현재는 외부 연동 전 단계라 기본값 사용
-                "없음",
+                // 현재는 외부 연동 전 단계 -> 나중에 채워넣어야 함
 
                 snapshot.getUvIndex() != null
                         ? snapshot.getUvIndex()

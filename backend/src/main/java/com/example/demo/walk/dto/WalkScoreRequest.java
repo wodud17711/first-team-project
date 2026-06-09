@@ -51,9 +51,6 @@ public record WalkScoreRequest(
 
             int pm25,
 
-            @JsonProperty("precipitation_type")
-            String precipitationType,
-
             @JsonProperty("uv_index")
             int uvIndex
     ) {
