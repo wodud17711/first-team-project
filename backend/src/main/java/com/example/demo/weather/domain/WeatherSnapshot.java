@@ -84,6 +84,22 @@ public class WeatherSnapshot {
     )
     private Integer uvIndex;
 
+    // 미세먼지(PM10, μg/m³). AirKoreaClient에서 보강.
+    // 결측 또는 미보강 상태는 null.
+    // 룰베이스 v1.3 미세먼지 가중치 입력.
+    @Column(
+            name = "pm_10"
+    )
+    private Integer pm10;
+
+    // 초미세먼지(PM2.5, μg/m³). AirKoreaClient에서 보강.
+    // 결측 또는 미보강 상태는 null.
+    // 룰베이스 v1.3 미세먼지 가중치 입력.
+    @Column(
+            name = "pm_25"
+    )
+    private Integer pm25;
+
     @Builder
     private WeatherSnapshot(
             int gridX,
@@ -94,7 +110,9 @@ public class WeatherSnapshot {
             double windSpeed,
             double feelsLikeTemperature,
             Double groundTemperature,
-            Integer uvIndex
+            Integer uvIndex,
+            Integer pm10,
+            Integer pm25
     ) {
 
         validateHumidity(humidity);
@@ -108,6 +126,8 @@ public class WeatherSnapshot {
         this.feelsLikeTemperature = feelsLikeTemperature;
         this.groundTemperature = groundTemperature;
         this.uvIndex = uvIndex;
+        this.pm10 = pm10;
+        this.pm25 = pm25;
     }
 
     public static WeatherSnapshot create(
@@ -119,7 +139,9 @@ public class WeatherSnapshot {
             double windSpeed,
             double feelsLikeTemperature,
             Double groundTemperature,
-            Integer uvIndex
+            Integer uvIndex,
+            Integer pm10,
+            Integer pm25
     ) {
 
         return WeatherSnapshot.builder()
@@ -132,6 +154,8 @@ public class WeatherSnapshot {
                 .feelsLikeTemperature(feelsLikeTemperature)
                 .groundTemperature(groundTemperature)
                 .uvIndex(uvIndex)
+                .pm10(pm10)
+                .pm25(pm25)
                 .build();
     }
 

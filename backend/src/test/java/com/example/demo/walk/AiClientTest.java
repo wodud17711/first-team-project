@@ -143,7 +143,7 @@ class AiClientTest {
                         1, 3.5, false, 2, 3),
                 new WalkScoreRequest.WeatherInfo(
                         32.0, 35.0, 75, 2.0,
-                        55.0, 50, 30, "없음", 0)
+                        55.0, 50, 30, 0)
         );
     }
 }
