@@ -37,6 +37,9 @@ function App() {
           {/* [개발 전용] 최적시간 차트 미리보기 (mock, 로그인 불필요) */}
           <Route path="/dev/optimal-time" element={<OptimalTimePreview />} />
 
+          {/* [개발 전용] 커뮤니티 게시판 미리보기 (mock, 로그인 불필요) */}
+          <Route path="/dev/community" element={<Community />} />
+
           {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
