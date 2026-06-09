@@ -9,11 +9,13 @@ import com.example.demo.walk.dto.OptimalTimeResponse;
 import com.example.demo.walk.dto.SlotResult;
 import com.example.demo.walk.dto.WalkScoreRequest;
 import com.example.demo.walk.dto.WalkScoreResult;
-import com.example.demo.weather.AirQuality;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.forecast.ForecastSlot;
 import com.example.demo.weather.repository.ForecastCacheRepository;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
+import com.example.demo.dog.entity.DogBreed;
+import java.time.LocalDate;
+import java.time.Period;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -84,9 +86,49 @@ public class WalkOptimalTimeService {
     }
 
     // 기존 buildDogInfo 그대로 사용
-    private WalkScoreRequest.DogInfo buildDogInfo(Dog dog) {
-        // 기존 WalkScoreService 코드 재사용
-        return null;
+    private WalkScoreRequest.DogInfo buildDogInfo(
+            Dog dog
+    ) {
+
+        DogBreed breed = dog.getBreed();
+
+        int ageYears =
+                dog.getBirthDate() != null
+                        ? Period.between(
+                        dog.getBirthDate(),
+                        LocalDate.now()
+                ).getYears()
+                        : 3;
+
+        double weight =
+                dog.getWeight() != null
+                        ? dog.getWeight().doubleValue()
+                        : 10.0;
+
+        if (breed == null) {
+
+            return new WalkScoreRequest.DogInfo(
+                    "믹스",
+                    "중형",
+                    "단모",
+                    ageYears,
+                    weight,
+                    false,
+                    3,
+                    3
+            );
+        }
+
+        return new WalkScoreRequest.DogInfo(
+                breed.getNameKr(),
+                breed.getSize(),
+                breed.getCoatType(),
+                ageYears,
+                weight,
+                breed.isBrachycephalic(),
+                breed.getHeatTolerance(),
+                breed.getColdTolerance()
+        );
     }
 
     private WalkScoreRequest.WeatherInfo buildWeatherInfo(
