@@ -69,12 +69,16 @@ class RiskResult:
     score: int
     level: RiskLevel
     reasons: list[str] = field(default_factory=list)
+    # reasons[i] 와 1:1 대응하는 룰 식별 코드(GROUND_TEMP_SEVERE 등). FE 가 문구 대신
+    # 안정적인 코드로 카테고리·아이콘을 매핑할 수 있게 함. 사유 없음(100점)은 ALL_CLEAR.
+    reason_codes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
             "score": self.score,
             "level": self.level.value,
             "reasons": self.reasons,
+            "reason_codes": self.reason_codes,
         }
 
 
@@ -282,11 +286,13 @@ def calculate_walk_risk(dog: DogInfo, weather: WeatherInfo) -> RiskResult:
     """반려견 + 날씨로 산책 위험도를 계산한다."""
     score = 100
     reasons: list[str] = []
+    reason_codes: list[str] = []
 
     for rule in RULES:
         if rule.predicate(dog, weather):
             score -= rule.penalty
             reasons.append(rule.reason(dog, weather))
+            reason_codes.append(rule.code)
 
     score = max(0, min(100, score))  # 0~100 클램프
     level = _score_to_level(score)
@@ -294,8 +300,9 @@ def calculate_walk_risk(dog: DogInfo, weather: WeatherInfo) -> RiskResult:
 
     if not reasons:
         reasons.append("산책하기 좋은 날씨예요!")
+        reason_codes.append("ALL_CLEAR")
 
-    return RiskResult(score=score, level=level, reasons=reasons)
+    return RiskResult(score=score, level=level, reasons=reasons, reason_codes=reason_codes)
 
 
 # ============================================================

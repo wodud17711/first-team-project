@@ -42,9 +42,9 @@ function App() {
 
               {/* 반려견 프로필 페이지 */}
               <Route path="/dog-profile-list" element={<DogListPage/>}/>
-              <Route path="/dog-profile-detail" element={<DogDetailPage/>}/>
+              <Route path="/dog-profile-detail/:dogId" element={<DogDetailPage/>}/>
               <Route path="/dog-profile-create" element={<DogCreatePage/>}/>
-              <Route path="/dog-profile-edit" element={<DogEditPage/>}/>
+              <Route path="/dog-profile-edit/:dogId" element={<DogEditPage/>}/>
 
               <Route path="*" element={<NotFound />} />
             </Route>

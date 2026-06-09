@@ -59,7 +59,9 @@ class AiClientTest {
                           "score": 5,
                           "level": "위험",
                           "reasons": ["지면이 뜨겁습니다", "체감온도가 높습니다"],
-                          "top_reasons": ["지면이 뜨겁습니다"]
+                          "reason_codes": ["GROUND_TEMP_SEVERE", "FEELS_HOT"],
+                          "top_reasons": ["지면이 뜨겁습니다"],
+                          "top_reason_codes": ["GROUND_TEMP_SEVERE"]
                         }
                         """));
 
@@ -69,6 +71,8 @@ class AiClientTest {
         assertThat(result.level()).isEqualTo("위험");
         assertThat(result.reasons()).hasSize(2);
         assertThat(result.topReasons()).containsExactly("지면이 뜨겁습니다");
+        assertThat(result.reasonCodes()).containsExactly("GROUND_TEMP_SEVERE", "FEELS_HOT");
+        assertThat(result.topReasonCodes()).containsExactly("GROUND_TEMP_SEVERE");
     }
 
     @Test
