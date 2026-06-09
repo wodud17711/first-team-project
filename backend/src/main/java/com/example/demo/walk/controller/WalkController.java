@@ -25,15 +25,10 @@ public class WalkController {
             @RequestParam Long dogId
     ) {
 
-        Long userId = resolveUserId(
-                userDetails
-        );
+        Long userId = resolveUserId(userDetails);
 
         WalkScoreResult result =
-                walkScoreService.calculateScore(
-                        userId,
-                        dogId
-                );
+                walkScoreService.calculateScore(userId, dogId);
 
         WalkScoreResponse response =
                 WalkScoreResponse.from(result);
@@ -43,24 +38,16 @@ public class WalkController {
         );
     }
 
-    private Long resolveUserId(
-            UserDetails userDetails
-    ) {
+    private Long resolveUserId(UserDetails userDetails) {
 
         if (userDetails == null) {
-            throw new BusinessException(
-                    ErrorCode.UNAUTHORIZED
-            );
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
         try {
-            return Long.parseLong(
-                    userDetails.getUsername()
-            );
+            return Long.parseLong(userDetails.getUsername());
         } catch (NumberFormatException e) {
-            throw new BusinessException(
-                    ErrorCode.UNAUTHORIZED
-            );
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
     }
 }
