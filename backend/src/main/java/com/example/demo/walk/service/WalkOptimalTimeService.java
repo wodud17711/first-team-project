@@ -150,8 +150,6 @@ public class WalkOptimalTimeService {
                 snapshot.getPm10(),
                 snapshot.getPm25(),
 
-                forecast.precipitationType(),
-
                 snapshot.getUvIndex() != null
                         ? snapshot.getUvIndex()
                         : 0

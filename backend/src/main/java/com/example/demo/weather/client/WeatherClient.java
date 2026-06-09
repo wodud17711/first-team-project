@@ -312,9 +312,6 @@ public class WeatherClient {
             double windSpeed =
                     required(values, "WSD");
 
-            String pty =
-                    values.getOrDefault("PTY", "0");
-
             double feelsLike =
                     FeelsLikeCalculator.calculate(
                             temperature,
@@ -334,9 +331,7 @@ public class WeatherClient {
                             temperature,
                             feelsLike,
                             humidity,
-                            windSpeed,
-                            0,
-                            toPrecipitationType(pty)
+                            windSpeed
                     )
             );
         }
@@ -350,18 +345,4 @@ public class WeatherClient {
         return result;
     }
 
-    private static String toPrecipitationType(
-            String pty
-    ) {
-
-        return switch (pty) {
-
-            case "1" -> "비";
-            case "2" -> "비/눈";
-            case "3" -> "눈";
-            case "4" -> "소나기";
-
-            default -> "없음";
-        };
-    }
 }

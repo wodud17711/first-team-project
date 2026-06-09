@@ -137,8 +137,7 @@ public class WalkScoreService {
                 snapshot.getPm25(),
 
                 // TODO: AirKorea 연동 후 대기질 등급 실제 값 적용
-                // 현재는 외부 연동 전 단계라 기본값 사용
-                "없음",
+                // 현재는 외부 연동 전 단계 -> 나중에 채워넣어야 함
 
                 snapshot.getUvIndex() != null
                         ? snapshot.getUvIndex()

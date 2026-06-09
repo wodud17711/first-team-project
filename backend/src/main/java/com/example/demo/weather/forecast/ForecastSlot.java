@@ -7,6 +7,5 @@ public record ForecastSlot(
         double temperature,
         double feelsLike,
         double humidity,
-        double windSpeed,
-        String precipitationType
+        double windSpeed
 ) {}
