@@ -1,5 +1,9 @@
 package com.example.demo.integration;
 
+import com.example.demo.dog.entity.Dog;
+import com.example.demo.dog.repository.DogRepository;
+import com.example.demo.walk.domain.WalkScore;
+import com.example.demo.walk.repository.WalkScoreRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +38,12 @@ class WalkE2ETest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    WalkScoreRepository walkScoreRepository;
+
+    @Autowired
+    DogRepository dogRepository;
 
     @Test
     @DisplayName("산책 시작 → 종료 → 이력: duration·distance 정상 반영")
@@ -136,6 +146,35 @@ class WalkE2ETest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value("WALK_ALREADY_IN_PROGRESS"));
+    }
+
+    @Test
+    @DisplayName("산책 시작 시 직전 위험도 점수(30분 이내, 미연결)가 그 산책에 귀속된다 [A-2]")
+    void start_linksRecentWalkScore() throws Exception {
+        String token = signupAndLogin("scorelink@example.com", "점수");
+        long dogId = registerDog(token, "산이");
+
+        // 산책 직전 조회만 한 점수: walk_id NULL, measured_at = now (30분 윈도우 내)
+        Dog dog = dogRepository.findById(dogId).orElseThrow();
+        WalkScore seeded = walkScoreRepository.save(
+                WalkScore.create(dog, null, 70, "주의", "기온 높음"));
+        assertThat(seeded.getWalkId()).isNull();
+
+        MvcResult startResult = mockMvc.perform(
+                        post("/api/walks/start")
+                                .header("Authorization", "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {"dogId": %d}
+                                        """.formatted(dogId))
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+        long walkId = readLong(startResult, "walkId");
+
+        // 산책 1건에 walk_score 1건 연결 조회됨 (완료 기준)
+        WalkScore linked = walkScoreRepository.findById(seeded.getId()).orElseThrow();
+        assertThat(linked.getWalkId()).isEqualTo(walkId);
     }
 
     // ===== helpers =====
