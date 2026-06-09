@@ -29,7 +29,7 @@ public class WalkOptimalTimeService {
     private final WeatherSnapshotRepository weatherSnapshotRepository;
     private final ForecastCacheRepository forecastRepository; // (캐시된 단기예보)
     private final AiClient aiClient;
-    private final AirQuality airQuality;
+
 
     public OptimalTimeResponse calculate(Long userId, Long dogId) {
 
@@ -107,8 +107,8 @@ public class WalkOptimalTimeService {
                         ? snapshot.getGroundTemperature()
                         : 25.0,
 
-                airQuality.pm10(),
-                airQuality.pm25(),
+                snapshot.getPm10(),
+                snapshot.getPm25(),
 
                 "없음",
 
