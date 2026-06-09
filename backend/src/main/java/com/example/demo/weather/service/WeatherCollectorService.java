@@ -26,6 +26,8 @@ public class WeatherCollectorService {
 
     private final WeatherSnapshotService weatherSnapshotService;
 
+    private static final String BUSAN_AREA_NO = "2600000000";
+
     @Transactional
     public WeatherSnapshot collect(
             double lat,
@@ -61,17 +63,13 @@ public class WeatherCollectorService {
         Integer uvIndex = null;
 
         try {
-
-            // TODO
-            // 부산 areaNo 확인 후 교체
-
             uvIndex =
-                    uvIdxClient.fetch("부산areaNo")
+                    uvIdxClient.fetch(BUSAN_AREA_NO)
                             .current();
-
         } catch (Exception e) {
             log.warn("UV collect failed", e);
         }
+
         // 4. 도메인 조립 (여기가 collector 책임)
         WeatherSnapshot snapshot =
                 WeatherSnapshot.create(
