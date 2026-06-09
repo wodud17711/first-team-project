@@ -15,6 +15,7 @@ import com.example.demo.weather.repository.ForecastCacheRepository;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
 import com.example.demo.dog.entity.DogBreed;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,15 @@ public class WalkOptimalTimeService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.WEATHER_API_ERROR));
 
         // 2) 미래 예보 (캐시된 데이터)
-        List<ForecastSlot> forecasts = forecastRepository.findLatest();
+        LocalDateTime now = LocalDateTime.now();
+
+        List<ForecastSlot> forecasts =
+                forecastRepository.findLatest()
+                        .stream()
+                        .filter(slot ->
+                                !slot.forecastTime()
+                                        .isAfter(now.plusHours(24)))
+                        .toList();
 
         List<SlotResult> slots = new ArrayList<>();
 
@@ -145,7 +154,9 @@ public class WalkOptimalTimeService {
 
                 forecast.windSpeed(),
 
-                snapshot.getGroundTemperature(),
+                snapshot.getGroundTemperature() != null
+                        ? snapshot.getGroundTemperature()
+                        : 25.0,
 
                 snapshot.getPm10(),
                 snapshot.getPm25(),
