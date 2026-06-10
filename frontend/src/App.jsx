@@ -18,6 +18,9 @@ import DogEditPage from './pages/dogs/DogEditPage'
 
 import NotFound from './pages/NotFound'
 
+// [개발 전용] 최적시간 차트 미리보기 (mock). 실화면 배치 후 제거 가능.
+import OptimalTimePreview from './pages/dev/OptimalTimePreview'
+
 
 
 
@@ -30,6 +33,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
           <Route path="/dog-profile" element={<DogProfile />} />
+
+          {/* [개발 전용] 최적시간 차트 미리보기 (mock, 로그인 불필요) */}
+          <Route path="/dev/optimal-time" element={<OptimalTimePreview />} />
 
           {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
           <Route element={<ProtectedRoute />}>

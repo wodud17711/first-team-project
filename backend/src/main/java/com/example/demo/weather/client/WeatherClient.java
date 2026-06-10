@@ -2,11 +2,11 @@ package com.example.demo.weather.client;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.weather.AirKoreaClient;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.dto.KmaForecastResponse;
+import com.example.demo.weather.forecast.ForecastSlot;
 import com.example.demo.weather.service.FeelsLikeCalculator;
-import com.example.demo.weather.service.WeatherSnapshotService;
-import com.example.demo.weather.util.GridConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClientException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,20 +41,23 @@ public class WeatherClient {
 
     private final RestClient restClient;
     private final String apiKey;
+    private final AirKoreaClient airKoreaClient;
 
     public WeatherClient(
             @Value("${weather.base-url}") String baseUrl,
-            @Value("${weather.api-key}") String apiKey
+            @Value("${weather.api-key}") String apiKey,
+            AirKoreaClient airKoreaClient
     ) {
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();
         this.apiKey = apiKey;
+        this.airKoreaClient = airKoreaClient;
     }
 
     // ============================================================
-    // PUBLIC API (외부 노출 1개만 유지)
-    // ============================================================
+// PUBLIC API (외부 노출 1개만 유지)
+// ============================================================
     public WeatherSnapshot fetchCurrent(int nx, int ny) {
 
         validateGrid(nx, ny);
@@ -179,6 +183,8 @@ public class WeatherClient {
                 windSpeed,
                 feelsLike,
                 null,
+                null,
+                null,
                 null
         );
     }
@@ -240,4 +246,103 @@ public class WeatherClient {
     }
 
     public record BaseDateTime(String date, String time) {}
+
+    public List<ForecastSlot> fetchForecastSlots(
+            int nx,
+            int ny
+    ) {
+
+        validateGrid(nx, ny);
+
+        BaseDateTime base =
+                resolveBaseDateTime(LocalDateTime.now());
+
+        KmaForecastResponse response =
+                call(
+                        nx,
+                        ny,
+                        base.date(),
+                        base.time()
+                );
+
+        return parseForecastSlots(response);
+    }
+
+    public static List<ForecastSlot> parseForecastSlots(
+            KmaForecastResponse response
+    ) {
+
+        List<KmaForecastResponse.Item> items =
+                extractItems(response);
+
+        Map<String, Map<String, String>> grouped =
+                new HashMap<>();
+
+        for (KmaForecastResponse.Item item : items) {
+
+            String key =
+                    item.fcstDate() + item.fcstTime();
+
+            grouped.computeIfAbsent(
+                    key,
+                    k -> new HashMap<>()
+            );
+
+            grouped.get(key).put(
+                    item.category(),
+                    item.fcstValue()
+            );
+        }
+
+        List<ForecastSlot> result =
+                new ArrayList<>();
+
+        for (Map.Entry<String, Map<String, String>> entry
+                : grouped.entrySet()) {
+
+            Map<String, String> values =
+                    entry.getValue();
+
+            double temperature =
+                    required(values, "TMP");
+
+            double humidity =
+                    required(values, "REH");
+
+            double windSpeed =
+                    required(values, "WSD");
+
+            double feelsLike =
+                    FeelsLikeCalculator.calculate(
+                            temperature,
+                            (int) Math.round(humidity),
+                            windSpeed
+                    );
+
+            LocalDateTime forecastTime =
+                    LocalDateTime.parse(
+                            entry.getKey(),
+                            FCST_DATE_TIME
+                    );
+
+            result.add(
+                    new ForecastSlot(
+                            forecastTime,
+                            temperature,
+                            feelsLike,
+                            humidity,
+                            windSpeed
+                    )
+            );
+        }
+
+        result.sort(
+                java.util.Comparator.comparing(
+                        ForecastSlot::forecastTime
+                )
+        );
+
+        return result;
+    }
+
 }

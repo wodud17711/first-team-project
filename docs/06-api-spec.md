@@ -148,7 +148,63 @@
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
 | GET | `/api/walk/score` | 오늘의 산책 위험도 점수 | ✅ |
-| GET | `/api/walk/score/optimal-time` | 최적 산책 시간 추천 (Phase 3) | ✅ |
+| GET | `/api/walk/optimal-time` | 시간대별 산책 적합도 + 최적 시간 추천 (MVP, Week3 잔여) | ✅ |
+
+#### 📌 `GET /api/walk/score` 계약 · 결정 (MVP/데모)
+
+> 외부 API 한도(기상청·에어코리아 **1일 1,000회**)와 데모 범위에 따른 확정 설계.
+> 위반 시 한도 폭발·중복 호출 발생. (2026-06 PM 결정, PR #71 정렬 근거)
+
+- **요청 파라미터: `dogId` 만.** `/score` 에 **`lat`/`lon` 추가 금지.**
+  - 위치는 **데모 = 부산 고정**. 사용자별 실위치(lat/lon)는 **Phase 3(실시간 GPS)** 에서 도입.
+- **날씨·대기질 수집은 `/score` 요청과 분리한다.**
+  - 수집은 **`@Scheduled` 집계 잡**이 부산 좌표(고정 상수/설정)로 KMA·AirKorea 를 호출해
+    `weather_snapshots` 를 채운다. **`/score` 요청 경로에서 외부 API 직접 호출 금지.**
+  - `/score` 는 **최신 캐시 스냅샷 1건을 읽기만** 한다(`findTopByOrderByBaseDateTimeDesc`).
+  - `saveIfAbsent` 는 DB 중복만 막을 뿐 외부 호출은 못 막으므로, 호출 자체를 스케줄로 분리.
+  - AirKorea 는 **수집당 1회만** 호출(`WeatherClient.fetchCurrent` ↔ collector 중복 호출 금지).
+- **응답 필드**: `score`(0~100), `level`('안전'\|'주의'\|'위험'), `reasons`(string[]),
+  `topReasons`(string[]). 룰 코드(`reasonCodes`/`topReasonCodes`)는
+  `feature/risk-reason-mapping` 에서 추가 — FE 위험사유 카테고리·아이콘 매핑용.
+- **컬럼명 정합**: `weather_snapshots` 미세먼지 컬럼은 `schema.sql` 과 JPA `@Column` 명을
+  일치시킨다(DB 컬럼 `pm_10`/`pm_25` ↔ 엔티티 필드 `pm10`/`pm25`).
+
+#### 📌 `GET /api/walk/optimal-time` 계약 (MVP, Week3 잔여)
+
+> `/score`(현재 1회)의 **시간축 확장**. 기상청 단기예보(`getVilageFcst`)의 **시간대별 미래 예보**를
+> 각각 룰베이스로 스코어링해 "몇 시쯤 산책이 좋은가"를 추천한다. (2026-06 PM 결정)
+
+- **요청 파라미터: `dogId` 만** (위치는 부산 고정, `/score` 와 동일 — lat/lon 금지).
+- **데이터 소스 = 단기예보(예보 API)**: 기온·습도·풍속·**강수형태**·하늘이 **시간대별 미래**로 들어온다.
+  현재 `WeatherClient.parse` 는 첫 슬롯만 쓰는데, optimal-time 은 **여러 미래 슬롯을 모두 살려** 각 시각을 스코어링.
+- **예보 안 되는 입력 처리 (⚠️ 핵심 결정)**: **지면온도(ASOS=관측)·미세먼지(AirKorea=관측)는 미래 예보값이 없다.**
+  → **MVP = "현재값 유지"**: 최신 스냅샷의 지면온도·PM 을 모든 미래 슬롯에 동일 적용.
+  목적이 "분 단위 정밀 점수"가 아니라 **"시간대 등급 추천"**이라 근사로 충분. (추후 기온 기반 지면온도 추정으로 업그레이드 가능)
+- **외부 호출**: 단기예보는 1콜에 여러 슬롯을 주고 캐시 가능(좌표+발표시각 동일=동일). **요청마다 직호출 금지**,
+  캐시/스케줄된 예보를 읽는다(1일 1,000회 한도 — `/score` 와 동일 원칙).
+- **응답**: 각 슬롯의 `score`/`level`/`topReasonCodes` 정본은 `/score` 와 동일(FastAPI 룰).
+
+```
+GET /api/walk/optimal-time?dogId=1
+
+{
+  "success": true,
+  "data": {
+    "slots": [
+      { "time": "2026-06-09T09:00", "score": 82, "level": "안전", "topReasonCodes": [] },
+      { "time": "2026-06-09T14:00", "score": 38, "level": "위험",
+        "topReasonCodes": ["GROUND_TEMP_HIGH", "FEELS_HOT"] }
+    ],
+    "best": [
+      { "time": "2026-06-09T09:00", "score": 82, "level": "안전" }
+    ]
+  },
+  "message": "..."
+}
+```
+
+- `slots`: 단기예보 제공 범위(오늘 잔여~수 시간) 각 시각의 적합도. FE 차트가 시간축으로 렌더.
+- `best`: `slots` 중 점수 상위(또는 안전 연속 구간) **1~3개 추천**. FE 가 강조 표시.
 
 ### 🚶 Walk (산책 기록) - 7개
 
@@ -156,8 +212,8 @@
 | --- | --- | --- | --- |
 | POST | `/api/walks/start` | 산책 시작 | ✅ |
 | POST | `/api/walks/{walkId}/end` | 산책 종료 + 피드백 | ✅ |
-| POST | `/api/walks/{walkId}/locations` | 산책 중 GPS 좌표 기록 (러닝 모드, Phase 3) | ✅ |
-| GET | `/api/walks` | 산책 기록 목록 | ✅ |
+| POST | `/api/walks/{walkId}/locations` | 산책 중 GPS 좌표 기록 (Phase 3) | 보류 |
+| GET | `/api/walks/history?dogId={id}` | 반려견별 산책 이력 (최신순) | ✅ |
 | GET | `/api/walks/{walkId}` | 산책 기록 상세 (GPS 경로 포함) | ✅ |
 | GET | `/api/walks/statistics` | 주간/월간 통계 | ✅ |
 | GET | `/api/walks/calendar` | 산책 캘린더 (월별) | ✅ |
@@ -514,7 +570,7 @@ Authorization: Bearer {token}
 - 503: AI(룰베이스) 서버 호출 실패 (`AI_SERVER_ERROR`)
 - 503: 날씨 데이터 없음/조회 실패 (`WEATHER_API_ERROR`)
 
-> 🔮 **Phase 2/3 확장 (현재 미구현)**: `dogName` · `weather` 상세 블록 · `supplies`(준비물 추천) · `measuredAt`(측정 시각)은 추후 추가. 최적 산책 시간(`recommendedTime`)은 별도 엔드포인트 `GET /api/walk/score/optimal-time`(Phase 3)로 분리한다.
+> 🔮 **Phase 2/3 확장 (현재 미구현)**: `dogName` · `weather` 상세 블록 · `supplies`(준비물 추천) · `measuredAt`(측정 시각)은 추후 추가. 최적 산책 시간은 별도 엔드포인트 **`GET /api/walk/optimal-time`(MVP, 위 계약 참조)**로 분리한다.
 
 ---
 
@@ -528,10 +584,7 @@ Authorization: Bearer {token}
 **Request Body**
 ```json
 {
-  "dogId": 1,
-  "walkRouteId": 5,
-  "startLat": 37.5665,
-  "startLng": 126.9780
+  "dogId": 1
 }
 ```
 
@@ -541,17 +594,22 @@ Authorization: Bearer {token}
   "success": true,
   "data": {
     "walkId": 100,
+    "dogId": 1,
     "startTime": "2026-05-20T18:00:00",
-    "weatherSnapshot": {
-      "temperature": 25.0,
-      "condition": "맑음",
-      "riskScore": 85
-    }
-  }
+    "endTime": null,
+    "durationMinutes": null,
+    "distanceKm": null,
+    "memo": null,
+    "userFeedback": null,
+    "inProgress": true
+  },
+  "message": null,
+  "errorCode": null
 }
 ```
 
 **Error**
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
 - 409: 진행 중인 산책 있음 (`WALK_ALREADY_IN_PROGRESS`)
 
 ---
@@ -567,9 +625,12 @@ Authorization: Bearer {token}
 ```json
 {
   "userFeedback": "오늘 너무 즐거웠어요!",
-  "distanceKm": 2.5
+  "distanceKm": 2.5,
+  "memo": "한강 산책"
 }
 ```
+
+> 모든 필드는 선택값이다. `distanceKm`는 실시간 GPS 트래킹 전까지 수동 입력/생략한다.
 
 **Response 200**
 ```json
@@ -577,44 +638,67 @@ Authorization: Bearer {token}
   "success": true,
   "data": {
     "walkId": 100,
+    "dogId": 1,
     "startTime": "2026-05-20T18:00:00",
     "endTime": "2026-05-20T18:45:00",
     "durationMinutes": 45,
     "distanceKm": 2.5,
-    "completedMissions": 2
-  }
+    "memo": "한강 산책",
+    "userFeedback": "오늘 너무 즐거웠어요!",
+    "inProgress": false
+  },
+  "message": null,
+  "errorCode": null
 }
 ```
+
+**Error**
+- 403: 본인 산책 기록 아님 (`FORBIDDEN`)
+- 404: 산책 기록 없음 (`WALK_NOT_FOUND`)
+- 409: 이미 종료된 산책 (`WALK_ALREADY_ENDED`)
 
 ---
 
-### 📍 산책 중 GPS 좌표 기록 (러닝 모드)
+### 🚶 반려견별 산책 이력
 
 ```
-POST /api/walks/{walkId}/locations
+GET /api/walks/history?dogId=1
 Authorization: Bearer {token}
 ```
 
-**Request Body** (배치로 여러 좌표 한 번에 전송)
-```json
-{
-  "locations": [
-    {"lat": 37.5665, "lng": 126.9780, "recordedAt": "2026-05-20T18:00:10"},
-    {"lat": 37.5666, "lng": 126.9782, "recordedAt": "2026-05-20T18:00:20"},
-    {"lat": 37.5668, "lng": 126.9785, "recordedAt": "2026-05-20T18:00:30"}
-  ]
-}
-```
+**Query Parameters**
 
-**Response 201**
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| dogId | Long | ✅ | 반려견 ID (본인 소유 강아지만 조회 가능) |
+
+**Response 200**
 ```json
 {
   "success": true,
-  "data": {
-    "savedCount": 3
-  }
+  "data": [
+    {
+      "walkId": 100,
+      "dogId": 1,
+      "startTime": "2026-05-20T18:00:00",
+      "endTime": "2026-05-20T18:45:00",
+      "durationMinutes": 45,
+      "distanceKm": 2.5,
+      "memo": "한강 산책",
+      "userFeedback": "오늘 너무 즐거웠어요!",
+      "inProgress": false
+    }
+  ],
+  "message": null,
+  "errorCode": null
 }
 ```
+
+**Error**
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
+- 404: 반려견 없음 (`DOG_NOT_FOUND`)
+
+> 실시간 GPS 트래킹과 `walk_locations` 기록은 Phase 3 범위로 분리한다. MVP에서는 `POST /api/walks/{walkId}/locations`를 구현하지 않는다.
 
 ---
 
