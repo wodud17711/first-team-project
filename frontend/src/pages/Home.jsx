@@ -44,7 +44,7 @@ function Home() {
   return (
     <div className='relative'>
       {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[605px] bg-brand-200 z-0">
+      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[610px] bg-brand-200 z-0">
         {/* <img src='/testimg.jpg' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
 
@@ -85,9 +85,9 @@ function Home() {
                     <div className='h-[70px] flex justify-center flex flex-col items-center justify-center'>
                       <img src='/userpanel/humanProfile.png' alt='프로필사진'
                         className='w-[60px] h-[60px] rounded-[43%] object-cover'/>
-                      <p className="text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
+                      <p className="mt-[5px] text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
                     </div>
-                  <div className='w-full h-px bg-black/20'/>
+                  <div className='w-full mt-2 h-px bg-black/20'/>
                   <button className="text-[14px]">마이페이지</button>
                 </div>
 
@@ -110,13 +110,13 @@ function Home() {
                             alt="강아지사진"
                             className="w-[60px] h-[60px] shadow rounded-[43%] object-cover"
                           />
-                          <p className="text-[14px] font-bold">{mainDog.name}</p>
+                          <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
                         </div>
                       </div>
                     )}
                   </div>
                   
-                  <div className='w-full h-px bg-black/20'/>
+                  <div className='w-full mt-2 h-px bg-black/20'/>
 
                   <button
                     onClick={() => navigate("/dog-profile-list")}
