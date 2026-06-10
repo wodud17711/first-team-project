@@ -35,10 +35,13 @@ public class Category {
         }
 
         return Arrays.stream(
-                subTags.replace("[", "")
-                        .replace("]", "")
-                        .replace("\"", "")
-                        .split(",")
-        ).map(String::trim).toList();
+                        subTags.replace("[", "")
+                                .replace("]", "")
+                                .replace("\"", "")
+                                .split(",")
+                )
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
     }
 }
