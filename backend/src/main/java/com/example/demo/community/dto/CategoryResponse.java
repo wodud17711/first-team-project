@@ -10,14 +10,14 @@ import java.util.List;
 @Builder
 public class CategoryResponse {
 
-    private Long id;
+    private Long categoryId;
     private String name;
     private List<String> subTags;
 
     public static CategoryResponse from(Category category) {
         try {
             return CategoryResponse.builder()
-                    .id(category.getId())
+                    .categoryId(category.getId())
                     .name(category.getName())
                     .subTags(category.getSubTagList())
                     .build();

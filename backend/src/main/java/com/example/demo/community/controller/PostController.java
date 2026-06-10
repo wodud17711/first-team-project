@@ -3,10 +3,7 @@ package com.example.demo.community.controller;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
-import com.example.demo.community.dto.CreatePostRequest;
-import com.example.demo.community.dto.PostResponse;
-import com.example.demo.community.dto.PostSummaryResponse;
-import com.example.demo.community.dto.UpdatePostRequest;
+import com.example.demo.community.dto.*;
 import com.example.demo.community.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +21,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createPost(
+    public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CreatePostRequest request
     ) {

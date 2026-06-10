@@ -2,16 +2,14 @@ package com.example.demo.community.service;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
-import com.example.demo.community.dto.CreatePostRequest;
-import com.example.demo.community.dto.PostResponse;
-import com.example.demo.community.dto.PostSummaryResponse;
-import com.example.demo.community.dto.UpdatePostRequest;
+import com.example.demo.community.dto.*;
 import com.example.demo.community.entity.Category;
 import com.example.demo.community.entity.Post;
 import com.example.demo.community.repository.CategoryRepository;
 import com.example.demo.community.repository.PostRepository;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
+import com.example.demo.community.dto.CreatePostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +32,7 @@ public class PostService {
     /**
      * 게시글 작성
      */
-    public Long createPost(
+    public CreatePostResponse createPost(
             CreatePostRequest request,
             Long userId
     ) {
@@ -68,7 +66,15 @@ public class PostService {
                 .content(request.getContent())
                 .build();
 
-        return postRepository.save(post).getId();
+        Post savedPost = postRepository.save(post);
+
+        return CreatePostResponse.builder()
+                .postId(savedPost.getId())
+                .category(savedPost.getCategory().getName())
+                .subTag(savedPost.getSubTag())
+                .title(savedPost.getTitle())
+                .createdAt(savedPost.getCreatedAt())
+                .build();
     }
 
     /**

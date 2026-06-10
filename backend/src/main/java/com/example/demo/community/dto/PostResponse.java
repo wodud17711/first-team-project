@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PostResponse {
 
-    private Long id;
+    private Long postId;
 
     private Long categoryId;
 
@@ -35,7 +35,7 @@ public class PostResponse {
     public static PostResponse from(Post post) {
 
         return PostResponse.builder()
-                .id(post.getId())
+                .postId(post.getId())
                 .categoryId(post.getCategory().getId())
                 .categoryName(post.getCategory().getName())
                 .subTag(post.getSubTag())

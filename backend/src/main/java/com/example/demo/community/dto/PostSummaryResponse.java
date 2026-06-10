@@ -10,32 +10,38 @@ import java.time.LocalDateTime;
 @Builder
 public class PostSummaryResponse {
 
-    private Long id;
+    private Long postId;
+
+    private String category;
+
+    private String subTag;
 
     private String title;
 
     private String author;
 
+    private Integer likeCount;
+
     private Integer viewCount;
 
     private Integer commentCount;
+
+    private String thumbnailUrl;
 
     private LocalDateTime createdAt;
 
     public static PostSummaryResponse from(Post post) {
 
-        String title = post.getTitle();
-
-        if (post.getSubTag() != null && !post.getSubTag().isBlank()) {
-            title = "[" + post.getSubTag() + "] " + title;
-        }
-
         return PostSummaryResponse.builder()
-                .id(post.getId())
-                .title(title)
+                .postId(post.getId())
+                .category(post.getCategory().getName())
+                .subTag(post.getSubTag())
+                .title(post.getTitle())
                 .author(post.getUser().getNickname())
+                .likeCount(post.getLikeCount())
                 .viewCount(post.getViewCount())
                 .commentCount(post.getCommentCount())
+                .thumbnailUrl(null)
                 .createdAt(post.getCreatedAt())
                 .build();
     }
