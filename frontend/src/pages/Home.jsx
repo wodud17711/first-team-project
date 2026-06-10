@@ -44,8 +44,9 @@ function Home() {
   return (
     <div className='relative'>
       {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[610px] bg-brand-200 z-0">
-        {/* <img src='/testimg.jpg' alt='테스트이미지' className='w-full h-full object-cover'/> */}
+      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[2650px] h-[610px] bg-brand-200 z-0">
+        {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
+        <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/>
       </div>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
