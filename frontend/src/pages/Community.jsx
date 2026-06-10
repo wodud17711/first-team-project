@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useCategories, usePosts } from "../hooks/useCommunity"
 
 // 카테고리 탭 (전체 + 카테고리 목록). 정선혜 dog 페이지 sky 톤 따라감.
@@ -88,6 +88,9 @@ function timeAgo(iso) {
 
 function Community() {
   const navigate = useNavigate()
+  // dev 미리보기(/dev/community)에서도 글쓰기·상세가 /dev 하위로 이동하도록 base 계산
+  const { pathname } = useLocation()
+  const base = pathname.startsWith("/dev") ? "/dev/community" : "/community"
 
   // 필터 state (카테고리 / 서브태그 / 정렬)
   const [categoryId, setCategoryId] = useState(null)
@@ -123,7 +126,7 @@ function Community() {
 
         {/* 글쓰기 */}
         <button
-          onClick={() => navigate("/community/write")}
+          onClick={() => navigate(`${base}/write`)}
           className="px-4 py-2 rounded-xl bg-sky-700 text-white text-[14px] font-bold
             shadow-sm transition hover:bg-sky-800"
         >
@@ -185,7 +188,7 @@ function Community() {
             <PostCard
               key={post.postId}
               post={post}
-              onClick={() => navigate(`/community/${post.postId}`)}
+              onClick={() => navigate(`${base}/${post.postId}`)}
             />
           ))}
         </div>

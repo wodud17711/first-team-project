@@ -5,6 +5,8 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import WalkRecord from './pages/WalkRecord'
 import Community from './pages/Community'
+import CommunityWrite from './pages/CommunityWrite'
+import CommunityDetail from './pages/CommunityDetail'
 import Profile from './pages/Profile'
 
 import Login from './pages/Login'
@@ -39,6 +41,8 @@ function App() {
 
           {/* [개발 전용] 커뮤니티 게시판 미리보기 (mock, 로그인 불필요) */}
           <Route path="/dev/community" element={<Community />} />
+          <Route path="/dev/community/write" element={<CommunityWrite />} />
+          <Route path="/dev/community/:postId" element={<CommunityDetail />} />
 
           {/* 보호 라우트 — 비로그인 시 /login 으로 리다이렉트 */}
           <Route element={<ProtectedRoute />}>
@@ -46,6 +50,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/walk" element={<WalkRecord />} />
               <Route path="/community" element={<Community />} />
+              <Route path="/community/write" element={<CommunityWrite />} />
+              <Route path="/community/:postId" element={<CommunityDetail />} />
               <Route path="/profile" element={<Profile />} />
               
 

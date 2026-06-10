@@ -30,3 +30,51 @@ export async function getCategories() {
 export async function getPosts(params = {}) {
   return apiClient.get('/posts', { params })
 }
+
+/**
+ * 게시글 상세. GET /api/posts/{postId}
+ * @returns {Promise<{postId:number, category:object|string, subTag:string,
+ *   title:string, content:string, author:string, imageUrls:string[],
+ *   commentCount:number, likeCount:number, viewCount:number,
+ *   liked:boolean, isMine:boolean, createdAt:string}>}
+ */
+export async function getPost(postId) {
+  return apiClient.get(`/posts/${postId}`)
+}
+
+/**
+ * 게시글 작성. POST /api/posts (인증 필요)
+ * @param {{categoryId:number, subTag?:string, title:string, content:string, imageUrls?:string[]}} body
+ * @returns {Promise<{postId:number, category:object, subTag:string, title:string, createdAt:string}>}
+ */
+export async function createPost(body) {
+  return apiClient.post('/posts', body)
+}
+
+/**
+ * 댓글 목록. GET /api/posts/{postId}/comments
+ * @returns {Promise<Array<{commentId:number, author:string, content:string,
+ *   parentCommentId:number|null, isMine:boolean, createdAt:string}>>}
+ */
+export async function getComments(postId) {
+  return apiClient.get(`/posts/${postId}/comments`)
+}
+
+/**
+ * 댓글/대댓글 작성. POST /api/posts/{postId}/comments (인증 필요)
+ * @param {{content:string, parentCommentId?:number|null}} body
+ */
+export async function createComment(postId, body) {
+  return apiClient.post(`/posts/${postId}/comments`, body)
+}
+
+/**
+ * 게시글 좋아요 토글. liked 면 DELETE, 아니면 POST.
+ * POST/DELETE /api/posts/{postId}/likes (인증 필요)
+ * @returns {Promise<{liked:boolean, likeCount:number}>}
+ */
+export async function toggleLike(postId, currentlyLiked) {
+  return currentlyLiked
+    ? apiClient.delete(`/posts/${postId}/likes`)
+    : apiClient.post(`/posts/${postId}/likes`)
+}
