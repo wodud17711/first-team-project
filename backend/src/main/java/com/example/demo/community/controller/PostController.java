@@ -40,7 +40,7 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
-            @RequestParam Long categoryId,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String subTag,
             @RequestParam(defaultValue = "0") int page
     ) {

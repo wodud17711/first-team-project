@@ -115,7 +115,16 @@ public class PostService {
 
         Page<Post> posts;
 
-        if (subTag == null || subTag.isBlank()) {
+        if (categoryId == null) {
+
+            posts =
+                    postRepository
+                            .findByDeletedAtIsNull(
+                                    pageable
+                            );
+
+        }
+        else if (subTag == null || subTag.isBlank()) {
 
             posts =
                     postRepository
@@ -124,7 +133,8 @@ public class PostService {
                                     pageable
                             );
 
-        } else {
+        }
+        else {
 
             posts =
                     postRepository

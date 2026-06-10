@@ -18,4 +18,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             String subTag,
             Pageable pageable
     );
+
+    Page<Post> findByDeletedAtIsNull(
+            Pageable pageable
+    );
 }
