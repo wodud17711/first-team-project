@@ -83,8 +83,8 @@ function Home() {
                 <div className="flex-1 flex flex-col p-3 gap-2 bg-white/55 rounded-lg">
                   <p className="mb-[5px] text-[14px] font-bold text-center">보호자</p>
                     <div className='h-[70px] flex justify-center flex flex-col items-center justify-center'>
-                      <img src='/userpanel/humanProfile.png' alt='프로필사진'
-                        className='w-[60px] h-[60px] rounded-[43%] object-cover'/>
+                      <img src={me?.profileImageUrl || "/userpanel/humanProfile.png"} alt='프로필사진'
+                        className='w-[60px] h-[60px] rounded-[43%] object-cover object-center'/>
                       <p className="mt-[5px] text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
                     </div>
                   <div className='w-full mt-2 h-px bg-black/20'/>
@@ -108,7 +108,7 @@ function Home() {
                           <img
                             src={mainDog.profileImageUrl || dogImg1}
                             alt="강아지사진"
-                            className="w-[60px] h-[60px] shadow rounded-[43%] object-cover"
+                            className="w-[60px] h-[60px] shadow rounded-[43%] object-cover object-center"
                           />
                           <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
                         </div>
