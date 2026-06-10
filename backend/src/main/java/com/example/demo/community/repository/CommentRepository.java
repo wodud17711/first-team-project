@@ -8,11 +8,17 @@ import java.util.List;
 public interface CommentRepository
         extends JpaRepository<Comment, Long> {
 
+    /**
+     * 게시글의 댓글 전체 조회
+     */
     List<Comment> findByPost_IdAndDeletedAtIsNullOrderByCreatedAtAsc(
             Long postId
     );
 
-    List<Comment> findByParentComment_Id(
-            Long parentId
+    /**
+     * 특정 댓글의 대댓글 조회
+     */
+    List<Comment> findByParentComment_IdAndDeletedAtIsNullOrderByCreatedAtAsc(
+            Long parentCommentId
     );
 }
