@@ -1,4 +1,236 @@
 package com.example.demo.community.service;
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.community.dto.CreatePostRequest;
+import com.example.demo.community.dto.PostResponse;
+import com.example.demo.community.dto.PostSummaryResponse;
+import com.example.demo.community.dto.UpdatePostRequest;
+import com.example.demo.community.entity.Category;
+import com.example.demo.community.entity.Post;
+import com.example.demo.community.repository.CategoryRepository;
+import com.example.demo.community.repository.PostRepository;
+import com.example.demo.user.entity.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
 public class PostService {
+
+    private final PostRepository postRepository;
+    private final CategoryRepository categoryRepository;
+
+    /**
+     * 게시글 작성
+     */
+    public Long createPost(
+            CreatePostRequest request,
+            User loginUser
+    ) {
+
+        Category category = categoryRepository.findById(
+                        request.getCategoryId()
+                )
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.CATEGORY_NOT_FOUND
+                        )
+                );
+
+        validateSubTag(
+                category,
+                request.getSubTag()
+        );
+
+        Post post = Post.builder()
+                .user(loginUser)
+                .category(category)
+                .subTag(request.getSubTag())
+                .title(request.getTitle())
+                .content(request.getContent())
+                .build();
+
+        return postRepository.save(post).getId();
+    }
+
+    /**
+     * 게시글 상세 조회
+     */
+    public PostResponse getPost(Long postId) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.POST_NOT_FOUND
+                        )
+                );
+
+        post.increaseViewCount();
+
+        return PostResponse.from(post);
+    }
+
+    /**
+     * 게시글 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSummaryResponse> getPosts(
+            Long categoryId,
+            String subTag,
+            int page
+    ) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                20
+        );
+
+        Page<Post> posts;
+
+        if (subTag == null || subTag.isBlank()) {
+
+            posts =
+                    postRepository
+                            .findByCategory_IdAndDeletedAtIsNull(
+                                    categoryId,
+                                    pageable
+                            );
+
+        } else {
+
+            posts =
+                    postRepository
+                            .findByCategory_IdAndSubTagAndDeletedAtIsNull(
+                                    categoryId,
+                                    subTag,
+                                    pageable
+                            );
+        }
+
+        return posts.map(
+                PostSummaryResponse::from
+        );
+    }
+
+    /**
+     * 게시글 수정
+     */
+    public void updatePost(
+            Long postId,
+            UpdatePostRequest request,
+            User loginUser
+    ) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.POST_NOT_FOUND
+                        )
+                );
+
+        validateOwner(
+                post,
+                loginUser
+        );
+
+        validateSubTag(
+                post.getCategory(),
+                request.getSubTag()
+        );
+
+        post.setSubTag(
+                request.getSubTag()
+        );
+
+        post.setTitle(
+                request.getTitle()
+        );
+
+        post.setContent(
+                request.getContent()
+        );
+    }
+
+    /**
+     * 게시글 삭제
+     */
+    public void deletePost(
+            Long postId,
+            User loginUser
+    ) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.POST_NOT_FOUND
+                        )
+                );
+
+        validateOwner(
+                post,
+                loginUser
+        );
+
+        post.softDelete();
+    }
+
+    /**
+     * 작성자 검증
+     */
+    private void validateOwner(
+            Post post,
+            User loginUser
+    ) {
+
+        if (!post.getUser()
+                .getId()
+                .equals(loginUser.getId())) {
+
+            throw new BusinessException(
+                    ErrorCode.NOT_YOUR_POST
+            );
+        }
+    }
+
+    /**
+     * 서브태그 검증
+     */
+    private void validateSubTag(
+            Category category,
+            String subTag
+    ) {
+
+        List<String> allowedTags =
+                category.getSubTagList();
+
+        // 서브태그 없는 카테고리
+        if (allowedTags.isEmpty()) {
+
+            if (subTag != null &&
+                    !subTag.isBlank()) {
+
+                throw new BusinessException(
+                        ErrorCode.INVALID_SUB_TAG
+                );
+            }
+
+            return;
+        }
+
+        // 허용되지 않은 서브태그
+        if (!allowedTags.contains(subTag)) {
+
+            throw new BusinessException(
+                    ErrorCode.INVALID_SUB_TAG
+            );
+        }
+    }
 }

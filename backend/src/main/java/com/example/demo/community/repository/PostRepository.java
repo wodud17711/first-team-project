@@ -4,16 +4,16 @@ import com.example.demo.community.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    Page<Post> findByCategoryIdAndDeletedAtIsNull(
+    Page<Post> findByCategory_IdAndDeletedAtIsNull(
             Long categoryId,
             Pageable pageable
     );
 
-    Page<Post> findByCategoryIdAndSubTagAndDeletedAtIsNull(
+    Page<Post> findByCategory_IdAndSubTagAndDeletedAtIsNull(
             Long categoryId,
             String subTag,
             Pageable pageable

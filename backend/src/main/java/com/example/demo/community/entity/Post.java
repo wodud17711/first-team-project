@@ -80,6 +80,10 @@ public class Post {
     }
 
     public void increaseViewCount() {
-        this.viewCount = this.viewCount + 1;
+        this.viewCount++;
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
     }
 }
