@@ -34,11 +34,11 @@ function WeatherCard() {
       
       <div className="flex flex-col mt-2 gap-3">
           {/* 시간별 날씨 */}
-          <div className="flex justify-center overflow-x-auto gap-[50px] py-2">
+          <div className="flex justify-center overflow-x-auto gap-[10px] py-2">
               {weatherData.map((weather, index) => (
                   <div
                       key={index}
-                      className="flex flex-col items-center min-w-[45px] px-7">
+                      className="flex flex-col items-center min-w-[110px] px-7">
                       <span className='text-[14px] text-txtcolor-400'>
                           {weather.time}
                       </span>
