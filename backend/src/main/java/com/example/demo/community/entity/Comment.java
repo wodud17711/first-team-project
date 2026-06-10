@@ -69,4 +69,8 @@ public class Comment {
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

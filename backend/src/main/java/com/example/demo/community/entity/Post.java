@@ -86,4 +86,14 @@ public class Post {
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
+
+    public void decreaseCommentCount() {
+        if (this.commentCount > 0) {
+            this.commentCount--;
+        }
+    }
 }
