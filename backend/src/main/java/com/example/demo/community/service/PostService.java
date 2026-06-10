@@ -11,10 +11,12 @@ import com.example.demo.community.entity.Post;
 import com.example.demo.community.repository.CategoryRepository;
 import com.example.demo.community.repository.PostRepository;
 import com.example.demo.user.entity.User;
+import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +29,22 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     /**
      * 게시글 작성
      */
     public Long createPost(
             CreatePostRequest request,
-            User loginUser
+            Long userId
     ) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                ErrorCode.USER_NOT_FOUND
+                        )
+                );
 
         Category category = categoryRepository.findById(
                         request.getCategoryId()
@@ -51,7 +61,7 @@ public class PostService {
         );
 
         Post post = Post.builder()
-                .user(loginUser)
+                .user(user)
                 .category(category)
                 .subTag(request.getSubTag())
                 .title(request.getTitle())
@@ -90,7 +100,11 @@ public class PostService {
 
         Pageable pageable = PageRequest.of(
                 page,
-                20
+                20,
+                Sort.by(
+                        Sort.Direction.DESC,
+                        "createdAt"
+                )
         );
 
         Page<Post> posts;
@@ -126,7 +140,7 @@ public class PostService {
     public void updatePost(
             Long postId,
             UpdatePostRequest request,
-            User loginUser
+            Long userId
     ) {
 
         Post post = postRepository.findById(postId)
@@ -138,7 +152,7 @@ public class PostService {
 
         validateOwner(
                 post,
-                loginUser
+                userId
         );
 
         validateSubTag(
@@ -164,7 +178,7 @@ public class PostService {
      */
     public void deletePost(
             Long postId,
-            User loginUser
+            Long userId
     ) {
 
         Post post = postRepository.findById(postId)
@@ -176,7 +190,7 @@ public class PostService {
 
         validateOwner(
                 post,
-                loginUser
+                userId
         );
 
         post.softDelete();
@@ -187,12 +201,12 @@ public class PostService {
      */
     private void validateOwner(
             Post post,
-            User loginUser
+            Long userId
     ) {
 
         if (!post.getUser()
                 .getId()
-                .equals(loginUser.getId())) {
+                .equals(userId)) {
 
             throw new BusinessException(
                     ErrorCode.NOT_YOUR_POST
