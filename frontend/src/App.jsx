@@ -13,6 +13,11 @@ import Login from './pages/Login'
 import Join from './pages/Join'
 import DogProfile from './pages/DogProfile'
 
+import MyPage from './pages/userpage/MyPage'
+import AccountEdit from './pages/userpage/AccountEdit'
+import ChangePassword from './pages/userpage/ChangePassword'
+import AccountDelete from './pages/userpage/AccountDelete'
+
 import DogListPage from './pages/dogs/DogListPage'
 import DogDetailPage from './pages/dogs/DogDetailPage'
 import DogCreatePage from './pages/dogs/DogCreatePage'
@@ -22,6 +27,8 @@ import NotFound from './pages/NotFound'
 
 // [개발 전용] 최적시간 차트 미리보기 (mock). 실화면 배치 후 제거 가능.
 import OptimalTimePreview from './pages/dev/OptimalTimePreview'
+
+
 
 
 
@@ -53,6 +60,12 @@ function App() {
               <Route path="/community/write" element={<CommunityWrite />} />
               <Route path="/community/:postId" element={<CommunityDetail />} />
               <Route path="/profile" element={<Profile />} />
+
+              {/* 마이페이지(유저 정보관리) */}
+              <Route path="/mypage" element={<MyPage/>}/>
+              <Route path="/account/edit" element={<AccountEdit/>}/>
+              <Route path="/change-password" element={<ChangePassword/>}/>
+              <Route path="/account/delete" element={<AccountDelete/>}/>
               
 
               {/* 반려견 프로필 페이지 */}
