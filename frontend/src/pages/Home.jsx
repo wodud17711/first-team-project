@@ -88,7 +88,7 @@ function Home() {
                       <p className="mt-[5px] text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
                     </div>
                   <div className='w-full mt-2 h-px bg-black/20'/>
-                  <button className="text-[14px]">마이페이지</button>
+                  <button onClick={() => navigate("/mypage")} className="text-[14px]">마이페이지</button>
                 </div>
 
                 {/* 대표 강아지 */}
