@@ -42,15 +42,23 @@ public class PostController {
     public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String subTag,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(defaultValue = "0") int page,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
+
+        Long userId = null;
+
+        if (userDetails != null) {
+            userId = Long.parseLong(userDetails.getUsername());
+        }
 
         return ResponseEntity.ok(
                 ApiResponse.success(
                         postService.getPosts(
                                 categoryId,
                                 subTag,
-                                page
+                                page,
+                                userId
                         )
                 )
         );
@@ -58,12 +66,22 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> getPost(
-            @PathVariable Long postId
+            @PathVariable Long postId,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
+
+        Long userId = null;
+
+        if (userDetails != null) {
+            userId = Long.parseLong(userDetails.getUsername());
+        }
 
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        postService.getPost(postId)
+                        postService.getPost(
+                                postId,
+                                userId
+                        )
                 )
         );
     }
