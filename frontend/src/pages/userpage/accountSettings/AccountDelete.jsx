@@ -6,7 +6,7 @@
 import { useNavigate } from "react-router-dom"
 
 // 훅 가져오기
-import { useMe } from "../../hooks/useMe"
+import { useMe } from "../../../hooks/useMe"
 
 function AccountDelete() {
 
