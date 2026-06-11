@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,38 +37,35 @@ public class CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        Comment parent = commentRepository.findById(
-                request.getParentCommentId()
-        ).orElseThrow(
-                () -> new BusinessException(
-                        ErrorCode.COMMENT_NOT_FOUND
-                )
-        );
-
-        if (parent.getParentComment() != null) {
-            throw new BusinessException(
-                    ErrorCode.INVALID_INPUT
-            );
-        }
-
-        if (!parent.getPost()
-                .getId()
-                .equals(postId)) {
-
-            throw new BusinessException(
-                    ErrorCode.INVALID_INPUT
-            );
-        }
+        Comment parentComment = null;
 
         if (request.getParentCommentId() != null) {
-            parent = commentRepository.findById(request.getParentCommentId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+            parentComment = commentRepository.findById(
+                    request.getParentCommentId()
+            ).orElseThrow(() ->
+                    new BusinessException(
+                            ErrorCode.COMMENT_NOT_FOUND
+                    )
+            );
+
+            if (parentComment.getParentComment() != null) {
+                throw new BusinessException(
+                        ErrorCode.INVALID_INPUT
+                );
+            }
+
+            if (!parentComment.getPost().getId().equals(postId)) {
+                throw new BusinessException(
+                        ErrorCode.INVALID_INPUT
+                );
+            }
         }
 
         Comment comment = Comment.builder()
                 .user(user)
                 .post(post)
-                .parentComment(parent)
+                .parentComment(parentComment)
                 .content(request.getContent())
                 .build();
 
