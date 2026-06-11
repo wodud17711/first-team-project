@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/breeds/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories", "/api/posts/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
