@@ -15,7 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,171 +28,114 @@ public class CommentService {
     private final UserRepository userRepository;
 
     /**
-     * 댓글 작성
+     * 댓글 작성 (대댓글 포함)
      */
-    public Long createComment(
-            Long postId,
-            CreateCommentRequest request,
-            Long userId
-    ) {
+    public Long createComment(Long postId, CreateCommentRequest request, Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorCode.USER_NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorCode.POST_NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        Comment parentComment = null;
+        Comment parent = null;
 
         if (request.getParentCommentId() != null) {
-
-            parentComment = commentRepository.findById(
-                            request.getParentCommentId()
-                    )
-                    .orElseThrow(() ->
-                            new BusinessException(
-                                    ErrorCode.COMMENT_NOT_FOUND
-                            )
-                    );
+            parent = commentRepository.findById(request.getParentCommentId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
         }
 
         Comment comment = Comment.builder()
                 .user(user)
                 .post(post)
-                .parentComment(parentComment)
+                .parentComment(parent)
                 .content(request.getContent())
                 .build();
 
-        commentRepository.save(comment);
+        Comment saved = commentRepository.save(comment);
 
         post.increaseCommentCount();
 
-        return comment.getId();
+        return saved.getId();
     }
 
     /**
-     * 댓글 목록 조회
+     * 댓글 목록 (트리 구조)
      */
     @Transactional(readOnly = true)
-    public List<CommentResponse> getComments(
-            Long postId,
-            Long loginUserId
-    ) {
+    public List<CommentResponse> getComments(Long postId, Long loginUserId) {
 
         List<Comment> comments =
-                commentRepository
-                        .findByPost_IdAndDeletedAtIsNullOrderByCreatedAtAsc(
-                                postId
-                        );
+                commentRepository.findByPost_IdAndDeletedAtIsNullOrderByCreatedAtAsc(postId);
 
-        return comments.stream()
-                .filter(comment ->
-                        comment.getParentComment() == null
-                )
-                .map(parent -> {
+        // 1) DTO 변환 Map
+        Map<Long, CommentResponse> map = new LinkedHashMap<>();
 
-                    List<CommentResponse> replies =
-                            commentRepository
-                                    .findByParentComment_IdAndDeletedAtIsNullOrderByCreatedAtAsc(
-                                            parent.getId()
-                                    )
-                                    .stream()
-                                    .map(reply ->
-                                            CommentResponse.from(
-                                                    reply,
-                                                    loginUserId,
-                                                    List.of()
-                                            )
-                                    )
-                                    .toList();
+        // 2) 먼저 전체 댓글 DTO로 변환 (replies 비워둠)
+        for (Comment c : comments) {
+            map.put(
+                    c.getId(),
+                    CommentResponse.from(c, loginUserId, new ArrayList<>())
+            );
+        }
 
-                    return CommentResponse.from(
-                            parent,
-                            loginUserId,
-                            replies
-                    );
+        // 3) 트리 구조 생성
+        List<CommentResponse> roots = new ArrayList<>();
 
-                })
-                .toList();
+        for (Comment c : comments) {
+
+            CommentResponse current = map.get(c.getId());
+
+            if (c.getParentComment() == null) {
+                roots.add(current);
+            } else {
+                CommentResponse parent = map.get(c.getParentComment().getId());
+
+                if (parent != null) {
+                    parent.getReplies().add(current);
+                }
+            }
+        }
+
+        return roots;
     }
 
     /**
      * 댓글 수정
      */
-    public void updateComment(
-            Long commentId,
-            UpdateCommentRequest request,
-            Long userId
-    ) {
+    public void updateComment(Long commentId, UpdateCommentRequest request, Long userId) {
 
-        Comment comment =
-                commentRepository.findById(commentId)
-                        .orElseThrow(() ->
-                                new BusinessException(
-                                        ErrorCode.COMMENT_NOT_FOUND
-                                )
-                        );
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        validateOwner(
-                comment,
-                userId
-        );
+        validateOwner(comment, userId);
 
-        comment.updateContent(
-                request.getContent()
-        );
+        comment.updateContent(request.getContent());
     }
 
     /**
-     * 댓글 삭제
+     * 댓글 삭제 (soft delete)
      */
-    public void deleteComment(
-            Long commentId,
-            Long userId
-    ) {
+    public void deleteComment(Long commentId, Long userId) {
 
-        Comment comment =
-                commentRepository.findById(commentId)
-                        .orElseThrow(() ->
-                                new BusinessException(
-                                        ErrorCode.COMMENT_NOT_FOUND
-                                )
-                        );
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        validateOwner(
-                comment,
-                userId
-        );
+        validateOwner(comment, userId);
 
         comment.softDelete();
 
-        comment.getPost()
-                .decreaseCommentCount();
+        Post post = comment.getPost();
+        post.decreaseCommentCount();
     }
 
     /**
      * 작성자 검증
      */
-    private void validateOwner(
-            Comment comment,
-            Long userId
-    ) {
+    private void validateOwner(Comment comment, Long userId) {
 
-        if (!comment.getUser()
-                .getId()
-                .equals(userId)) {
-
-            throw new BusinessException(
-                    ErrorCode.COMMENT_NOT_FOUND
-            );
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NOT_YOUR_POST);
         }
     }
 }
