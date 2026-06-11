@@ -6,7 +6,7 @@
 - **문자셋**: utf8mb4 (이모지 지원)
 - **타임존**: Asia/Seoul
 - **테이블 수**: 25개
-- **버전**: v1.5 (2026-06-02)
+- **버전**: v1.6 (2026-06-11) — post_likes: 복합 PK → id PK + UNIQUE(post_id, user_id)
 
 ---
 
@@ -91,7 +91,7 @@
 | `user_badges` | (user_id, badge_id) | 같은 배지 중복 획득 |
 | `user_achievements` | (user_id, achievement_id) | 같은 업적 중복 |
 | `walk_route_reviews` | (walk_route_id, user_id) | 리뷰 도배 |
-| `post_likes` | (user_id, post_id) PK | 무한 좋아요 |
+| `post_likes` | (post_id, user_id) UNIQUE | 무한 좋아요 (v1.6: 복합 PK → id PK + UNIQUE, 엔티티 컨벤션 통일) |
 | `walking_companions` | (post_id, user_id) | 중복 참여 신청 |
 | `walk_missions` | (walk_id, mission_id) | 미션 중복 수행 |
 | `refresh_tokens` | (user_id, token_hash) | RT 중복 저장 |
