@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Builder
@@ -36,7 +37,12 @@ public class CommentResponse {
                 .userId(comment.getUser().getId())
                 .author(comment.getUser().getNickname())
                 .content(comment.getContent())
-                .mine(comment.getUser().getId().equals(loginUserId))
+                .mine(
+                        Objects.equals(
+                                comment.getUser().getId(),
+                                loginUserId
+                        )
+                )
                 .createdAt(comment.getCreatedAt())
                 .replies(replies)
                 .build();
