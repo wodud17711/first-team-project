@@ -61,7 +61,7 @@ function CommunityDetail() {
     if (!post || likeBusy) return
     setLikeBusy(true)
     try {
-      const { liked, likeCount } = await likePost(post.postId, post.liked)
+      const { liked, likeCount } = await likePost(post.postId, post.liked, post.likeCount)
       setPost((p) => ({ ...p, liked, likeCount }))
     } catch (e) {
       console.error(e)
