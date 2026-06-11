@@ -16,6 +16,8 @@ function ChangePassword() {
     const navigate = useNavigate()
     const { me, loading } = useMe()
 
+    const isApiReady = false
+
     const [form, setForm] = useState({
       currentPassword: "",
       newPassword: "",
@@ -74,6 +76,8 @@ function ChangePassword() {
 
     const handleSubmit = async (e) => {
       e?.preventDefault()
+
+      if (!isApiReady) return
 
       if (
         !form.currentPassword.trim() ||
@@ -287,10 +291,10 @@ function ChangePassword() {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 mt-2 mb-1 border-t">
-                        <button onClick={handleSubmit} disabled={submitting}
+                        <button disabled
                         className="px-4 py-2 w-[140px] bg-sky-500 text-white text-[14px] font-bold rounded-xl hover:bg-sky-600 transition"
                         >
-                        {submitting ? '변경 중...' : '비밀번호 변경하기'}
+                        비밀번호 변경 (준비 중)
                         </button>
 
                         <button onClick={handleGoDetail}
