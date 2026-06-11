@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.1 (2026-05-20, 59개 엔드포인트, schema v1.4 매핑)
+- **버전**: v3.2 (2026-06-11, 62개 엔드포인트, schema v1.4 매핑)
 
 ---
 
@@ -83,7 +83,7 @@
 
 ---
 
-## 📋 API 목록 (총 59개)
+## 📋 API 목록 (총 62개)
 
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
@@ -96,6 +96,7 @@
 | 산책로 | 5 | Phase 2 | walk_routes, walk_route_reviews |
 | 게시판 | 10 | MVP | posts, comments, categories |
 | 좋아요 | 2 | MVP | post_likes |
+| 내 활동 | 3 | MVP | posts, comments, post_likes |
 | 동반 산책 | 4 | Phase 2 | walking_companions |
 | 배지/업적 | 4 | Phase 2 | badges, achievements |
 | 미션 | 3 | Phase 2 | daily_missions, walk_missions |
@@ -103,7 +104,7 @@
 | AI Q&A | 2 | Phase 2 | qna_history |
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
-| **합계** | **59** | MVP 36 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **62** | MVP 39 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
@@ -125,6 +126,18 @@
 | GET | `/api/users/me` | 내 정보 조회 | ✅ |
 | PATCH | `/api/users/me` | 내 정보 수정 | ✅ |
 | DELETE | `/api/users/me` | 회원 탈퇴 (soft delete) | ✅ |
+
+### 🗂 My Activity (내 활동) - 3개 (v3.2 신규, 마이페이지용)
+
+| 메서드 | URL | 설명 | 인증 |
+| --- | --- | --- | --- |
+| GET | `/api/users/me/posts` | 내가 작성한 게시글 목록 | ✅ |
+| GET | `/api/users/me/comments` | 내가 작성한 댓글 목록 | ✅ |
+| GET | `/api/users/me/likes` | 내가 좋아요한 게시글 목록 | ✅ |
+
+> - **개수 전용 API 없음**: 마이페이지 카운트는 각 목록 응답의 `totalElements` 사용 (`size=1`로 호출해 숫자만 읽기).
+> - **구현 선행 조건**: comments·post_likes 엔티티 (댓글·좋아요 BE 후속 PR). 그 PR 머지 후 "내 활동 3종"을 한 PR로 구현 (담당: 윤소윤).
+> - 상세 계약은 아래 [내 활동 조회 (마이페이지)](#-내-활동-조회-마이페이지) 참고.
 
 ### 🐕 Dog (반려견) - 5개
 
@@ -858,6 +871,99 @@ Authorization: Bearer {token}
 
 ---
 
+### 🗂 내 활동 조회 (마이페이지)
+
+> 마이페이지 "내가 쓴 글 / 내가 쓴 댓글 / 좋아요한 글" 카운트 + 목록.
+> 카운트는 별도 API 없이 목록 응답의 `totalElements` 를 쓴다 (`size=1` 호출).
+> 목록 클릭 시 FE 는 `postId` 로 게시글 상세(`GET /api/posts/{postId}`)로 이동.
+
+#### 내가 작성한 게시글
+
+```
+GET /api/users/me/posts?page=0&size=20
+Authorization: Bearer {token}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| page | Integer | ❌ | 페이지 번호 (기본 0) |
+| size | Integer | ❌ | 페이지 크기 (기본 20) |
+
+**Response 200** — `GET /api/posts` 목록과 **동일 DTO**(PostSummaryResponse) 재사용, 최신순 고정.
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "postId": 50,
+        "category": "사료·간식",
+        "subTag": "사료",
+        "title": "포메라니안 사료 추천 좀 해주세요",
+        "author": "댕댕이맘",
+        "commentCount": 3,
+        "likeCount": 5,
+        "viewCount": 12,
+        "thumbnailUrl": "https://...",
+        "createdAt": "2026-06-11T16:00:00"
+      }
+    ],
+    "totalElements": 7,
+    "totalPages": 1
+  }
+}
+```
+
+#### 내가 작성한 댓글
+
+```
+GET /api/users/me/comments?page=0&size=20
+Authorization: Bearer {token}
+```
+
+**Response 200** — 어떤 글의 댓글인지 이동할 수 있도록 `postId`·`postTitle` 포함, 최신순 고정.
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "commentId": 12,
+        "postId": 50,
+        "postTitle": "포메라니안 사료 추천 좀 해주세요",
+        "content": "저희 집은 ○○ 사료 먹여요!",
+        "createdAt": "2026-06-11T17:00:00"
+      }
+    ],
+    "totalElements": 3,
+    "totalPages": 1
+  }
+}
+```
+
+- 원글이 삭제된 댓글은 목록에서 **제외** (FE 에서 죽은 링크 방지).
+
+#### 내가 좋아요한 게시글
+
+```
+GET /api/users/me/likes?page=0&size=20
+Authorization: Bearer {token}
+```
+
+**Response 200** — `/api/users/me/posts` 와 동일 DTO(PostSummaryResponse), **좋아요 누른 시각 최신순**.
+
+- 좋아요 이후 원글이 삭제되면 목록에서 제외.
+
+#### 공통
+
+- 3개 모두 **인증 필수** (`UNAUTHORIZED` 401). 본인 데이터만 조회되므로 별도 권한 에러 없음.
+- **구현 선행 조건**: comments·post_likes 엔티티(댓글·좋아요 BE 후속 PR). `me/posts` 는 Post 만으로 가능하지만, 후속 PR 머지 뒤 **3종을 한 PR**로 묶어 구현한다 (담당: 윤소윤, 2026-06-11 PM 결정).
+- FE(정선혜)는 BE 전까지 mock 으로 UI 선행 가능 (커뮤니티 실연동과 동일한 플래그 전환 패턴).
+
+---
+
 ### 🔔 알림 목록
 
 ```
@@ -1000,3 +1106,4 @@ Authorization: Bearer {token}
 | v2.0 | 2026-05-19 | 60개로 확장, 전체 기능 매핑 (노션 산출물) | 연수 |
 | v3.0 | 2026-05-20 | docs/06 공식 통합 (60개 + 표준 응답 포맷 + 서브태그 시스템) | 연수 |
 | v3.1 | 2026-05-20 | RT를 HttpOnly 쿠키로 / Phase 컬럼 / `/api/auth/me` 삭제(→`/users/me`, 59개) / activityLevel 한글 ENUM / refresh_tokens·role (schema v1.4) | 연수 |
+| v3.2 | 2026-06-11 | 내 활동 3개 추가(`/users/me/posts`·`/comments`·`/likes`, 62개) — 마이페이지 카운트·목록. 카운트=totalElements, 댓글·좋아요 BE 후속 PR 뒤 한 PR 구현 | 재영 |
