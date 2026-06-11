@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """커뮤니티 FE 실연동 검증용 데모 데이터 시드.
 
-signup→login→게시글 3건 생성 (한글은 셸 인코딩 함정 회피를 위해 Python 직접 전송).
+signup→login→게시글 3건 + 댓글·대댓글 생성 (한글은 셸 인코딩 함정 회피를 위해 Python 직접 전송).
 BE 재시작(ddl-auto=create) 후 재실행하면 됨.
 """
 import json
@@ -46,11 +46,29 @@ def main():
         status, res = call("POST", "/api/posts", p, token)
         print("create:", status, res.get("data"))
 
+    # 댓글·대댓글 (#84) — postId 1(사료 질문)에 다른 유저 댓글 + 글쓴이 대댓글
+    call("POST", "/api/auth/signup",
+         {"email": "demo2@daengion.com", "password": pw, "nickname": "말티즈러버"})
+    status, res = call("POST", "/api/auth/login",
+                       {"email": "demo2@daengion.com", "password": pw})
+    token2 = res["data"]
+
+    status, res = call("POST", "/api/posts/1/comments",
+                       {"content": "저희는 연어 단일단백 사료 먹이는데 잘 맞아요!",
+                        "parentCommentId": None}, token2)
+    parent_id = res.get("data")
+    print("comment:", status, parent_id)
+    status, res = call("POST", "/api/posts/1/comments",
+                       {"content": "오 연어 좋네요! 한번 찾아볼게요 감사합니다 :)",
+                        "parentCommentId": parent_id}, token)
+    print("reply:", status, res.get("data"))
+
     status, res = call("GET", "/api/posts?page=0")
     items = res["data"]["content"]
     print(f"list: {status}, {len(items)} posts")
     for it in items:
-        print("  -", it["postId"], it["category"], it["title"], "by", it["author"])
+        print("  -", it["postId"], it["category"], it["title"],
+              "by", it["author"], f"(댓글 {it['commentCount']})")
 
 
 if __name__ == "__main__":
