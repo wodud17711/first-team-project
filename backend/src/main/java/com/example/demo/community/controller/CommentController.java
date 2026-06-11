@@ -1,5 +1,7 @@
 package com.example.demo.community.controller;
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.community.dto.CommentResponse;
 import com.example.demo.community.dto.CreateCommentRequest;
@@ -12,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +33,11 @@ public class CommentController {
             @AuthenticationPrincipal UserDetails userDetails
     ) {
 
-        Long userId = resolveUserId(userDetails);
+        Long userId = null;
+
+        if (userDetails != null) {
+            userId = Long.parseLong(userDetails.getUsername());
+        }
 
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -46,7 +53,7 @@ public class CommentController {
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<Long>> createComment(
             @PathVariable Long postId,
-            @RequestBody CreateCommentRequest request,
+            @RequestBody @Valid CreateCommentRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
 
@@ -66,7 +73,7 @@ public class CommentController {
     @PatchMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable Long commentId,
-            @RequestBody UpdateCommentRequest request,
+            @RequestBody @Valid UpdateCommentRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
 
@@ -102,10 +109,22 @@ public class CommentController {
      * userId 파싱 (AuthController/UserController와 동일 패턴 유지)
      */
     private Long resolveUserId(UserDetails userDetails) {
+
+        if (userDetails == null) {
+            throw new BusinessException(
+                    ErrorCode.UNAUTHORIZED
+            );
+        }
+
         try {
-            return Long.parseLong(userDetails.getUsername());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("UNAUTHORIZED");
+            return Long.parseLong(
+                    userDetails.getUsername()
+            );
+        } catch (NumberFormatException e) {
+
+            throw new BusinessException(
+                    ErrorCode.UNAUTHORIZED
+            );
         }
     }
 }
