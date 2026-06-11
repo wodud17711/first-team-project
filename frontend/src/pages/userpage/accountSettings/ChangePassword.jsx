@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom"
 import { useMe } from "../../../hooks/useMe"
 import { useState } from "react"
 
+import { changePassword } from "../../../api/users"
+
 function ChangePassword() {
 
     const navigate = useNavigate()

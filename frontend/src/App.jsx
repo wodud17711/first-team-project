@@ -18,7 +18,7 @@ import AccountEdit from './pages/userpage/accountSettings/AccountEdit'
 import ChangePassword from './pages/userpage/accountSettings/ChangePassword'
 import AccountDelete from './pages/userpage/accountSettings/AccountDelete'
 import MypagePosts from './pages/userpage/myActivities/MypagePosts'
-import MypageComments from './pages/userpage/myActivities/Mypagecomments'
+import MypageComments from './pages/userpage/myActivities/MypageComments'
 import MypageLikes from './pages/userpage/myActivities/MypageLikes'
 
 import DogListPage from './pages/dogs/DogListPage'
