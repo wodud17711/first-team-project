@@ -79,4 +79,13 @@ public class WalkScore {
                 .measuredAt(LocalDateTime.now())
                 .build();
     }
+
+    /**
+     * 이 점수를 특정 산책에 귀속한다(walk_id 연결).
+     *
+     * <p>산책 시작 시 직전에 조회만 했던 점수(walk_id NULL)를 그 산책의 스냅샷으로 연결할 때 사용한다.
+     */
+    public void linkTo(Long walkId) {
+        this.walkId = walkId;
+    }
 }

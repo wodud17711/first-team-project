@@ -16,11 +16,12 @@ import {
   createPostMock,
   getCommentsMock,
   createCommentMock,
-  toggleLikeMock,
 } from '../mocks/community.mock'
 
-// 커뮤니티 BE(#68) 머지되면 false 로 바꿀 것. (mock import 도 함께 정리)
-const USE_MOCK = true
+// 카테고리·게시글 CRUD(#68) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
+const USE_MOCK_POSTS = false
+// 댓글·좋아요 BE 는 후속 PR. 그 전까지 mock 유지 (BE 나오면 false).
+const USE_MOCK_SOCIAL = true
 
 /**
  * 카테고리 + 서브태그 목록 fetch hook.
@@ -36,7 +37,7 @@ export function useCategories() {
     ;(async () => {
       setLoading(true)
       try {
-        const data = USE_MOCK ? CATEGORIES_MOCK : await getCategories()
+        const data = USE_MOCK_POSTS ? CATEGORIES_MOCK : await getCategories()
         if (alive) setCategories(data ?? [])
       } catch (e) {
         if (alive) setError(e)
@@ -67,7 +68,7 @@ export function usePosts({ categoryId, subTag, sort = 'latest' } = {}) {
       setLoading(true)
       setError(null)
       try {
-        const data = USE_MOCK
+        const data = USE_MOCK_POSTS
           ? getPostsMock({ categoryId, subTag, sort })
           : await getPosts({ categoryId, subTag, sort })
         if (alive) {
@@ -102,8 +103,10 @@ export function usePost(postId) {
       setLoading(true)
       setError(null)
       try {
-        const data = USE_MOCK ? getPostMock(postId) : await getPost(postId)
-        if (!data) throw new Error('POST_NOT_FOUND')
+        const raw = USE_MOCK_POSTS ? getPostMock(postId) : await getPost(postId)
+        if (!raw) throw new Error('POST_NOT_FOUND')
+        // 실응답(PostResponse)은 category 명을 categoryName 으로 줌 → FE 가 읽는 category 로 정규화
+        const data = { ...raw, category: raw.category ?? raw.categoryName }
         if (alive) setPost(data)
       } catch (e) {
         if (alive) setError(e)
@@ -131,7 +134,7 @@ export function useComments(postId) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const data = USE_MOCK ? getCommentsMock(postId) : await getComments(postId)
+      const data = USE_MOCK_SOCIAL ? getCommentsMock(postId) : await getComments(postId)
       setComments(data ?? [])
     } catch (e) {
       setError(e)
@@ -149,7 +152,7 @@ export function useComments(postId) {
   const submit = useCallback(
     async (content, parentCommentId = null) => {
       const body = { content, parentCommentId, createdAt: new Date().toISOString() }
-      if (USE_MOCK) createCommentMock(postId, body)
+      if (USE_MOCK_SOCIAL) createCommentMock(postId, body)
       else await createComment(postId, { content, parentCommentId })
       await load()
     },
@@ -165,7 +168,7 @@ export function useComments(postId) {
  * @returns {Promise<number>} 생성된 postId
  */
 export async function submitPost(body) {
-  if (USE_MOCK) {
+  if (USE_MOCK_POSTS) {
     const created = createPostMock({ ...body, createdAt: new Date().toISOString() })
     return created.postId
   }
@@ -175,10 +178,14 @@ export async function submitPost(body) {
 
 /**
  * 좋아요 토글 액션. { liked, likeCount } 반환.
+ * 좋아요 BE(후속 PR) 전까지는 로컬 토글(현재 카운트 기준 ±1)로 동작.
  * @param {number|string} postId
  * @param {boolean} currentlyLiked
+ * @param {number} currentLikeCount 현재 표시 중인 좋아요 수 (mock 계산용)
  */
-export async function likePost(postId, currentlyLiked) {
-  if (USE_MOCK) return toggleLikeMock(postId)
+export async function likePost(postId, currentlyLiked, currentLikeCount = 0) {
+  if (USE_MOCK_SOCIAL) {
+    return { liked: !currentlyLiked, likeCount: currentLikeCount + (currentlyLiked ? -1 : 1) }
+  }
   return toggleLike(postId, currentlyLiked)
 }
