@@ -1,9 +1,14 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.6
--- 작성일: 2026-05-19 (v1.6: 2026-06-11)
+-- 반려견 산책 라이프 플랫폼 ERD v1.7
+-- 작성일: 2026-05-19 (v1.7: 2026-06-11)
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
 -- 테이블: 25개
+--
+-- 변경 사항 (v1.6 → v1.7) — 보호자 연차 (2026-06-11 PM·FE 협의 결정)
+--  • users: guardian_level VARCHAR(20) NULL 추가 — 자기신고 선택형 (BEGINNER/JUNIOR/SENIOR/VETERAN)
+--    가입일 기반 자동계산 금지(가입일≠실제 반려경험). NULL=미설정(가입 시 선택 또는 마이페이지에서 입력)
+--    용도: 커뮤니티 작성자 닉네임 옆 연차 뱃지(authorLevel). Phase2 견주유형의 라이트버전 — 뱃지 하나로 한정
 --
 -- 변경 사항 (v1.5 → v1.6) — post_likes 를 surrogate PK 구조로 변경 (2026-06-11 PM 결정)
 --  • post_likes: 복합 PK(user_id, post_id) → id PK + UNIQUE(post_id, user_id)
@@ -78,6 +83,7 @@ CREATE TABLE users (
     nickname VARCHAR(50) NOT NULL COMMENT '닉네임',
     profile_image_url VARCHAR(500) COMMENT '프로필 이미지 URL',
     role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '권한 (USER / ADMIN)',
+    guardian_level VARCHAR(20) NULL COMMENT '보호자 연차 자기신고 (BEGINNER/JUNIOR/SENIOR/VETERAN, NULL=미설정) v1.7',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL COMMENT '탈퇴일시 (소프트 삭제)',

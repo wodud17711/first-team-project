@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.3 (2026-06-11, 62개 엔드포인트, schema v1.4 매핑)
+- **버전**: v3.4 (2026-06-11, 62개 엔드포인트, schema v1.7 매핑)
 
 ---
 
@@ -332,7 +332,8 @@ POST /api/auth/signup
 {
   "email": "user@example.com",
   "password": "password123!",
-  "nickname": "댕댕이맘"
+  "nickname": "댕댕이맘",
+  "guardianLevel": "JUNIOR"
 }
 ```
 
@@ -340,6 +341,7 @@ POST /api/auth/signup
 - email: 이메일 형식, 필수
 - password: 8자 이상, 영문+숫자 포함, 필수
 - nickname: 2~20자, 필수
+- guardianLevel: **선택** (v3.4) — `BEGINNER`/`JUNIOR`/`SENIOR`/`VETERAN` 중 하나 또는 생략(null). 그 외 값은 400 `INVALID_INPUT`. 아래 [보호자 연차](#-보호자-연차-guardian-level--v34) 참고.
 
 **Response 201**
 ```json
@@ -358,6 +360,30 @@ POST /api/auth/signup
 - 400: 유효성 검증 실패 (`INVALID_INPUT`)
 - 409: 이메일 중복 (`EMAIL_DUPLICATED`)
 - 409: 닉네임 중복 (`NICKNAME_DUPLICATED`)
+
+---
+
+### 🎖 보호자 연차 (guardian level) — v3.4
+
+> 커뮤니티 **닉네임 옆 연차 뱃지**용. 고연차 견주가 저연차 글에 맞춤 답변하도록 유도(커뮤니티 질↑).
+> **자기신고 선택형** — 가입일 기반 자동계산 금지(베테랑이 오늘 가입할 수 있음. 2026-06-10 PM·FE 협의 결정).
+> ⚠️ Phase 2 "견주 유형"의 라이트버전 — **뱃지 하나로 한정**(성격유형·레벨·포인트로 확장 금지).
+
+**등급 밴드** (`users.guardian_level VARCHAR(20)`, schema v1.7)
+
+| 값 | 표시(안) | 기준 (자기신고) |
+| --- | --- | --- |
+| `BEGINNER` | 입문 견주 | 반려 경험 1년 미만 |
+| `JUNIOR` | 주니어 견주 | 1~3년 |
+| `SENIOR` | 시니어 견주 | 3~7년 |
+| `VETERAN` | 베테랑 견주 | 7년 이상 |
+| (null) | 뱃지 미표시 | 미설정 |
+
+**API 반영 (구현 순서대로)**
+
+1. **user BE**: `POST /api/auth/signup` request `guardianLevel`(선택) / `GET·PATCH /api/users/me` 응답·수정에 `guardianLevel` 포함 (PATCH 로 변경 가능 — 마이페이지 셀렉트)
+2. **community BE**: 작성자가 노출되는 모든 응답 DTO 에 **`authorLevel`**(string|null) 추가 — `PostSummaryResponse`(목록)·`PostResponse`(상세)·`CommentResponse`(댓글, replies 포함). 값 = 작성자의 `guardian_level` 그대로(BEGINNER 등), null 이면 FE 가 뱃지 생략
+3. **FE**: 가입/마이페이지 셀렉트(미선택 허용) + 닉네임 옆 뱃지 렌더 (표시 문구는 FE 재량)
 
 ---
 
@@ -1158,3 +1184,4 @@ Authorization: Bearer {token}
 | v3.1 | 2026-05-20 | RT를 HttpOnly 쿠키로 / Phase 컬럼 / `/api/auth/me` 삭제(→`/users/me`, 59개) / activityLevel 한글 ENUM / refresh_tokens·role (schema v1.4) | 연수 |
 | v3.2 | 2026-06-11 | 내 활동 3개 추가(`/users/me/posts`·`/comments`·`/likes`, 62개) — 마이페이지 카운트·목록. 카운트=totalElements, 댓글·좋아요 BE 후속 PR 뒤 한 PR 구현 | 재영 |
 | v3.3 | 2026-06-11 | 댓글 응답 정본 등재(#84 구현 반영) — 트리 구조(`replies[]`)+`mine`, 1단계 제한·같은 글 부모 검증·부모 삭제 cascade | 재영 |
+| v3.4 | 2026-06-11 | 보호자 연차(guardian level) 추가 — signup `guardianLevel`(선택)·`users/me` 노출/수정·커뮤니티 작성자 `authorLevel`(후속) / 등급 BEGINNER·JUNIOR·SENIOR·VETERAN, 자기신고(자동계산 금지) (schema v1.7) | 재영 |
