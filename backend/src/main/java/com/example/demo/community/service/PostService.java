@@ -115,6 +115,7 @@ public class PostService {
     /**
      * 게시글 목록 조회
      */
+    @Transactional(readOnly = true)
     public Page<PostSummaryResponse> getPosts(
             Long categoryId,
             String subTag,

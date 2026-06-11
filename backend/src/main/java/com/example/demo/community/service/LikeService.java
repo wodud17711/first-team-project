@@ -2,6 +2,7 @@ package com.example.demo.community.service;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.community.dto.LikeResponse;
 import com.example.demo.community.entity.Post;
 import com.example.demo.community.entity.PostLike;
 import com.example.demo.community.repository.PostLikeRepository;
@@ -9,6 +10,7 @@ import com.example.demo.community.repository.PostRepository;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,7 @@ public class LikeService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
 
-    public boolean toggleLike(
+    public LikeResponse toggleLike(
             Long postId,
             Long userId
     ) {
@@ -52,19 +54,38 @@ public class LikeService {
 
             post.decreaseLikeCount();
 
-            return false;
+            return LikeResponse.builder()
+                    .postId(postId)
+                    .likeCount(post.getLikeCount())
+                    .liked(false)
+                    .build();
         }
 
-        PostLike like = PostLike.builder()
-                .user(user)
-                .post(post)
-                .build();
+        try {
 
-        postLikeRepository.save(like);
+            PostLike like = PostLike.builder()
+                    .user(user)
+                    .post(post)
+                    .build();
+
+            postLikeRepository.save(like);
+
+        } catch (DataIntegrityViolationException e) {
+
+            return LikeResponse.builder()
+                    .postId(postId)
+                    .likeCount(post.getLikeCount())
+                    .liked(true)
+                    .build();
+        }
 
         post.increaseLikeCount();
 
-        return true;
+        return LikeResponse.builder()
+                .postId(postId)
+                .likeCount(post.getLikeCount())
+                .liked(true)
+                .build();
     }
 
     @Transactional(readOnly = true)

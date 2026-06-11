@@ -1,6 +1,7 @@
 package com.example.demo.community.controller;
 
 import com.example.demo.common.response.ApiResponse;
+import com.example.demo.community.dto.LikeResponse;
 import com.example.demo.community.service.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/{postId}/likes")
-    public ResponseEntity<ApiResponse<Boolean>> toggleLike(
+    public ResponseEntity<ApiResponse<LikeResponse>> toggleLike(
             @PathVariable Long postId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
@@ -29,7 +30,7 @@ public class LikeController {
                         userDetails.getUsername()
                 );
 
-        boolean liked =
+        LikeResponse result =
                 likeService.toggleLike(
                         postId,
                         userId
@@ -37,10 +38,7 @@ public class LikeController {
 
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        liked,
-                        liked
-                                ? "좋아요 추가"
-                                : "좋아요 취소"
+                        result
                 )
         );
     }
