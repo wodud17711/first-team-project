@@ -38,7 +38,28 @@ public class CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        Comment parent = null;
+        Comment parent = commentRepository.findById(
+                request.getParentCommentId()
+        ).orElseThrow(
+                () -> new BusinessException(
+                        ErrorCode.COMMENT_NOT_FOUND
+                )
+        );
+
+        if (parent.getParentComment() != null) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_INPUT
+            );
+        }
+
+        if (!parent.getPost()
+                .getId()
+                .equals(postId)) {
+
+            throw new BusinessException(
+                    ErrorCode.INVALID_INPUT
+            );
+        }
 
         if (request.getParentCommentId() != null) {
             parent = commentRepository.findById(request.getParentCommentId())
@@ -123,9 +144,20 @@ public class CommentService {
 
         validateOwner(comment, userId);
 
-        comment.softDelete();
-
         Post post = comment.getPost();
+
+        List<Comment> replies =
+                commentRepository
+                        .findByParentComment_Id(
+                                comment.getId()
+                        );
+
+        for (Comment reply : replies) {
+            reply.softDelete();
+            post.decreaseCommentCount();
+        }
+
+        comment.softDelete();
         post.decreaseCommentCount();
     }
 

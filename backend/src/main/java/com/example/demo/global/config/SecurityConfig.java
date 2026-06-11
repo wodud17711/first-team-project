@@ -41,8 +41,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/breeds/**").permitAll()
-                        // 커뮤니티 공개 조회 (06-api-spec: GET categories/posts는 비인증 허용)
-                        .requestMatchers(HttpMethod.GET, "/api/categories", "/api/posts/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

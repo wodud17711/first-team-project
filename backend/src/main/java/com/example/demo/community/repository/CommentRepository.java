@@ -15,6 +15,10 @@ public interface CommentRepository
             Long postId
     );
 
+    List<Comment> findByParentComment_Id(
+            Long parentCommentId
+    );
+
     /**
      * 특정 댓글의 대댓글 조회
      */
