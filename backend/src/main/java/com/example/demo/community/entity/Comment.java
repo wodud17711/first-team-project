@@ -14,15 +14,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(
-        name = "posts",
+        name = "comments",
         indexes = {
-                @Index(name = "idx_posts_category_id", columnList = "category_id"),
-                @Index(name = "idx_posts_created_at", columnList = "created_at"),
-                @Index(name = "idx_posts_user_id", columnList = "user_id")
+                @Index(name = "idx_comments_post_id", columnList = "post_id"),
+                @Index(name = "idx_comments_parent_id", columnList = "parent_comment_id"),
+                @Index(name = "idx_comments_user_id", columnList = "user_id")
         }
 )
 @SQLRestriction("deleted_at IS NULL")
-public class Post {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,34 +30,21 @@ public class Post {
 
     // 작성자
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 카테고리
+    // 게시글
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
-    @Column(name = "sub_tag", length = 20)
-    private String subTag;
+    // 부모 댓글 (대댓글)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
 
-    @Column(nullable = false, length = 200)
-    private String title;
-
-    @Lob
+    @Column(nullable = false, length = 1000)
     private String content;
-
-    @Builder.Default
-    @Column(name = "view_count")
-    private Integer viewCount = 0;
-
-    @Builder.Default
-    @Column(name = "like_count")
-    private Integer likeCount = 0;
-
-    @Builder.Default
-    @Column(name = "comment_count")
-    private Integer commentCount = 0;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -79,21 +66,11 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void increaseViewCount() {
-        this.viewCount++;
-    }
-
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }
 
-    public void increaseCommentCount() {
-        this.commentCount++;
-    }
-
-    public void decreaseCommentCount() {
-        if (this.commentCount > 0) {
-            this.commentCount--;
-        }
+    public void updateContent(String content) {
+        this.content = content;
     }
 }
