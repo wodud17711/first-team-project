@@ -28,11 +28,16 @@ public class PostResponse {
 
     private Integer likeCount;
 
+    private boolean liked;
+
     private Integer commentCount;
 
     private LocalDateTime createdAt;
 
-    public static PostResponse from(Post post) {
+    public static PostResponse from(
+            Post post,
+            boolean liked
+    ) {
 
         return PostResponse.builder()
                 .postId(post.getId())
@@ -45,6 +50,7 @@ public class PostResponse {
                 .viewCount(post.getViewCount())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
+                .liked(liked)
                 .createdAt(post.getCreatedAt())
                 .build();
     }

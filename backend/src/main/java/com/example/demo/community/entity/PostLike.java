@@ -16,10 +16,17 @@ import java.time.LocalDateTime;
         name = "post_likes",
         uniqueConstraints = {
                 @UniqueConstraint(
+                        name = "uk_post_likes_post_user",
                         columnNames = {
                                 "post_id",
                                 "user_id"
                         }
+                )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_post_likes_user_id",
+                        columnList = "user_id"
                 )
         }
 )

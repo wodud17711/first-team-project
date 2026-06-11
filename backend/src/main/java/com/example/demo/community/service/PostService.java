@@ -91,7 +91,10 @@ public class PostService {
 
         post.increaseViewCount();
 
-        return PostResponse.from(post);
+        return PostResponse.from(
+                post,
+                false
+        );
     }
 
     /**
@@ -146,8 +149,17 @@ public class PostService {
         }
 
         return posts.map(
-                PostSummaryResponse::from
+                post -> PostSummaryResponse.from(
+                        post,
+                        false
+                )
         );
+
+//        boolean liked =
+//                postLikeRepository.existsByUser_IdAndPost_Id(
+//                        userId,
+//                        post.getId()
+//                );
     }
 
     /**
