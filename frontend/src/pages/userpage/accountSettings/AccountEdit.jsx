@@ -157,12 +157,12 @@ function AccountEdit() {
         <div className="flex flex-col items-center space-y-6">        
             <div className="flex items-stretch gap-6 w-full">
                 {/* 유저 프로필 + 계정 설정(왼쪽) */}
-                <div className="relative shrink-0 w-[350px] flex flex-col gap-4 mt-[32px]">
-                    <div className="flex flex-col items-center justify-center">
+                <div className="relative shrink-0 w-[350px] flex flex-col gap-3">
+                    <div className="flex flex-col items-center justify-center p-[10px]">
                         <img
                             src={previewImg || "/userpanel/humanProfile.png"}
                             alt="프로필"
-                            className="w-[150px] h-[150px] mb-2 rounded-full object-cover shadow-md"
+                            className="w-[130px] h-[130px] mb-2 rounded-full object-cover shadow-md"
                         />
 
                         {/* 변경, 삭제 버튼 */}
@@ -242,19 +242,24 @@ function AccountEdit() {
                                         guardianLevel: level.label,
                                         })
                                     }
-                                    className={`flex-1 px-3 py-3 rounded-xl border text-center ${
+                                    className={`flex-1 flex  justify-center px-3 py-4 rounded-xl border text-center ${
                                         form.guardianLevel === level.label
                                         ? "bg-brand-200 border-brand-500"
                                         : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
                                     }`}
                                     >
-                                    <div className="text-[13px] font-medium">
-                                        {level.label}
-                                    </div>
+                                        <div className="text-[13px] font-medium">
+                                            {level.label}
+                                        </div>
 
-                                    <div className="text-[11px] text-gray-500 mt-1">
-                                        {level.desc}
-                                    </div>
+                                        <div className={`text-[11px] ${
+                                            form.guardianLevel === level.label
+                                            ? "text-brand-600 text-gray-500"
+                                            : "text-gray-400/80"
+                                        }`}
+                                        >
+                                            {level.desc}
+                                        </div>
                                     </button>
                                 ))}
                             </div>
