@@ -1,6 +1,8 @@
 package com.example.demo.community.repository;
 
 import com.example.demo.community.entity.PostLike;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -19,4 +21,12 @@ public interface PostLikeRepository
     );
 
     long countByPost_Id(Long postId);
+
+    // 내가 좋아요한 게시글
+    // 좋아요 누른 시간 최신순
+    // 삭제된 게시글 제외
+    Page<PostLike> findByUser_IdAndPost_DeletedAtIsNullOrderByCreatedAtDesc(
+            Long userId,
+            Pageable pageable
+    );
 }
