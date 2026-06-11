@@ -6,6 +6,7 @@ import com.example.demo.community.dto.*;
 import com.example.demo.community.entity.Category;
 import com.example.demo.community.entity.Post;
 import com.example.demo.community.repository.CategoryRepository;
+import com.example.demo.community.repository.PostLikeRepository;
 import com.example.demo.community.repository.PostRepository;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
@@ -28,6 +29,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
 
     /**
      * 게시글 작성
@@ -80,7 +82,10 @@ public class PostService {
     /**
      * 게시글 상세 조회
      */
-    public PostResponse getPost(Long postId) {
+    public PostResponse getPost(
+            Long postId,
+            Long userId
+    ) {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() ->
@@ -91,20 +96,30 @@ public class PostService {
 
         post.increaseViewCount();
 
+        boolean liked = false;
+
+        if (userId != null) {
+            liked = postLikeRepository
+                    .existsByUser_IdAndPost_Id(
+                            userId,
+                            postId
+                    );
+        }
+
         return PostResponse.from(
                 post,
-                false
+                liked
         );
     }
 
     /**
      * 게시글 목록 조회
      */
-    @Transactional(readOnly = true)
     public Page<PostSummaryResponse> getPosts(
             Long categoryId,
             String subTag,
-            int page
+            int page,
+            Long userId
     ) {
 
         Pageable pageable = PageRequest.of(
@@ -148,18 +163,23 @@ public class PostService {
                             );
         }
 
-        return posts.map(
-                post -> PostSummaryResponse.from(
-                        post,
-                        false
-                )
-        );
+        return posts.map(post -> {
 
-//        boolean liked =
-//                postLikeRepository.existsByUser_IdAndPost_Id(
-//                        userId,
-//                        post.getId()
-//                );
+            boolean liked = false;
+
+            if (userId != null) {
+                liked = postLikeRepository
+                        .existsByUser_IdAndPost_Id(
+                                userId,
+                                post.getId()
+                        );
+            }
+
+            return PostSummaryResponse.from(
+                    post,
+                    liked
+            );
+        });
     }
 
     /**
