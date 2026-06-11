@@ -1,9 +1,14 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.5
--- 작성일: 2026-05-19 (v1.5: 2026-06-02)
+-- 반려견 산책 라이프 플랫폼 ERD v1.6
+-- 작성일: 2026-05-19 (v1.6: 2026-06-11)
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
 -- 테이블: 25개
+--
+-- 변경 사항 (v1.5 → v1.6) — post_likes 를 surrogate PK 구조로 변경 (2026-06-11 PM 결정)
+--  • post_likes: 복합 PK(user_id, post_id) → id PK + UNIQUE(post_id, user_id)
+--    (팀 엔티티 컨벤션 일관성 — @EmbeddedId 복잡도 회피. 중복 좋아요 방지는 UNIQUE 가 동일 보장)
+--  • post_likes: idx_post_likes_user_id 추가 (GET /api/users/me/likes 내 좋아요 목록용)
 --
 -- 변경 사항 (v1.4 → v1.5) — weather_snapshots 를 실제 JPA 엔티티에 정합화
 --  • weather_snapshots: 위경도 기반 → 기상청 격자(grid_x/grid_y) + base_date_time 기반으로 재정의
@@ -327,14 +332,15 @@ CREATE TABLE comments (
 -- 13. 게시글 좋아요 (post_likes) [신규]
 -- ============================================================
 CREATE TABLE post_likes (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
     post_id BIGINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, post_id),
-    INDEX idx_post_likes_post_id (post_id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '좋아요 시각 (me/likes 최신순 정렬)',
+    UNIQUE KEY uk_post_likes_post_user (post_id, user_id),
+    INDEX idx_post_likes_user_id (user_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 좋아요';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 좋아요 (중복 방지 = UNIQUE, v1.6)';
 
 -- ============================================================
 -- 14. 게시글 이미지 (post_images) [신규]
