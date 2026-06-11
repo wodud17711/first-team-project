@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.2 (2026-06-11, 62개 엔드포인트, schema v1.4 매핑)
+- **버전**: v3.3 (2026-06-11, 62개 엔드포인트, schema v1.4 매핑)
 
 ---
 
@@ -848,6 +848,56 @@ GET /api/posts?categoryId=1&subTag=건사료&page=0&size=20
 
 ---
 
+### 💬 댓글 목록 / 작성 (#84 구현 정본, 1단계 대댓글)
+
+```
+GET /api/posts/{postId}/comments        (비인증 허용 — 토큰 있으면 mine 계산)
+```
+
+**Response 200** — **트리 구조**(루트 댓글의 `replies[]` 안에 대댓글). 삭제(soft delete)된 댓글은 대댓글까지 함께 제외.
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "commentId": 1,
+      "userId": 2,
+      "author": "말티즈러버",
+      "content": "저희는 연어 사료 먹이는데 잘 맞아요!",
+      "mine": false,
+      "createdAt": "2026-06-11T12:47:00",
+      "replies": [
+        {
+          "commentId": 2,
+          "userId": 1,
+          "author": "데모견주",
+          "content": "오 감사합니다 :)",
+          "mine": true,
+          "createdAt": "2026-06-11T12:48:00",
+          "replies": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+- `mine`: 로그인 토큰 기준 본인 댓글 여부 (비인증이면 전부 false). ※ FE 내부 표현은 flat+`isMine` → `useCommunity.js` 의 `flattenCommentTree` 가 정규화.
+
+```
+POST /api/posts/{postId}/comments
+Authorization: Bearer {token}
+
+{ "content": "댓글 내용", "parentCommentId": null }
+```
+
+- `parentCommentId`: null/생략 = 일반 댓글, 값 있으면 대댓글.
+- **Response 200**: `data` = 생성된 commentId (숫자).
+- **Validation**: content 1~1000자 필수. **1단계 제한** — 대댓글에 대댓글 불가(400 `INVALID_INPUT`). **부모는 같은 게시글의 댓글**이어야 함(400 `INVALID_INPUT`). 없는 부모 404 `COMMENT_NOT_FOUND`.
+- 수정 `PATCH /api/comments/{commentId}` / 삭제 `DELETE /api/comments/{commentId}` (본인만, 아니면 403). **부모 삭제 시 대댓글도 함께 soft delete** + `commentCount` 정합 차감.
+
+---
+
 ### ❤️ 게시글 좋아요
 
 ```
@@ -1107,3 +1157,4 @@ Authorization: Bearer {token}
 | v3.0 | 2026-05-20 | docs/06 공식 통합 (60개 + 표준 응답 포맷 + 서브태그 시스템) | 연수 |
 | v3.1 | 2026-05-20 | RT를 HttpOnly 쿠키로 / Phase 컬럼 / `/api/auth/me` 삭제(→`/users/me`, 59개) / activityLevel 한글 ENUM / refresh_tokens·role (schema v1.4) | 연수 |
 | v3.2 | 2026-06-11 | 내 활동 3개 추가(`/users/me/posts`·`/comments`·`/likes`, 62개) — 마이페이지 카운트·목록. 카운트=totalElements, 댓글·좋아요 BE 후속 PR 뒤 한 PR 구현 | 재영 |
+| v3.3 | 2026-06-11 | 댓글 응답 정본 등재(#84 구현 반영) — 트리 구조(`replies[]`)+`mine`, 1단계 제한·같은 글 부모 검증·부모 삭제 cascade | 재영 |

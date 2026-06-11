@@ -20,8 +20,29 @@ import {
 
 // 카테고리·게시글 CRUD(#68) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
 const USE_MOCK_POSTS = false
-// 댓글·좋아요 BE 는 후속 PR. 그 전까지 mock 유지 (BE 나오면 false).
-const USE_MOCK_SOCIAL = true
+// 댓글 CRUD(#84) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
+const USE_MOCK_COMMENTS = false
+// 좋아요 BE 는 아직 없음. 나올 때까지 로컬 토글 유지 (BE 나오면 false).
+const USE_MOCK_LIKES = true
+
+/**
+ * 실응답(#84) 댓글 트리 → FE 가 쓰는 flat 목록으로 정규화.
+ * BE: [{commentId, userId, author, content, mine, createdAt, replies:[...]}]
+ * FE: [{commentId, author, content, parentCommentId, isMine, createdAt}]
+ */
+function flattenCommentTree(nodes, parentCommentId = null) {
+  return (nodes ?? []).flatMap((n) => [
+    {
+      commentId: n.commentId,
+      author: n.author,
+      content: n.content,
+      parentCommentId,
+      isMine: n.isMine ?? n.mine ?? false,
+      createdAt: n.createdAt,
+    },
+    ...flattenCommentTree(n.replies, n.commentId),
+  ])
+}
 
 /**
  * 카테고리 + 서브태그 목록 fetch hook.
@@ -134,7 +155,9 @@ export function useComments(postId) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const data = USE_MOCK_SOCIAL ? getCommentsMock(postId) : await getComments(postId)
+      const data = USE_MOCK_COMMENTS
+        ? getCommentsMock(postId)
+        : flattenCommentTree(await getComments(postId))
       setComments(data ?? [])
     } catch (e) {
       setError(e)
@@ -152,7 +175,7 @@ export function useComments(postId) {
   const submit = useCallback(
     async (content, parentCommentId = null) => {
       const body = { content, parentCommentId, createdAt: new Date().toISOString() }
-      if (USE_MOCK_SOCIAL) createCommentMock(postId, body)
+      if (USE_MOCK_COMMENTS) createCommentMock(postId, body)
       else await createComment(postId, { content, parentCommentId })
       await load()
     },
@@ -184,7 +207,7 @@ export async function submitPost(body) {
  * @param {number} currentLikeCount 현재 표시 중인 좋아요 수 (mock 계산용)
  */
 export async function likePost(postId, currentlyLiked, currentLikeCount = 0) {
-  if (USE_MOCK_SOCIAL) {
+  if (USE_MOCK_LIKES) {
     return { liked: !currentlyLiked, likeCount: currentLikeCount + (currentlyLiked ? -1 : 1) }
   }
   return toggleLike(postId, currentlyLiked)
