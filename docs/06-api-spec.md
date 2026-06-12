@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.5 (2026-06-11, 61개 엔드포인트, schema v1.7 매핑)
+- **버전**: v3.6 (2026-06-12, 62개 엔드포인트, schema v1.7 매핑)
 
 ---
 
@@ -88,7 +88,7 @@
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
 | 인증 | 4 | MVP | users, refresh_tokens |
-| 회원 | 3 | MVP | users |
+| 회원 | 4 | MVP | users |
 | 반려견 | 5 | MVP | dogs |
 | 견종 | 2 | MVP | dog_breeds |
 | 산책 점수 | 2 | MVP(1) + Phase 3(1) | walk_scores, weather_snapshots |
@@ -104,7 +104,7 @@
 | AI Q&A | 2 | Phase 2 | qna_history |
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
-| **합계** | **61** | MVP 38 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **62** | MVP 39 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
@@ -119,13 +119,16 @@
 
 > 내 정보 조회는 `GET /api/users/me` 사용 (v3.1에서 `/api/auth/me` 삭제, 회원 영역과 통합)
 
-### 👤 User (회원) - 3개
+### 👤 User (회원) - 4개
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
 | GET | `/api/users/me` | 내 정보 조회 | ✅ |
 | PATCH | `/api/users/me` | 내 정보 수정 | ✅ |
-| DELETE | `/api/users/me` | 회원 탈퇴 (soft delete) | ✅ |
+| PATCH | `/api/users/me/password` | 비밀번호 변경 (현재 비번 검증) — v3.6 신규 | ✅ |
+| DELETE | `/api/users/me` | 회원 탈퇴 (soft delete, **현재 비번 검증** — v3.6) | ✅ |
+
+> 상세 계약은 아래 [user 보안 2종](#-user-보안-2종--v36-비밀번호-변경--탈퇴-비번-검증) 참고.
 
 ### 🗂 My Activity (내 활동) - 3개 (v3.2 신규, 마이페이지용)
 
@@ -385,6 +388,41 @@ POST /api/auth/signup
 1. **user BE**: `POST /api/auth/signup` request `guardianLevel`(선택) / `GET·PATCH /api/users/me` 응답·수정에 `guardianLevel` 포함 (PATCH 로 변경 가능 — 마이페이지 셀렉트)
 2. **community BE**: 작성자가 노출되는 모든 응답 DTO 에 **`authorLevel`**(string|null) 추가 — `PostSummaryResponse`(목록)·`PostResponse`(상세)·`CommentResponse`(댓글, replies 포함). 값 = 작성자의 `guardian_level` 그대로(BEGINNER 등), null 이면 FE 가 뱃지 생략
 3. **FE**: 가입/마이페이지 셀렉트(미선택 허용) + 닉네임 옆 뱃지 렌더 (표시 문구는 FE 재량)
+
+---
+
+### 🔒 user 보안 2종 — v3.6 (비밀번호 변경 + 탈퇴 비번 검증)
+
+> 마이페이지 #91 후속. 두 기능 모두 **"현재 비밀번호 검증"** 동일 로직 사용 → **한 PR 구현 권장** (담당: 윤소윤).
+> 불일치 시 공통 에러: **400 `PASSWORD_MISMATCH`** (로그인용 `INVALID_CREDENTIALS` 401과 분리 — 이미 인증된 사용자의 입력 오류).
+
+#### 비밀번호 변경
+
+```
+PATCH /api/users/me/password
+Authorization: Bearer {token}
+
+{ "currentPassword": "old1234!", "newPassword": "new1234!" }
+```
+
+- **Validation**: newPassword 정책 = 가입과 동일(8자 이상, 영문+숫자). currentPassword 불일치 → 400 `PASSWORD_MISMATCH`. newPassword 가 현재와 동일 → 400 `INVALID_INPUT`.
+- **Response 200**: `data: null`, message "비밀번호가 변경되었습니다".
+- **세션 처리**: 변경 성공 시 **해당 사용자의 RT 삭제**(refresh_tokens). 현재 AT 는 만료까지 유효 → FE 는 변경 직후 그대로 사용 가능, AT 만료 시점에 재로그인.
+- ⚠️ FE(#91)가 임시로 `PATCH /users/password` 를 호출 중 → **`/users/me/password` 로 수정 필요** (BE 머지 후 `isApiReady` 활성화와 함께).
+
+#### 회원 탈퇴 — 비번 검증 추가 (기존 API 변경)
+
+```
+DELETE /api/users/me
+Authorization: Bearer {token}
+
+{ "password": "current1234!" }
+```
+
+- **변경점(v3.6)**: body 에 `password` 필수. 불일치 → 400 `PASSWORD_MISMATCH` (탈퇴 안 됨).
+- 검증 통과 시 기존과 동일: soft delete + RT 삭제, 204.
+- FE 참고: axios 는 `apiClient.delete(url, { data: { password } })` 형태로 body 전송.
+- 탈퇴 사유는 **서버 미저장** (2026-06-12 PM 확정 — 데모 프로젝트 스코프, FE 사유 선택 UI 는 UX 시연용으로 유지).
 
 ---
 
@@ -1128,6 +1166,7 @@ Authorization: Bearer {token}
 | `WALK_NOT_FOUND` | 404 | 산책 기록 없음 |
 | `CATEGORY_NOT_FOUND` | 404 | 카테고리 없음 |
 | `MISSION_NOT_FOUND` | 404 | 미션 없음 |
+| `PASSWORD_MISMATCH` | 400 | 현재 비밀번호 불일치 (비번 변경·탈퇴, v3.6) |
 | `EMAIL_DUPLICATED` | 409 | 이메일 중복 |
 | `NICKNAME_DUPLICATED` | 409 | 닉네임 중복 |
 | `ALREADY_LIKED` | 409 | (v3.5 미사용 — 좋아요가 토글 방식으로 변경됨) |
@@ -1195,3 +1234,4 @@ Authorization: Bearer {token}
 | v3.3 | 2026-06-11 | 댓글 응답 정본 등재(#84 구현 반영) — 트리 구조(`replies[]`)+`mine`, 1단계 제한·같은 글 부모 검증·부모 삭제 cascade | 재영 |
 | v3.4 | 2026-06-11 | 보호자 연차(guardian level) 추가 — signup `guardianLevel`(선택)·`users/me` 노출/수정·커뮤니티 작성자 `authorLevel`(후속) / 등급 BEGINNER·JUNIOR·SENIOR·VETERAN, 자기신고(자동계산 금지) (schema v1.7) | 재영 |
 | v3.5 | 2026-06-11 | 좋아요 = 단일 POST 토글 확정(#89 구현 반영, DELETE 폐기, 62→61개) — 응답 `LikeResponse{postId,likeCount,liked}`, 목록·상세에 `liked` 필드, ALREADY_LIKED 미사용 | 재영 |
+| v3.6 | 2026-06-12 | user 보안 2종(#91 후속, 61→62개) — `PATCH /users/me/password`(현재 비번 검증, RT 삭제) 신규 + `DELETE /users/me` body `password` 필수화 / 에러 `PASSWORD_MISMATCH`(400) / 탈퇴 사유 서버 미저장 확정 | 재영 |
