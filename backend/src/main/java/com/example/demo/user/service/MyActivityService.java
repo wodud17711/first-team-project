@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MyActivityService {
 
-
     private final PostRepository postRepository;
 
     private final CommentRepository commentRepository;
@@ -46,12 +45,19 @@ public class MyActivityService {
                         userId,
                         pageable
                 )
-                .map(post ->
-                        PostSummaryResponse.from(
-                                post,
-                                false
-                        )
-                );
+                .map(post -> {
+
+                    boolean liked =
+                            postLikeRepository.existsByUser_IdAndPost_Id(
+                                    userId,
+                                    post.getId()
+                            );
+
+                    return PostSummaryResponse.from(
+                            post,
+                            liked
+                    );
+                });
     }
 
 
@@ -69,7 +75,7 @@ public class MyActivityService {
         Pageable pageable = createPageable(page, size);
 
         return commentRepository
-                .findByUser_IdAndPost_DeletedAtIsNull(
+                .findMyComments(
                         userId,
                         pageable
                 )

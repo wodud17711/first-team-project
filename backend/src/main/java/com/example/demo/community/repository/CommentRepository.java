@@ -4,6 +4,8 @@ import com.example.demo.community.entity.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -32,6 +34,26 @@ public interface CommentRepository
     // 삭제된 원글 제외
     Page<Comment> findByUser_IdAndPost_DeletedAtIsNull(
             Long userId,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+                    select c
+                    from Comment c
+                    join fetch c.post p
+                    where c.user.id = :userId
+                    """,
+            countQuery = """
+                    select count(c)
+                    from Comment c
+                    join c.post p
+                    where c.user.id = :userId
+                    and p.deletedAt is null
+                    """
+    )
+    Page<Comment> findMyComments(
+            @Param("userId") Long userId,
             Pageable pageable
     );
 }
