@@ -1,0 +1,69 @@
+
+
+
+// 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD. 정선혜 날짜 표기(슬래시) 유지.
+function timeAgo(iso) {
+  if (!iso) return "—"
+  const diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+
+  if (diffMin < 1) return "방금"
+  if (diffMin < 60) return `${diffMin}분 전`
+  if (diffMin < 60 * 24) return `${Math.floor(diffMin / 60)}시간 전`
+
+  return iso.slice(0, 10).replaceAll("-", "/")
+}
+
+// 게시글 1건 카드 (목록 행)
+function PostCard({ post, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className="
+        group flex gap-4 bg-white rounded-xl border shadow-sm px-5 py-4
+        cursor-pointer transition-all duration-200
+        hover:-translate-y-[2px] hover:shadow-md
+      "
+    >
+      {post.thumbnailUrl && (
+        <img
+          src={post.thumbnailUrl}
+          className="w-[84px] h-[84px] rounded-lg object-cover shrink-0"
+        />
+      )}
+
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center gap-[6px] mb-1">
+          <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-700 text-[12px] font-medium">
+            {post.category}
+          </span>
+
+          {post.subTag && (
+            <span className="px-2 py-[2px] rounded-full bg-gray-100 text-gray-500 text-[12px]">
+              #{post.subTag}
+            </span>
+          )}
+        </div>
+
+        <p className="text-[16px] font-bold text-gray-800 truncate group-hover:text-sky-800">
+          {post.title}
+        </p>
+
+        <div className="flex items-center gap-3 mt-2 text-[12px] text-gray-400">
+          <span className="text-gray-500">
+            {post.author ?? "익명"}
+          </span>
+
+          <span>{timeAgo(post.createdAt)}</span>
+
+          <span className="ml-auto flex items-center gap-3">
+            <span>💬 {post.commentCount ?? 0}</span>
+            <span>❤️ {post.likeCount ?? 0}</span>
+            <span>👁 {post.viewCount ?? 0}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default PostCard
