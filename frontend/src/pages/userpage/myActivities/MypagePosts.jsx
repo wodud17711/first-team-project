@@ -67,7 +67,7 @@ function MypagePosts() {
             <PostCard
               key={post.postId}
               post={post}
-              onClick={() => navigate(`${base}/${post.postId}`)}
+              onClick={() => navigate(`/community/${post.postId}`, {state: {from: "mypagePosts"}})}
             />
           ))}
         </div>
