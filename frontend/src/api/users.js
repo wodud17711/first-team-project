@@ -31,3 +31,14 @@ export async function deleteMe() {
   await apiClient.delete('/users/me')
   removeAccessToken()
 }
+
+/**
+ * 비밀번호 변경
+ * @param {{
+ *  currentPassword: string,
+ *  newPassword: string
+ * }} payload
+ */
+export async function changePassword(payload) {
+  return apiClient.patch('/users/password', payload)
+}
