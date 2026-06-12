@@ -22,8 +22,8 @@ import {
 const USE_MOCK_POSTS = false
 // 댓글 CRUD(#84) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
 const USE_MOCK_COMMENTS = false
-// 좋아요 BE 는 아직 없음. 나올 때까지 로컬 토글 유지 (BE 나오면 false).
-const USE_MOCK_LIKES = true
+// 좋아요 토글(#89) develop 머지 → 실연동 (단일 POST 토글). 문제 시 true 로 즉시 롤백.
+const USE_MOCK_LIKES = false
 
 /**
  * 실응답(#84) 댓글 트리 → FE 가 쓰는 flat 목록으로 정규화.
@@ -201,14 +201,14 @@ export async function submitPost(body) {
 
 /**
  * 좋아요 토글 액션. { liked, likeCount } 반환.
- * 좋아요 BE(후속 PR) 전까지는 로컬 토글(현재 카운트 기준 ±1)로 동작.
+ * 실연동 = 단일 POST 토글(#89) — 서버가 추가/취소를 판단해 LikeResponse 로 응답.
  * @param {number|string} postId
- * @param {boolean} currentlyLiked
+ * @param {boolean} currentlyLiked mock 롤백용 (실연동 경로에선 미사용)
  * @param {number} currentLikeCount 현재 표시 중인 좋아요 수 (mock 계산용)
  */
 export async function likePost(postId, currentlyLiked, currentLikeCount = 0) {
   if (USE_MOCK_LIKES) {
     return { liked: !currentlyLiked, likeCount: currentLikeCount + (currentlyLiked ? -1 : 1) }
   }
-  return toggleLike(postId, currentlyLiked)
+  return toggleLike(postId)
 }
