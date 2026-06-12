@@ -152,10 +152,10 @@ function WalkScore(props) {
     <div className="flex flex-col">
     
       {/* 헤더 */}
-      <WalkScoreHeader title={title} desc={desc} />
+      {/* <WalkScoreHeader title={title} desc={desc} /> */}
 
       {/* spacer */}
-      <div className="h-[208px]" />
+      {/* <div className="h-[208px]" /> */}
 
       {/* 카드 */}
       <WalkScoreCard

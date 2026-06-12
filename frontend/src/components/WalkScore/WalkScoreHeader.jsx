@@ -1,6 +1,7 @@
 // 위치 아이콘
 import locationIcon from '../../assets/locationIcon.png'
 
+
 function WalkScoreHeader({ title, desc }) {
   return (
     <div className="flex flex-col items-start justify-between mb-6">
