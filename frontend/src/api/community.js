@@ -76,3 +76,8 @@ export async function createComment(postId, body) {
 export async function toggleLike(postId) {
   return apiClient.post(`/posts/${postId}/likes`)
 }
+
+// 내가 작성한 포스트 조회
+export async function getMyPosts(params = {}) {
+  return apiClient.get('/users/me/posts', { params })
+}

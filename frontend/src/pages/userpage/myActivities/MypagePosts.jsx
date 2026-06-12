@@ -4,11 +4,18 @@
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
 
 import { useNavigate } from "react-router-dom"
+import { useMyPosts } from "../../../hooks/useCommunity"
+
+// 컴포넌트 import
+import PostCard from "../../../components/PostCard"
 
 
 function MypagePosts() {
 
   const navigate = useNavigate()
+  const { posts, total, loading, error } = useMyPosts()
+
+  
 
   return (
     <div className="p-4 animate-fadeIn">
@@ -43,6 +50,28 @@ function MypagePosts() {
         </div>
       </div>
       <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+
+      {/* 목록 */}
+      {loading ? (
+        <div className="p-4 text-gray-400">불러오는 중...</div>
+      ) : error ? (
+        <div className="p-4 text-danger">목록을 불러오지 못했습니다.</div>
+      ) : posts.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 py-16 text-gray-400">
+          <div className="text-[40px]">🐾</div>
+          <p className="text-[14px]">아직 글이 없어요. 첫 글을 남겨보세요!</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {posts.map((post) => (
+            <PostCard
+              key={post.postId}
+              post={post}
+              onClick={() => navigate(`${base}/${post.postId}`)}
+            />
+          ))}
+        </div>
+      )}
 
     </div>
   )
