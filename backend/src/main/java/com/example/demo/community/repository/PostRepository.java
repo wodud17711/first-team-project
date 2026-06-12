@@ -22,4 +22,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByDeletedAtIsNull(
             Pageable pageable
     );
+
+    // 내가 작성한 게시글
+    Page<Post> findByUser_IdAndDeletedAtIsNull(
+            Long userId,
+            Pageable pageable
+    );
 }

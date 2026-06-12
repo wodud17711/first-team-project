@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.4 (2026-06-11, 62개 엔드포인트, schema v1.7 매핑)
+- **버전**: v3.5 (2026-06-11, 61개 엔드포인트, schema v1.7 매핑)
 
 ---
 
@@ -70,7 +70,7 @@
 | 코드 | 의미 | 사용 시점 |
 | --- | --- | --- |
 | 200 | OK | 조회·수정 성공 |
-| 201 | Created | 생성 성공 (회원가입·반려견 등록·글 작성·좋아요) |
+| 201 | Created | 생성 성공 (회원가입·반려견 등록·글 작성) |
 | 204 | No Content | 삭제·로그아웃 (응답 본문 없음) |
 | 400 | Bad Request | 잘못된 요청 (유효성 검증 실패) |
 | 401 | Unauthorized | 인증 실패 (토큰 없음·만료) |
@@ -83,7 +83,7 @@
 
 ---
 
-## 📋 API 목록 (총 62개)
+## 📋 API 목록 (총 61개)
 
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
@@ -95,7 +95,7 @@
 | 산책 기록 | 7 | MVP(6) + Phase 3(1) | walks, walk_locations |
 | 산책로 | 5 | Phase 2 | walk_routes, walk_route_reviews |
 | 게시판 | 10 | MVP | posts, comments, categories |
-| 좋아요 | 2 | MVP | post_likes |
+| 좋아요 | 1 | MVP | post_likes |
 | 내 활동 | 3 | MVP | posts, comments, post_likes |
 | 동반 산책 | 4 | Phase 2 | walking_companions |
 | 배지/업적 | 4 | Phase 2 | badges, achievements |
@@ -104,7 +104,7 @@
 | AI Q&A | 2 | Phase 2 | qna_history |
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
-| **합계** | **62** | MVP 39 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **61** | MVP 38 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
@@ -256,12 +256,13 @@ GET /api/walk/optimal-time?dogId=1
 | PATCH | `/api/comments/{commentId}` | 댓글 수정 | ✅ |
 | DELETE | `/api/comments/{commentId}` | 댓글 삭제 | ✅ |
 
-### ❤️ Post Likes (좋아요) - 2개
+### ❤️ Post Likes (좋아요) - 1개 (v3.5: 단일 POST 토글로 확정)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
-| POST | `/api/posts/{postId}/likes` | 게시글 좋아요 | ✅ |
-| DELETE | `/api/posts/{postId}/likes` | 좋아요 취소 | ✅ |
+| POST | `/api/posts/{postId}/likes` | 좋아요 토글 (있으면 취소, 없으면 추가) | ✅ |
+
+> v3.5 (#89 구현 확정): DELETE 엔드포인트 폐기 — 서버가 토글 판단. 본인 좋아요 여부는 글 목록·상세 응답의 `liked` 필드로 제공.
 
 ### 👥 Companions (동반 산책) - 4개 (Phase 2)
 
@@ -924,26 +925,34 @@ Authorization: Bearer {token}
 
 ---
 
-### ❤️ 게시글 좋아요
+### ❤️ 게시글 좋아요 토글 (#89 구현 정본, v3.5)
 
 ```
 POST /api/posts/{postId}/likes
 Authorization: Bearer {token}
 ```
 
-**Response 201**
+**단일 토글** — 좋아요가 없으면 추가, 이미 있으면 취소. (DELETE 엔드포인트 없음, v3.5에서 폐기)
+
+**Response 200**
 ```json
 {
   "success": true,
   "data": {
-    "liked": true,
-    "likeCount": 24
-  }
+    "postId": 1,
+    "likeCount": 24,
+    "liked": true
+  },
+  "message": "좋아요 추가"
 }
 ```
 
+- `liked`: 토글 결과 상태 (true=추가됨, false=취소됨). FE 는 이 값으로 하트·카운트 갱신.
+- **본인 좋아요 여부 조회**: 글 목록(`PostSummaryResponse`)·상세(`PostResponse`) 응답의 `liked` 필드 (비인증이면 false).
+- 토글 방식이라 `ALREADY_LIKED`(409) 는 발생하지 않음. 동시 클릭 충돌은 서버가 liked=true 로 수렴.
+
 **Error**
-- 409: 이미 좋아요 누름 (`ALREADY_LIKED`)
+- 404: 글 없음 (`POST_NOT_FOUND`)
 
 ---
 
@@ -1121,7 +1130,7 @@ Authorization: Bearer {token}
 | `MISSION_NOT_FOUND` | 404 | 미션 없음 |
 | `EMAIL_DUPLICATED` | 409 | 이메일 중복 |
 | `NICKNAME_DUPLICATED` | 409 | 닉네임 중복 |
-| `ALREADY_LIKED` | 409 | 이미 좋아요 누름 |
+| `ALREADY_LIKED` | 409 | (v3.5 미사용 — 좋아요가 토글 방식으로 변경됨) |
 | `ALREADY_APPLIED` | 409 | 이미 동반산책 신청함 |
 | `REVIEW_ALREADY_EXISTS` | 409 | 이미 산책로 리뷰 작성함 |
 | `WALK_ALREADY_IN_PROGRESS` | 409 | 진행 중인 산책 있음 |
@@ -1185,3 +1194,4 @@ Authorization: Bearer {token}
 | v3.2 | 2026-06-11 | 내 활동 3개 추가(`/users/me/posts`·`/comments`·`/likes`, 62개) — 마이페이지 카운트·목록. 카운트=totalElements, 댓글·좋아요 BE 후속 PR 뒤 한 PR 구현 | 재영 |
 | v3.3 | 2026-06-11 | 댓글 응답 정본 등재(#84 구현 반영) — 트리 구조(`replies[]`)+`mine`, 1단계 제한·같은 글 부모 검증·부모 삭제 cascade | 재영 |
 | v3.4 | 2026-06-11 | 보호자 연차(guardian level) 추가 — signup `guardianLevel`(선택)·`users/me` 노출/수정·커뮤니티 작성자 `authorLevel`(후속) / 등급 BEGINNER·JUNIOR·SENIOR·VETERAN, 자기신고(자동계산 금지) (schema v1.7) | 재영 |
+| v3.5 | 2026-06-11 | 좋아요 = 단일 POST 토글 확정(#89 구현 반영, DELETE 폐기, 62→61개) — 응답 `LikeResponse{postId,likeCount,liked}`, 목록·상세에 `liked` 필드, ALREADY_LIKED 미사용 | 재영 |

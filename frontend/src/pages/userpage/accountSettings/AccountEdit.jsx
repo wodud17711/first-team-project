@@ -6,10 +6,10 @@
 import { useNavigate } from "react-router-dom"
 
 // 훅 가져오기
-import { useMe } from "../../hooks/useMe"
+import { useMe } from "../../../hooks/useMe"
 import { useEffect, useState } from "react"
 
-import { updateMe } from "../../api/users"
+import { updateMe } from "../../../api/users"
 
 function AccountEdit() {
 
@@ -22,11 +22,14 @@ function AccountEdit() {
     // 수정용 state
     const [form, setForm] = useState({
         nickname: "",
-        realName: "",
-        birthDate: "",
-        phone: "",
         guardianLevel: "",
     })
+
+    const guardianLevels = [
+        { label: "새싹 보호자🌱", desc: "(~ 1년)" },
+        { label: "노련한 보호자🐕", desc: "(1 ~ 5년)" },
+        { label: "베테랑 보호자🏆", desc: "(5년+)" },
+    ]
 
     // 이미지
     useEffect(() => {
@@ -40,9 +43,6 @@ function AccountEdit() {
         if (me) {
             setForm({
                 nickname: me.nickname || "",
-                realName: me.realName || "",
-                birthDate: me.birthDate || "",
-                phone: me.phone || "",
                 guardianLevel: me.guardianLevel || "",
             })
         }
@@ -157,12 +157,12 @@ function AccountEdit() {
         <div className="flex flex-col items-center space-y-6">        
             <div className="flex items-stretch gap-6 w-full">
                 {/* 유저 프로필 + 계정 설정(왼쪽) */}
-                <div className="relative shrink-0 w-[350px] flex flex-col gap-4 mt-[32px]">
-                    <div className="flex flex-col items-center justify-center">
+                <div className="relative shrink-0 w-[350px] flex flex-col gap-3">
+                    <div className="flex flex-col items-center justify-center p-[10px]">
                         <img
                             src={previewImg || "/userpanel/humanProfile.png"}
                             alt="프로필"
-                            className="w-[150px] h-[150px] mb-2 rounded-full object-cover shadow-md"
+                            className="w-[130px] h-[130px] mb-2 rounded-full object-cover shadow-md"
                         />
 
                         {/* 변경, 삭제 버튼 */}
@@ -225,54 +225,6 @@ function AccountEdit() {
                             />
                         </div>
 
-                        {/* 이름 */}
-                        <div>
-                            <label className="block mb-1 text-[14px] font-semibold text-gray-700">
-                                이름(실명) <span className="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                name="realName"
-                                value={form.realName}
-                                onChange={handleChange}
-                                className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
-                                                    focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
-                                placeholder="이름(실명)을 입력하세요"
-                            />
-                        </div>
-
-                        {/* 생년월일 */}
-                        <div>
-                            <label className="block mb-1 text-[14px] font-semibold text-gray-700">
-                                생년월일 <span className="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                name="birthDate"
-                                value={form.birthDate}
-                                onChange={handleChange}
-                                className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
-                                                    focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
-                                placeholder="생년월일(YYYY-MM-DD)을 입력하세요"
-                            />
-                        </div>
-
-                        {/* 휴대폰 번호 */}
-                        <div>
-                            <label className="block mb-1 text-[14px] font-semibold text-gray-700">
-                                휴대폰 번호 <span className="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                name="phone"
-                                value={form.phone}
-                                onChange={handleChange}
-                                className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
-                                                    focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
-                                placeholder="휴대폰 번호('-' 포함)를 입력하세요"
-                            />
-                        </div>
-
                         {/* 보호자 연차 */}
                         <div>
                             <label className="block mb-1 text-[14px] font-semibold text-gray-700">
@@ -280,25 +232,34 @@ function AccountEdit() {
                             </label>
 
                             <div className="flex gap-2">
-                                {[
-                                    "새싹 보호자🌱",
-                                    "노련한 보호자🐕",
-                                    "베테랑 보호자🏆",
-                                ].map((level) => (
+                                {guardianLevels.map((level) => (
                                     <button
-                                        key={level}
-                                        type="button"
-                                        onClick={() => setForm({
-                                            ...form,
-                                            guardianLevel: level,
-                                        })}
-                                        className={`flex-1 px-3 py-2 rounded-xl border border-gray-300 text-[13px] font-medium ${
-                                            form.guardianLevel === level
-                                                ? "bg-brand-200 border-brand-500"
-                                                : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
-                                        }`}
+                                    key={level.label}
+                                    type="button"
+                                    onClick={() =>
+                                        setForm({
+                                        ...form,
+                                        guardianLevel: level.label,
+                                        })
+                                    }
+                                    className={`flex-1 flex  justify-center px-3 py-4 rounded-xl border text-center ${
+                                        form.guardianLevel === level.label
+                                        ? "bg-brand-200 border-brand-500"
+                                        : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
+                                    }`}
                                     >
-                                        {level}
+                                        <div className="text-[13px] font-medium">
+                                            {level.label}
+                                        </div>
+
+                                        <div className={`text-[11px] ${
+                                            form.guardianLevel === level.label
+                                            ? "text-brand-600 text-gray-500"
+                                            : "text-gray-400/80"
+                                        }`}
+                                        >
+                                            {level.desc}
+                                        </div>
                                     </button>
                                 ))}
                             </div>
