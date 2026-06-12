@@ -140,7 +140,7 @@ function Home() {
         <section className="flex gap-4 mt-[72px]">
           <div>
             <p className='font-bold text-[24px]'>오늘의 산책지수</p>
-
+            <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
           </div>
           <WalkScore
             score={walk?.score}
