@@ -8,6 +8,7 @@ import com.example.demo.user.entity.RefreshToken;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.RefreshTokenRepository;
 import com.example.demo.user.repository.UserRepository;
+import com.example.demo.user.type.GuardianLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,8 @@ public class AuthService {
     public AuthResponse signup(
             String email,
             String password,
-            String nickname
+            String nickname,
+            GuardianLevel guardianLevel
     ) {
 
         // 대소문자/공백 차이로 동일 이메일 중복 가입되는 문제 차단.
@@ -60,6 +62,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(password));
         user.setNickname(normalizedNickname);
         user.setRole("USER");
+        user.setGuardianLevel(guardianLevel);
 
         userRepository.save(user);
 

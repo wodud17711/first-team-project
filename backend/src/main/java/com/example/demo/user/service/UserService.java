@@ -55,14 +55,22 @@ public class UserService {
      * @throws BusinessException NICKNAME_DUPLICATED (409) — 다른 사용자가 이미 사용 중인 닉네임
      */
     @Transactional
-    public UserResponse updateMyInfo(Long userId, UserUpdateRequest request) {
+    public UserResponse updateMyInfo(
+            Long userId,
+            UserUpdateRequest request
+    ) {
+
         User user = findUserOrThrow(userId);
 
         if (request.nickname() != null
                 && !request.nickname().equals(user.getNickname())) {
+
             if (userRepository.existsByNickname(request.nickname())) {
-                throw new BusinessException(ErrorCode.NICKNAME_DUPLICATED);
+                throw new BusinessException(
+                        ErrorCode.NICKNAME_DUPLICATED
+                );
             }
+
             user.setNickname(request.nickname());
         }
 
@@ -70,7 +78,12 @@ public class UserService {
             user.setProfileImageUrl(request.profileImageUrl());
         }
 
-        // dirty checking + @PreUpdate 가 updatedAt 자동 갱신
+        if (request.guardianLevel() != null) {
+            user.setGuardianLevel(
+                    request.guardianLevel()
+            );
+        }
+
         return UserResponse.from(user);
     }
 
