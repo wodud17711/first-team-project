@@ -32,6 +32,8 @@ public class PostSummaryResponse {
 
     private LocalDateTime createdAt;
 
+    private String authorLevel;
+
     public static PostSummaryResponse from(
             Post post,
             boolean liked
@@ -49,6 +51,11 @@ public class PostSummaryResponse {
                 .thumbnailUrl(null)
                 .liked(liked)
                 .createdAt(post.getCreatedAt())
+                .authorLevel(
+                        post.getUser().getGuardianLevel() != null
+                                ? post.getUser().getGuardianLevel().name()
+                                : null
+                )
                 .build();
     }
 }

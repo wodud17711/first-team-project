@@ -26,6 +26,8 @@ public class CommentResponse {
 
     private List<CommentResponse> replies;
 
+    private String authorLevel;
+
     public static CommentResponse from(
             Comment comment,
             Long loginUserId,
