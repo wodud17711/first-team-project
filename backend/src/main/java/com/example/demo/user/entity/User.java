@@ -1,5 +1,6 @@
 package com.example.demo.user.entity;
 
+import com.example.demo.user.type.GuardianLevel;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -60,6 +61,11 @@ public class User {
     // 탈퇴일시 (소프트 삭제)
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    // 보호자 연차
+    @Enumerated(EnumType.STRING)
+    @Column(name = "guardian_level", length = 20)
+    private GuardianLevel guardianLevel;
 
     // INSERT 시 자동 실행
     @PrePersist
