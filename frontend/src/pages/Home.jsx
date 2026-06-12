@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 // 컴포넌트
 import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore/WalkScore'
+import WalkScoreHeader from '../components/WalkScore/WalkScoreHeader'
 
 // hooks (실 API 연결)
 import { useMe } from '../hooks/useMe'
@@ -44,37 +45,29 @@ function Home() {
   return (
     <div className='relative'>
       {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[2650px] h-[610px] bg-brand-200 z-0">
+      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-brand-200 z-6">
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
-        <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/>
+        {/* <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
-        {/* 상단 콘텐츠 */}
-        <section className="grid grid-cols-[3fr_1fr] gap-4 mt-6 w-full h-[650px] overflow-hidden">
-
-          {/* LEFT - 산책지수*/}
+        {/* 헤더 + 유저패널 */}
+        <section className="relative flex justify-between mt-6">
+          {/* 헤더 */}
           <div>
-            <WalkScore
-              score={walk?.score}
-              level={walk?.level}
-              reasons={walk?.topReasons ?? []}
-              loading={walkLoading}
-              notReady={walkNotReady}
-              hasDog={firstDogId != null}
+            <WalkScoreHeader
+              title="오늘의 산책지수"
+              desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
             />
           </div>
 
-          {/* RIGHT */}
-          <div className="flex flex-col gap-4 min-w-0">
-
-            {/* 유저 패널 */}
+          {/* 유저 패널 */}
+          <div className="w-[300px] mt-[94px]">
             <div className="flex flex-col bg-black/20 backdrop-blur rounded-xl shadow p-4 overflow-hidden">
               <div className="mb-3">
                 <p className="text-[14px] uppercase tracking-wider text-white font-thin">
                   MY PROFILE
                 </p>
-
                 <p className="text-[20px] font-bold text-white">
                   오늘도 즐거운 산책 되세요
                 </p>
@@ -139,23 +132,35 @@ function Home() {
                   </div>
                 </div>
               </div>
-            
             </div>
-
-            {/* 시간별 날씨 */}
-            <div className="w-full max-w-full overflow-hidden">
-              <WeatherCard />
-            </div>
-
           </div>
         </section>
+
+        {/* 산책지수 + 시간별 날씨 */}
+        <section className="flex gap-4 mt-[72px]">
+          <div>
+            <p className='font-bold text-[24px]'>오늘의 산책지수</p>
+
+          </div>
+          <WalkScore
+            score={walk?.score}
+            level={walk?.level}
+            reasons={walk?.topReasons ?? []}
+            loading={walkLoading}
+            notReady={walkNotReady}
+            hasDog={firstDogId != null}
+          />
+
+          {/* <WeatherCard /> */}
+        </section>
+        
 
       
 
 
         {/* (코스 추천) + 코스 미리보기 + 산책 시작 + 오늘의 산책 지수 (이거는 2차긴 한데 일딴 보류)*/}
 
-        <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
+        {/* <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
           <p className="text-sm text-brand-600 font-medium mb-1">오늘의 산책</p>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             오늘의 산책지수
@@ -168,7 +173,7 @@ function Home() {
             {walk?.topReasons?.[0]
               ?? (walkNotReady ? '날씨 데이터를 준비하고 있어요' : '산책하기 좋은 날을 알려드릴게요')}
           </p>
-        </section>
+        </section> */}
 
         <section className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-4 shadow-sm">
