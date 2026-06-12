@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.1 (2026-05-20, 59개 엔드포인트, schema v1.4 매핑)
+- **버전**: v3.5 (2026-06-11, 61개 엔드포인트, schema v1.7 매핑)
 
 ---
 
@@ -70,7 +70,7 @@
 | 코드 | 의미 | 사용 시점 |
 | --- | --- | --- |
 | 200 | OK | 조회·수정 성공 |
-| 201 | Created | 생성 성공 (회원가입·반려견 등록·글 작성·좋아요) |
+| 201 | Created | 생성 성공 (회원가입·반려견 등록·글 작성) |
 | 204 | No Content | 삭제·로그아웃 (응답 본문 없음) |
 | 400 | Bad Request | 잘못된 요청 (유효성 검증 실패) |
 | 401 | Unauthorized | 인증 실패 (토큰 없음·만료) |
@@ -83,7 +83,7 @@
 
 ---
 
-## 📋 API 목록 (총 59개)
+## 📋 API 목록 (총 61개)
 
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
@@ -95,7 +95,8 @@
 | 산책 기록 | 7 | MVP(6) + Phase 3(1) | walks, walk_locations |
 | 산책로 | 5 | Phase 2 | walk_routes, walk_route_reviews |
 | 게시판 | 10 | MVP | posts, comments, categories |
-| 좋아요 | 2 | MVP | post_likes |
+| 좋아요 | 1 | MVP | post_likes |
+| 내 활동 | 3 | MVP | posts, comments, post_likes |
 | 동반 산책 | 4 | Phase 2 | walking_companions |
 | 배지/업적 | 4 | Phase 2 | badges, achievements |
 | 미션 | 3 | Phase 2 | daily_missions, walk_missions |
@@ -103,7 +104,7 @@
 | AI Q&A | 2 | Phase 2 | qna_history |
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
-| **합계** | **59** | MVP 36 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **61** | MVP 38 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
@@ -125,6 +126,18 @@
 | GET | `/api/users/me` | 내 정보 조회 | ✅ |
 | PATCH | `/api/users/me` | 내 정보 수정 | ✅ |
 | DELETE | `/api/users/me` | 회원 탈퇴 (soft delete) | ✅ |
+
+### 🗂 My Activity (내 활동) - 3개 (v3.2 신규, 마이페이지용)
+
+| 메서드 | URL | 설명 | 인증 |
+| --- | --- | --- | --- |
+| GET | `/api/users/me/posts` | 내가 작성한 게시글 목록 | ✅ |
+| GET | `/api/users/me/comments` | 내가 작성한 댓글 목록 | ✅ |
+| GET | `/api/users/me/likes` | 내가 좋아요한 게시글 목록 | ✅ |
+
+> - **개수 전용 API 없음**: 마이페이지 카운트는 각 목록 응답의 `totalElements` 사용 (`size=1`로 호출해 숫자만 읽기).
+> - **구현 선행 조건**: comments·post_likes 엔티티 (댓글·좋아요 BE 후속 PR). 그 PR 머지 후 "내 활동 3종"을 한 PR로 구현 (담당: 윤소윤).
+> - 상세 계약은 아래 [내 활동 조회 (마이페이지)](#-내-활동-조회-마이페이지) 참고.
 
 ### 🐕 Dog (반려견) - 5개
 
@@ -243,12 +256,13 @@ GET /api/walk/optimal-time?dogId=1
 | PATCH | `/api/comments/{commentId}` | 댓글 수정 | ✅ |
 | DELETE | `/api/comments/{commentId}` | 댓글 삭제 | ✅ |
 
-### ❤️ Post Likes (좋아요) - 2개
+### ❤️ Post Likes (좋아요) - 1개 (v3.5: 단일 POST 토글로 확정)
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
-| POST | `/api/posts/{postId}/likes` | 게시글 좋아요 | ✅ |
-| DELETE | `/api/posts/{postId}/likes` | 좋아요 취소 | ✅ |
+| POST | `/api/posts/{postId}/likes` | 좋아요 토글 (있으면 취소, 없으면 추가) | ✅ |
+
+> v3.5 (#89 구현 확정): DELETE 엔드포인트 폐기 — 서버가 토글 판단. 본인 좋아요 여부는 글 목록·상세 응답의 `liked` 필드로 제공.
 
 ### 👥 Companions (동반 산책) - 4개 (Phase 2)
 
@@ -319,7 +333,8 @@ POST /api/auth/signup
 {
   "email": "user@example.com",
   "password": "password123!",
-  "nickname": "댕댕이맘"
+  "nickname": "댕댕이맘",
+  "guardianLevel": "JUNIOR"
 }
 ```
 
@@ -327,6 +342,7 @@ POST /api/auth/signup
 - email: 이메일 형식, 필수
 - password: 8자 이상, 영문+숫자 포함, 필수
 - nickname: 2~20자, 필수
+- guardianLevel: **선택** (v3.4) — `BEGINNER`/`JUNIOR`/`SENIOR`/`VETERAN` 중 하나 또는 생략(null). 그 외 값은 400 `INVALID_INPUT`. 아래 [보호자 연차](#-보호자-연차-guardian-level--v34) 참고.
 
 **Response 201**
 ```json
@@ -345,6 +361,30 @@ POST /api/auth/signup
 - 400: 유효성 검증 실패 (`INVALID_INPUT`)
 - 409: 이메일 중복 (`EMAIL_DUPLICATED`)
 - 409: 닉네임 중복 (`NICKNAME_DUPLICATED`)
+
+---
+
+### 🎖 보호자 연차 (guardian level) — v3.4
+
+> 커뮤니티 **닉네임 옆 연차 뱃지**용. 고연차 견주가 저연차 글에 맞춤 답변하도록 유도(커뮤니티 질↑).
+> **자기신고 선택형** — 가입일 기반 자동계산 금지(베테랑이 오늘 가입할 수 있음. 2026-06-10 PM·FE 협의 결정).
+> ⚠️ Phase 2 "견주 유형"의 라이트버전 — **뱃지 하나로 한정**(성격유형·레벨·포인트로 확장 금지).
+
+**등급 밴드** (`users.guardian_level VARCHAR(20)`, schema v1.7)
+
+| 값 | 표시(안) | 기준 (자기신고) |
+| --- | --- | --- |
+| `BEGINNER` | 입문 견주 | 반려 경험 1년 미만 |
+| `JUNIOR` | 주니어 견주 | 1~3년 |
+| `SENIOR` | 시니어 견주 | 3~7년 |
+| `VETERAN` | 베테랑 견주 | 7년 이상 |
+| (null) | 뱃지 미표시 | 미설정 |
+
+**API 반영 (구현 순서대로)**
+
+1. **user BE**: `POST /api/auth/signup` request `guardianLevel`(선택) / `GET·PATCH /api/users/me` 응답·수정에 `guardianLevel` 포함 (PATCH 로 변경 가능 — 마이페이지 셀렉트)
+2. **community BE**: 작성자가 노출되는 모든 응답 DTO 에 **`authorLevel`**(string|null) 추가 — `PostSummaryResponse`(목록)·`PostResponse`(상세)·`CommentResponse`(댓글, replies 포함). 값 = 작성자의 `guardian_level` 그대로(BEGINNER 등), null 이면 FE 가 뱃지 생략
+3. **FE**: 가입/마이페이지 셀렉트(미선택 허용) + 닉네임 옆 뱃지 렌더 (표시 문구는 FE 재량)
 
 ---
 
@@ -612,6 +652,8 @@ Authorization: Bearer {token}
 - 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
 - 409: 진행 중인 산책 있음 (`WALK_ALREADY_IN_PROGRESS`)
 
+> **위험도 점수 귀속(A-2)**: 산책 시작 시, 해당 반려견의 **직전 위험도 점수**(아직 산책에 연결되지 않은 `walk_scores.walk_id = NULL`) 중 **최근 30분 이내**에 측정된 가장 최신 1건을 이 산책에 자동 연결한다(`walk_scores.walk_id` 채움). "산책 시작 = 그 시점 점수 스냅샷" 정책. 30분 내 점수가 없으면 연결하지 않는다(점수는 조회용으로 NULL 유지). 재계산이나 외부 API 호출은 하지 않는다.
+
 ---
 
 ### 🚶 산책 종료
@@ -833,26 +875,177 @@ GET /api/posts?categoryId=1&subTag=건사료&page=0&size=20
 
 ---
 
-### ❤️ 게시글 좋아요
+### 💬 댓글 목록 / 작성 (#84 구현 정본, 1단계 대댓글)
+
+```
+GET /api/posts/{postId}/comments        (비인증 허용 — 토큰 있으면 mine 계산)
+```
+
+**Response 200** — **트리 구조**(루트 댓글의 `replies[]` 안에 대댓글). 삭제(soft delete)된 댓글은 대댓글까지 함께 제외.
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "commentId": 1,
+      "userId": 2,
+      "author": "말티즈러버",
+      "content": "저희는 연어 사료 먹이는데 잘 맞아요!",
+      "mine": false,
+      "createdAt": "2026-06-11T12:47:00",
+      "replies": [
+        {
+          "commentId": 2,
+          "userId": 1,
+          "author": "데모견주",
+          "content": "오 감사합니다 :)",
+          "mine": true,
+          "createdAt": "2026-06-11T12:48:00",
+          "replies": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+- `mine`: 로그인 토큰 기준 본인 댓글 여부 (비인증이면 전부 false). ※ FE 내부 표현은 flat+`isMine` → `useCommunity.js` 의 `flattenCommentTree` 가 정규화.
+
+```
+POST /api/posts/{postId}/comments
+Authorization: Bearer {token}
+
+{ "content": "댓글 내용", "parentCommentId": null }
+```
+
+- `parentCommentId`: null/생략 = 일반 댓글, 값 있으면 대댓글.
+- **Response 200**: `data` = 생성된 commentId (숫자).
+- **Validation**: content 1~1000자 필수. **1단계 제한** — 대댓글에 대댓글 불가(400 `INVALID_INPUT`). **부모는 같은 게시글의 댓글**이어야 함(400 `INVALID_INPUT`). 없는 부모 404 `COMMENT_NOT_FOUND`.
+- 수정 `PATCH /api/comments/{commentId}` / 삭제 `DELETE /api/comments/{commentId}` (본인만, 아니면 403). **부모 삭제 시 대댓글도 함께 soft delete** + `commentCount` 정합 차감.
+
+---
+
+### ❤️ 게시글 좋아요 토글 (#89 구현 정본, v3.5)
 
 ```
 POST /api/posts/{postId}/likes
 Authorization: Bearer {token}
 ```
 
-**Response 201**
+**단일 토글** — 좋아요가 없으면 추가, 이미 있으면 취소. (DELETE 엔드포인트 없음, v3.5에서 폐기)
+
+**Response 200**
 ```json
 {
   "success": true,
   "data": {
-    "liked": true,
-    "likeCount": 24
+    "postId": 1,
+    "likeCount": 24,
+    "liked": true
+  },
+  "message": "좋아요 추가"
+}
+```
+
+- `liked`: 토글 결과 상태 (true=추가됨, false=취소됨). FE 는 이 값으로 하트·카운트 갱신.
+- **본인 좋아요 여부 조회**: 글 목록(`PostSummaryResponse`)·상세(`PostResponse`) 응답의 `liked` 필드 (비인증이면 false).
+- 토글 방식이라 `ALREADY_LIKED`(409) 는 발생하지 않음. 동시 클릭 충돌은 서버가 liked=true 로 수렴.
+
+**Error**
+- 404: 글 없음 (`POST_NOT_FOUND`)
+
+---
+
+### 🗂 내 활동 조회 (마이페이지)
+
+> 마이페이지 "내가 쓴 글 / 내가 쓴 댓글 / 좋아요한 글" 카운트 + 목록.
+> 카운트는 별도 API 없이 목록 응답의 `totalElements` 를 쓴다 (`size=1` 호출).
+> 목록 클릭 시 FE 는 `postId` 로 게시글 상세(`GET /api/posts/{postId}`)로 이동.
+
+#### 내가 작성한 게시글
+
+```
+GET /api/users/me/posts?page=0&size=20
+Authorization: Bearer {token}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| page | Integer | ❌ | 페이지 번호 (기본 0) |
+| size | Integer | ❌ | 페이지 크기 (기본 20) |
+
+**Response 200** — `GET /api/posts` 목록과 **동일 DTO**(PostSummaryResponse) 재사용, 최신순 고정.
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "postId": 50,
+        "category": "사료·간식",
+        "subTag": "사료",
+        "title": "포메라니안 사료 추천 좀 해주세요",
+        "author": "댕댕이맘",
+        "commentCount": 3,
+        "likeCount": 5,
+        "viewCount": 12,
+        "thumbnailUrl": "https://...",
+        "createdAt": "2026-06-11T16:00:00"
+      }
+    ],
+    "totalElements": 7,
+    "totalPages": 1
   }
 }
 ```
 
-**Error**
-- 409: 이미 좋아요 누름 (`ALREADY_LIKED`)
+#### 내가 작성한 댓글
+
+```
+GET /api/users/me/comments?page=0&size=20
+Authorization: Bearer {token}
+```
+
+**Response 200** — 어떤 글의 댓글인지 이동할 수 있도록 `postId`·`postTitle` 포함, 최신순 고정.
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "commentId": 12,
+        "postId": 50,
+        "postTitle": "포메라니안 사료 추천 좀 해주세요",
+        "content": "저희 집은 ○○ 사료 먹여요!",
+        "createdAt": "2026-06-11T17:00:00"
+      }
+    ],
+    "totalElements": 3,
+    "totalPages": 1
+  }
+}
+```
+
+- 원글이 삭제된 댓글은 목록에서 **제외** (FE 에서 죽은 링크 방지).
+
+#### 내가 좋아요한 게시글
+
+```
+GET /api/users/me/likes?page=0&size=20
+Authorization: Bearer {token}
+```
+
+**Response 200** — `/api/users/me/posts` 와 동일 DTO(PostSummaryResponse), **좋아요 누른 시각 최신순**.
+
+- 좋아요 이후 원글이 삭제되면 목록에서 제외.
+
+#### 공통
+
+- 3개 모두 **인증 필수** (`UNAUTHORIZED` 401). 본인 데이터만 조회되므로 별도 권한 에러 없음.
+- **구현 선행 조건**: comments·post_likes 엔티티(댓글·좋아요 BE 후속 PR). `me/posts` 는 Post 만으로 가능하지만, 후속 PR 머지 뒤 **3종을 한 PR**로 묶어 구현한다 (담당: 윤소윤, 2026-06-11 PM 결정).
+- FE(정선혜)는 BE 전까지 mock 으로 UI 선행 가능 (커뮤니티 실연동과 동일한 플래그 전환 패턴).
 
 ---
 
@@ -937,7 +1130,7 @@ Authorization: Bearer {token}
 | `MISSION_NOT_FOUND` | 404 | 미션 없음 |
 | `EMAIL_DUPLICATED` | 409 | 이메일 중복 |
 | `NICKNAME_DUPLICATED` | 409 | 닉네임 중복 |
-| `ALREADY_LIKED` | 409 | 이미 좋아요 누름 |
+| `ALREADY_LIKED` | 409 | (v3.5 미사용 — 좋아요가 토글 방식으로 변경됨) |
 | `ALREADY_APPLIED` | 409 | 이미 동반산책 신청함 |
 | `REVIEW_ALREADY_EXISTS` | 409 | 이미 산책로 리뷰 작성함 |
 | `WALK_ALREADY_IN_PROGRESS` | 409 | 진행 중인 산책 있음 |
@@ -998,3 +1191,7 @@ Authorization: Bearer {token}
 | v2.0 | 2026-05-19 | 60개로 확장, 전체 기능 매핑 (노션 산출물) | 연수 |
 | v3.0 | 2026-05-20 | docs/06 공식 통합 (60개 + 표준 응답 포맷 + 서브태그 시스템) | 연수 |
 | v3.1 | 2026-05-20 | RT를 HttpOnly 쿠키로 / Phase 컬럼 / `/api/auth/me` 삭제(→`/users/me`, 59개) / activityLevel 한글 ENUM / refresh_tokens·role (schema v1.4) | 연수 |
+| v3.2 | 2026-06-11 | 내 활동 3개 추가(`/users/me/posts`·`/comments`·`/likes`, 62개) — 마이페이지 카운트·목록. 카운트=totalElements, 댓글·좋아요 BE 후속 PR 뒤 한 PR 구현 | 재영 |
+| v3.3 | 2026-06-11 | 댓글 응답 정본 등재(#84 구현 반영) — 트리 구조(`replies[]`)+`mine`, 1단계 제한·같은 글 부모 검증·부모 삭제 cascade | 재영 |
+| v3.4 | 2026-06-11 | 보호자 연차(guardian level) 추가 — signup `guardianLevel`(선택)·`users/me` 노출/수정·커뮤니티 작성자 `authorLevel`(후속) / 등급 BEGINNER·JUNIOR·SENIOR·VETERAN, 자기신고(자동계산 금지) (schema v1.7) | 재영 |
+| v3.5 | 2026-06-11 | 좋아요 = 단일 POST 토글 확정(#89 구현 반영, DELETE 폐기, 62→61개) — 응답 `LikeResponse{postId,likeCount,liked}`, 목록·상세에 `liked` 필드, ALREADY_LIKED 미사용 | 재영 |

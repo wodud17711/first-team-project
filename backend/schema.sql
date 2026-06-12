@@ -1,9 +1,19 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.5
--- 작성일: 2026-05-19 (v1.5: 2026-06-02)
+-- 반려견 산책 라이프 플랫폼 ERD v1.7
+-- 작성일: 2026-05-19 (v1.7: 2026-06-11)
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
 -- 테이블: 25개
+--
+-- 변경 사항 (v1.6 → v1.7) — 보호자 연차 (2026-06-11 PM·FE 협의 결정)
+--  • users: guardian_level VARCHAR(20) NULL 추가 — 자기신고 선택형 (BEGINNER/JUNIOR/SENIOR/VETERAN)
+--    가입일 기반 자동계산 금지(가입일≠실제 반려경험). NULL=미설정(가입 시 선택 또는 마이페이지에서 입력)
+--    용도: 커뮤니티 작성자 닉네임 옆 연차 뱃지(authorLevel). Phase2 견주유형의 라이트버전 — 뱃지 하나로 한정
+--
+-- 변경 사항 (v1.5 → v1.6) — post_likes 를 surrogate PK 구조로 변경 (2026-06-11 PM 결정)
+--  • post_likes: 복합 PK(user_id, post_id) → id PK + UNIQUE(post_id, user_id)
+--    (팀 엔티티 컨벤션 일관성 — @EmbeddedId 복잡도 회피. 중복 좋아요 방지는 UNIQUE 가 동일 보장)
+--  • post_likes: idx_post_likes_user_id 추가 (GET /api/users/me/likes 내 좋아요 목록용)
 --
 -- 변경 사항 (v1.4 → v1.5) — weather_snapshots 를 실제 JPA 엔티티에 정합화
 --  • weather_snapshots: 위경도 기반 → 기상청 격자(grid_x/grid_y) + base_date_time 기반으로 재정의
@@ -73,6 +83,7 @@ CREATE TABLE users (
     nickname VARCHAR(50) NOT NULL COMMENT '닉네임',
     profile_image_url VARCHAR(500) COMMENT '프로필 이미지 URL',
     role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '권한 (USER / ADMIN)',
+    guardian_level VARCHAR(20) NULL COMMENT '보호자 연차 자기신고 (BEGINNER/JUNIOR/SENIOR/VETERAN, NULL=미설정) v1.7',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL COMMENT '탈퇴일시 (소프트 삭제)',
@@ -327,14 +338,15 @@ CREATE TABLE comments (
 -- 13. 게시글 좋아요 (post_likes) [신규]
 -- ============================================================
 CREATE TABLE post_likes (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
     post_id BIGINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, post_id),
-    INDEX idx_post_likes_post_id (post_id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '좋아요 시각 (me/likes 최신순 정렬)',
+    UNIQUE KEY uk_post_likes_post_user (post_id, user_id),
+    INDEX idx_post_likes_user_id (user_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 좋아요';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 좋아요 (중복 방지 = UNIQUE, v1.6)';
 
 -- ============================================================
 -- 14. 게시글 이미지 (post_images) [신규]

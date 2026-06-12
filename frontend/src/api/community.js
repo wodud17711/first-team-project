@@ -69,12 +69,10 @@ export async function createComment(postId, body) {
 }
 
 /**
- * 게시글 좋아요 토글. liked 면 DELETE, 아니면 POST.
- * POST/DELETE /api/posts/{postId}/likes (인증 필요)
- * @returns {Promise<{liked:boolean, likeCount:number}>}
+ * 게시글 좋아요 토글. 단일 POST — 서버가 있으면 취소, 없으면 추가 (#89, v3.5).
+ * POST /api/posts/{postId}/likes (인증 필요)
+ * @returns {Promise<{postId:number, likeCount:number, liked:boolean}>}
  */
-export async function toggleLike(postId, currentlyLiked) {
-  return currentlyLiked
-    ? apiClient.delete(`/posts/${postId}/likes`)
-    : apiClient.post(`/posts/${postId}/likes`)
+export async function toggleLike(postId) {
+  return apiClient.post(`/posts/${postId}/likes`)
 }

@@ -6,7 +6,7 @@
 - **문자셋**: utf8mb4 (이모지 지원)
 - **타임존**: Asia/Seoul
 - **테이블 수**: 25개
-- **버전**: v1.5 (2026-06-02)
+- **버전**: v1.7 (2026-06-11) — users.guardian_level 추가(보호자 연차 자기신고) / post_likes: 복합 PK → id PK + UNIQUE
 
 ---
 
@@ -26,7 +26,7 @@
 
 | 테이블 | 설명 |
 | --- | --- |
-| `users` | 사용자 계정 (이메일/BCrypt 비밀번호 / `role`: USER·ADMIN) |
+| `users` | 사용자 계정 (이메일/BCrypt 비밀번호 / `role`: USER·ADMIN / `guardian_level`: 보호자 연차 자기신고 ⭐ v1.7) |
 | `refresh_tokens` | Refresh Token 관리 (해시 저장, HttpOnly 쿠키 인증 / 단일 세션) ⭐ v1.4 |
 | `dog_breeds` | 견종 마스터 (Kaggle 시드 데이터) |
 | `dogs` | 반려견 프로필 (`is_main` 대표견 1마리 강제 / `favor_walk_time` 선호 산책시간 0~23시 CSV) |
@@ -91,7 +91,7 @@
 | `user_badges` | (user_id, badge_id) | 같은 배지 중복 획득 |
 | `user_achievements` | (user_id, achievement_id) | 같은 업적 중복 |
 | `walk_route_reviews` | (walk_route_id, user_id) | 리뷰 도배 |
-| `post_likes` | (user_id, post_id) PK | 무한 좋아요 |
+| `post_likes` | (post_id, user_id) UNIQUE | 무한 좋아요 (v1.6: 복합 PK → id PK + UNIQUE, 엔티티 컨벤션 통일) |
 | `walking_companions` | (post_id, user_id) | 중복 참여 신청 |
 | `walk_missions` | (walk_id, mission_id) | 미션 중복 수행 |
 | `refresh_tokens` | (user_id, token_hash) | RT 중복 저장 |

@@ -22,6 +22,8 @@ public class PostSummaryResponse {
 
     private Integer likeCount;
 
+    private boolean liked;
+
     private Integer viewCount;
 
     private Integer commentCount;
@@ -30,7 +32,10 @@ public class PostSummaryResponse {
 
     private LocalDateTime createdAt;
 
-    public static PostSummaryResponse from(Post post) {
+    public static PostSummaryResponse from(
+            Post post,
+            boolean liked
+    ) {
 
         return PostSummaryResponse.builder()
                 .postId(post.getId())
@@ -42,6 +47,7 @@ public class PostSummaryResponse {
                 .viewCount(post.getViewCount())
                 .commentCount(post.getCommentCount())
                 .thumbnailUrl(null)
+                .liked(liked)
                 .createdAt(post.getCreatedAt())
                 .build();
     }
