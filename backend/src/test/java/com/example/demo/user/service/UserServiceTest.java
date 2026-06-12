@@ -87,7 +87,7 @@ class UserServiceTest {
 
         UserResponse response = userService.updateMyInfo(
                 1L,
-                new UserUpdateRequest("새닉네임", null)
+                new UserUpdateRequest("새닉네임", null, null)
         );
 
         assertEquals("새닉네임", response.nickname());
@@ -102,7 +102,7 @@ class UserServiceTest {
 
         userService.updateMyInfo(
                 1L,
-                new UserUpdateRequest("기존닉네임", null)
+                new UserUpdateRequest("기존닉네임", null, null)
         );
 
         verify(userRepository, never()).existsByNickname(any());
@@ -118,7 +118,7 @@ class UserServiceTest {
                 BusinessException.class,
                 () -> userService.updateMyInfo(
                         1L,
-                        new UserUpdateRequest("중복닉", null)
+                        new UserUpdateRequest("중복닉", null, null)
                 )
         );
         assertEquals(ErrorCode.NICKNAME_DUPLICATED, ex.getErrorCode());
@@ -131,7 +131,7 @@ class UserServiceTest {
 
         UserResponse response = userService.updateMyInfo(
                 1L,
-                new UserUpdateRequest(null, "https://cdn.example.com/new.png")
+                new UserUpdateRequest(null, "https://cdn.example.com/new.png", null)
         );
 
         assertEquals("기존닉네임", response.nickname(), "닉네임은 그대로");
@@ -146,7 +146,7 @@ class UserServiceTest {
 
         UserResponse response = userService.updateMyInfo(
                 1L,
-                new UserUpdateRequest(null, null)
+                new UserUpdateRequest(null, null, null)
         );
 
         assertEquals("기존닉네임", response.nickname());
@@ -163,7 +163,7 @@ class UserServiceTest {
                 BusinessException.class,
                 () -> userService.updateMyInfo(
                         999L,
-                        new UserUpdateRequest("아무거나", null)
+                        new UserUpdateRequest("아무거나", null, null)
                 )
         );
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
