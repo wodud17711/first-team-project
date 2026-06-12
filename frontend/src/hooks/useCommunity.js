@@ -17,6 +17,7 @@ import {
   getCommentsMock,
   createCommentMock,
 } from '../mocks/community.mock'
+import { getMyPosts } from "../api/community"
 
 // 카테고리·게시글 CRUD(#68) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
 const USE_MOCK_POSTS = false
@@ -211,4 +212,40 @@ export async function likePost(postId, currentlyLiked, currentLikeCount = 0) {
     return { liked: !currentlyLiked, likeCount: currentLikeCount + (currentlyLiked ? -1 : 1) }
   }
   return toggleLike(postId)
+}
+
+// 내가 작성한 게시글 조회
+export function useMyPosts() {
+  const [posts, setPosts] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let alive = true
+
+    ;(async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const data = await getMyPosts()
+
+        if (alive) {
+          setPosts(data?.content ?? [])
+          setTotal(data?.totalElements ?? 0)
+        }
+      } catch (e) {
+        if (alive) setError(e)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  return { posts, total, loading, error }
 }

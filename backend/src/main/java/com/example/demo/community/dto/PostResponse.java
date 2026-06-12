@@ -34,6 +34,8 @@ public class PostResponse {
 
     private LocalDateTime createdAt;
 
+    private String authorLevel;
+
     public static PostResponse from(
             Post post,
             boolean liked
@@ -52,6 +54,11 @@ public class PostResponse {
                 .commentCount(post.getCommentCount())
                 .liked(liked)
                 .createdAt(post.getCreatedAt())
+                .authorLevel(
+                        post.getUser().getGuardianLevel() != null
+                                ? post.getUser().getGuardianLevel().name()
+                                : null
+                )
                 .build();
     }
 }

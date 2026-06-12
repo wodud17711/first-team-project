@@ -51,6 +51,9 @@ function CommunityDetail() {
   const { post, loading, error, setPost } = usePost(postId)
   const { comments, submit } = useComments(postId)
 
+  const location = useLocation()
+  const from = location.state?.from
+
   const [text, setText] = useState("")
   const [replyTo, setReplyTo] = useState(null) // 대댓글 대상 commentId
   const [replyText, setReplyText] = useState("")
@@ -116,7 +119,7 @@ function CommunityDetail() {
 
       {/* 뒤로 */}
       <button
-        onClick={() => navigate(base)}
+        onClick={() => navigate(from === "mypagePosts" ? "/mypage/posts" : base)}
         className="mb-4 text-[14px] text-gray-500 hover:text-sky-700 transition"
       >
         ← 목록으로
