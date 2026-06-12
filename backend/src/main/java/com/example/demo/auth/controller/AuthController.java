@@ -42,7 +42,8 @@ public class AuthController {
                 authService.signup(
                         request.email(),
                         request.password(),
-                        request.nickname()
+                        request.nickname(),
+                        request.guardianLevel()
                 );
 
         setRefreshCookie(response, result.refreshToken());

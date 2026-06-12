@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.5 (2026-06-11, 61개 엔드포인트, schema v1.7 매핑)
+- **버전**: v3.7 (2026-06-12, 63개 엔드포인트, schema v1.7 매핑)
 
 ---
 
@@ -88,7 +88,7 @@
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
 | 인증 | 4 | MVP | users, refresh_tokens |
-| 회원 | 3 | MVP | users |
+| 회원 | 4 | MVP | users |
 | 반려견 | 5 | MVP | dogs |
 | 견종 | 2 | MVP | dog_breeds |
 | 산책 점수 | 2 | MVP(1) + Phase 3(1) | walk_scores, weather_snapshots |
@@ -104,7 +104,8 @@
 | AI Q&A | 2 | Phase 2 | qna_history |
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
-| **합계** | **61** | MVP 38 / Phase 2 21 / Phase 3 2 | - |
+| 업로드 | 1 | MVP | - (로컬 디스크) |
+| **합계** | **63** | MVP 40 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
@@ -119,13 +120,16 @@
 
 > 내 정보 조회는 `GET /api/users/me` 사용 (v3.1에서 `/api/auth/me` 삭제, 회원 영역과 통합)
 
-### 👤 User (회원) - 3개
+### 👤 User (회원) - 4개
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
 | GET | `/api/users/me` | 내 정보 조회 | ✅ |
 | PATCH | `/api/users/me` | 내 정보 수정 | ✅ |
-| DELETE | `/api/users/me` | 회원 탈퇴 (soft delete) | ✅ |
+| PATCH | `/api/users/me/password` | 비밀번호 변경 (현재 비번 검증) — v3.6 신규 | ✅ |
+| DELETE | `/api/users/me` | 회원 탈퇴 (soft delete, **현재 비번 검증** — v3.6) | ✅ |
+
+> 상세 계약은 아래 [user 보안 2종](#-user-보안-2종--v36-비밀번호-변경--탈퇴-비번-검증) 참고.
 
 ### 🗂 My Activity (내 활동) - 3개 (v3.2 신규, 마이페이지용)
 
@@ -318,6 +322,14 @@ GET /api/walk/optimal-time?dogId=1
 | GET | `/api/ranking/walks` | 산책 횟수 랭킹 (주간/월간) | ✅ |
 | GET | `/api/ranking/distance` | 산책 거리 랭킹 (주간/월간) | ✅ |
 
+### 📷 Upload (이미지 업로드) - 1개 (v3.7 신규)
+
+| 메서드 | URL | 설명 | 인증 |
+| --- | --- | --- | --- |
+| POST | `/api/uploads` | 이미지 업로드 (유저·반려견·게시글 공용) | ✅ |
+
+> 상세 계약은 아래 [이미지 업로드](#-이미지-업로드--v37) 참고.
+
 ---
 
 ## 📑 핵심 API 상세 명세
@@ -385,6 +397,80 @@ POST /api/auth/signup
 1. **user BE**: `POST /api/auth/signup` request `guardianLevel`(선택) / `GET·PATCH /api/users/me` 응답·수정에 `guardianLevel` 포함 (PATCH 로 변경 가능 — 마이페이지 셀렉트)
 2. **community BE**: 작성자가 노출되는 모든 응답 DTO 에 **`authorLevel`**(string|null) 추가 — `PostSummaryResponse`(목록)·`PostResponse`(상세)·`CommentResponse`(댓글, replies 포함). 값 = 작성자의 `guardian_level` 그대로(BEGINNER 등), null 이면 FE 가 뱃지 생략
 3. **FE**: 가입/마이페이지 셀렉트(미선택 허용) + 닉네임 옆 뱃지 렌더 (표시 문구는 FE 재량)
+
+---
+
+### 🔒 user 보안 2종 — v3.6 (비밀번호 변경 + 탈퇴 비번 검증)
+
+> 마이페이지 #91 후속. 두 기능 모두 **"현재 비밀번호 검증"** 동일 로직 사용 → **한 PR 구현 권장** (담당: 윤소윤).
+> 불일치 시 공통 에러: **400 `PASSWORD_MISMATCH`** (로그인용 `INVALID_CREDENTIALS` 401과 분리 — 이미 인증된 사용자의 입력 오류).
+
+#### 비밀번호 변경
+
+```
+PATCH /api/users/me/password
+Authorization: Bearer {token}
+
+{ "currentPassword": "old1234!", "newPassword": "new1234!" }
+```
+
+- **Validation**: newPassword 정책 = 가입과 동일(8자 이상, 영문+숫자). currentPassword 불일치 → 400 `PASSWORD_MISMATCH`. newPassword 가 현재와 동일 → 400 `INVALID_INPUT`.
+- **Response 200**: `data: null`, message "비밀번호가 변경되었습니다".
+- **세션 처리**: 변경 성공 시 **해당 사용자의 RT 삭제**(refresh_tokens). 현재 AT 는 만료까지 유효 → FE 는 변경 직후 그대로 사용 가능, AT 만료 시점에 재로그인.
+- ⚠️ FE(#91)가 임시로 `PATCH /users/password` 를 호출 중 → **`/users/me/password` 로 수정 필요** (BE 머지 후 `isApiReady` 활성화와 함께).
+
+#### 회원 탈퇴 — 비번 검증 추가 (기존 API 변경)
+
+```
+DELETE /api/users/me
+Authorization: Bearer {token}
+
+{ "password": "current1234!" }
+```
+
+- **변경점(v3.6)**: body 에 `password` 필수. 불일치 → 400 `PASSWORD_MISMATCH` (탈퇴 안 됨).
+- 검증 통과 시 기존과 동일: soft delete + RT 삭제, 204.
+- FE 참고: axios 는 `apiClient.delete(url, { data: { password } })` 형태로 body 전송.
+- 탈퇴 사유는 **서버 미저장** (2026-06-12 PM 확정 — 데모 프로젝트 스코프, FE 사유 선택 UI 는 UX 시연용으로 유지).
+
+---
+
+### 📷 이미지 업로드 — v3.7
+
+> **배경**: 현재 FE 의 모든 사진(유저·반려견·게시글)이 `URL.createObjectURL`(blob:) — 브라우저 메모리 임시주소라
+> 새로고침 시 소멸·타인에게 안 보임. 진짜 저장 = 업로드 엔드포인트 1개 → URL 반환 → DB 엔 URL 저장.
+> (2026-06-10 결정, 담당 오연수 / Week 5)
+
+```
+POST /api/uploads
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+file: (binary)
+```
+
+**Response 201**
+```json
+{
+  "success": true,
+  "data": {
+    "url": "/uploads/2026/06/a1b2c3d4-....jpg"
+  },
+  "message": "업로드 완료"
+}
+```
+
+**규칙**
+- multipart 필드명 **`file`** 고정. 1회 1파일 (게시글 다중 이미지는 FE 가 반복 호출, 최대 5장은 FE 검증).
+- **허용: jpg/jpeg/png, 최대 5MB** — 위반 시 400 `INVALID_FILE`.
+- 저장: **로컬 디스크** + Spring 정적 서빙(ResourceHandler) — 저장 경로·파일명 정책(UUID 권장)은 BE 재량.
+  운영 전환 시 S3 교체 가능하도록 URL 만 계약으로 고정.
+- 반환 `url` 사용처: `users.profile_image_url` / `dogs.profile_image_url` / 게시글 `imageUrls` — **FE 는 blob: 대신 이 URL 을 DB 저장 필드에 사용** (별도 FE 배선 작업).
+- 확장자 위장 방지를 위해 content-type 검증 권장(선택).
+
+**Error**
+- 400: 파일 형식/크기 위반 (`INVALID_FILE`)
+- 401: 인증 필요
 
 ---
 
@@ -1128,6 +1214,8 @@ Authorization: Bearer {token}
 | `WALK_NOT_FOUND` | 404 | 산책 기록 없음 |
 | `CATEGORY_NOT_FOUND` | 404 | 카테고리 없음 |
 | `MISSION_NOT_FOUND` | 404 | 미션 없음 |
+| `PASSWORD_MISMATCH` | 400 | 현재 비밀번호 불일치 (비번 변경·탈퇴, v3.6) |
+| `INVALID_FILE` | 400 | 업로드 파일 형식/크기 위반 (jpg·png, 5MB — v3.7) |
 | `EMAIL_DUPLICATED` | 409 | 이메일 중복 |
 | `NICKNAME_DUPLICATED` | 409 | 닉네임 중복 |
 | `ALREADY_LIKED` | 409 | (v3.5 미사용 — 좋아요가 토글 방식으로 변경됨) |
@@ -1195,3 +1283,5 @@ Authorization: Bearer {token}
 | v3.3 | 2026-06-11 | 댓글 응답 정본 등재(#84 구현 반영) — 트리 구조(`replies[]`)+`mine`, 1단계 제한·같은 글 부모 검증·부모 삭제 cascade | 재영 |
 | v3.4 | 2026-06-11 | 보호자 연차(guardian level) 추가 — signup `guardianLevel`(선택)·`users/me` 노출/수정·커뮤니티 작성자 `authorLevel`(후속) / 등급 BEGINNER·JUNIOR·SENIOR·VETERAN, 자기신고(자동계산 금지) (schema v1.7) | 재영 |
 | v3.5 | 2026-06-11 | 좋아요 = 단일 POST 토글 확정(#89 구현 반영, DELETE 폐기, 62→61개) — 응답 `LikeResponse{postId,likeCount,liked}`, 목록·상세에 `liked` 필드, ALREADY_LIKED 미사용 | 재영 |
+| v3.6 | 2026-06-12 | user 보안 2종(#91 후속, 61→62개) — `PATCH /users/me/password`(현재 비번 검증, RT 삭제) 신규 + `DELETE /users/me` body `password` 필수화 / 에러 `PASSWORD_MISMATCH`(400) / 탈퇴 사유 서버 미저장 확정 | 재영 |
+| v3.7 | 2026-06-12 | 이미지 업로드 `POST /api/uploads` 신규(62→63개) — multipart 1파일, jpg·png 5MB, 로컬디스크+정적서빙, URL 반환(blob: 비영속 문제 해결) / 에러 `INVALID_FILE`(400) | 재영 |

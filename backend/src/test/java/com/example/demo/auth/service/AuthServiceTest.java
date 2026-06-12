@@ -75,7 +75,8 @@ class AuthServiceTest {
         AuthResponse response = authService.signup(
                 "test@example.com",
                 "password123",
-                "테스트유저"
+                "테스트유저",
+                null
         );
 
         assertNotNull(response);
@@ -104,7 +105,8 @@ class AuthServiceTest {
                         () -> authService.signup(
                                 "test@example.com",
                                 "password123",
-                                "테스트유저"
+                                "테스트유저",
+                                null
                         )
                 );
 
@@ -130,7 +132,8 @@ class AuthServiceTest {
                         () -> authService.signup(
                                 "test@example.com",
                                 "password123",
-                                "테스트유저"
+                                "테스트유저",
+                                null
                         )
                 );
 
@@ -159,7 +162,8 @@ class AuthServiceTest {
         authService.signup(
                 "  A@B.com  ",
                 "password123",
-                "테스트유저"
+                "테스트유저",
+                null
         );
 
         // 정규화된 이메일로 중복 체크 + 저장이 일어나야 함.
@@ -184,7 +188,8 @@ class AuthServiceTest {
                         () -> authService.signup(
                                 "A@B.COM",
                                 "password123",
-                                "테스트유저"
+                                "테스트유저",
+                                null
                         )
                 );
 
@@ -213,7 +218,8 @@ class AuthServiceTest {
         authService.signup(
                 "test@example.com",
                 "password123",
-                "  댕 댕 이 맘  "
+                "  댕 댕 이 맘  ",
+                null
         );
 
         // 양끝 공백 + 내부 공백 모두 제거된 값으로 중복 체크/저장이 일어나야 함.
@@ -243,7 +249,8 @@ class AuthServiceTest {
         authService.signup(
                 "test@example.com",
                 "password123",
-                "댕댕이　맘"   // 전각 공백
+                "댕댕이　맘"   ,// 전각 공백
+                null
         );
 
         // (?U) 플래그로 유니코드 공백까지 잡아야 함 — 향후 플래그 누락 회귀 방지용.
@@ -260,7 +267,8 @@ class AuthServiceTest {
                         () -> authService.signup(
                                 "test@example.com",
                                 "password123",
-                                "        "
+                                "        ",
+                                null
                         )
                 );
 

@@ -26,6 +26,8 @@ public class CommentResponse {
 
     private List<CommentResponse> replies;
 
+    private String authorLevel;
+
     public static CommentResponse from(
             Comment comment,
             Long loginUserId,
@@ -36,13 +38,18 @@ public class CommentResponse {
                 .commentId(comment.getId())
                 .userId(comment.getUser().getId())
                 .author(comment.getUser().getNickname())
-                .content(comment.getContent())
                 .mine(
                         Objects.equals(
                                 comment.getUser().getId(),
                                 loginUserId
                         )
                 )
+                .authorLevel(
+                        comment.getUser().getGuardianLevel() != null
+                                ? comment.getUser().getGuardianLevel().name()
+                                : null
+                )
+                .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .replies(replies)
                 .build();
