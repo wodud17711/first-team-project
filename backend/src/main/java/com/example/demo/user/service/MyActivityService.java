@@ -106,7 +106,7 @@ public class MyActivityService {
 
 
         return postLikeRepository
-                .findByUser_IdAndPost_DeletedAtIsNullOrderByCreatedAtDesc(
+                .findMyLikes(
                         userId,
                         pageable
                 )
