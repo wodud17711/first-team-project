@@ -63,9 +63,11 @@ function CommunityDetail() {
   const backPath =
   from === "mypagePosts"
     ? "/mypage/posts"
+    : from === "mypageComments"
+      ? "/mypage/comments"
     : from === "mypageLikes"
-      ? "/mypage/likes"
-      : base
+    ? "/mypage/likes"
+    : base
 
   // 좋아요 토글 (낙관적 X — 응답으로 갱신)
   const handleLike = async () => {

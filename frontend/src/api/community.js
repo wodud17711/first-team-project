@@ -86,3 +86,8 @@ export async function getMyPosts(params = {}) {
 export async function getMyLikes(params = {}) {
   return apiClient.get('/users/me/likes', { params })
 }
+
+// 내가 작성한 댓글 조회
+export async function getMyComments(params = {}) {
+  return apiClient.get('/users/me/comments', { params })
+}
