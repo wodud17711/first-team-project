@@ -8,6 +8,7 @@ import {
   getComments,
   createComment,
   toggleLike,
+  getMyLikes,
 } from '../api/community'
 import {
   CATEGORIES_MOCK,
@@ -245,6 +246,36 @@ export function useMyPosts() {
     return () => {
       alive = false
     }
+  }, [])
+
+  return { posts, total, loading, error }
+}
+
+// 내가 누른 좋아요 게시글 조회
+export function useMyLikes() {
+  const [posts, setPosts] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    async function fetchLikes() {
+      try {
+        setLoading(true)
+
+        const res = await getMyLikes()
+
+        setPosts(res.content ?? [])
+        setTotal(res.totalElements ?? 0)
+      } catch (err) {
+        console.error(err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLikes()
   }, [])
 
   return { posts, total, loading, error }
