@@ -13,6 +13,7 @@ public enum ErrorCode {
 
     // ===== 공통 =====
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다"),
+    INVALID_FILE(HttpStatus.BAD_REQUEST, "허용되지 않는 파일입니다 (jpg·png, 최대 5MB)"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다"),
     FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다"),
