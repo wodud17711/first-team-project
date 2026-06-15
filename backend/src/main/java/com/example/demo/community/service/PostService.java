@@ -82,6 +82,7 @@ public class PostService {
     /**
      * 게시글 상세 조회
      */
+    @Transactional
     public PostResponse getPost(
             Long postId,
             Long userId
