@@ -111,6 +111,32 @@ function WalkScore(props) {
   const ready = typeof score === 'number'
   const clamped = ready ? Math.max(0, Math.min(score, 100)) : 0
 
+  // 등급별 표시 메타 (색·문구는 디자인 영역 — 정선혜 확정).
+  const LEVEL_META = {
+    '안전': {
+      color: "bg-success",
+      label: "안전해요🟢",
+      title: "산책하기 좋은 날이에요 ☀️",
+      desc: "대부분 견종이 편안하게 산책할 수 있어요"
+    },
+    '주의': {
+      color: "bg-warning",
+      label: "주의가 필요해요🟡",
+      title: "짧은 산책을 추천드려요 🌥️",
+      desc: "더위에 약한 반려견은 주의가 필요해요"
+    },
+    '위험': {
+      color: "bg-danger",
+      label: "위험해요🔴",
+      title: "산책을 되도록 피해주세요 🌧️",
+      desc: "지면온도와 날씨 상태가 산책하기 위험해요"
+    }
+  }
+
+  // level 우선, 없으면 점수 임계로 폴백.
+  const metaByScore = (s) =>
+    s >= 70 ? LEVEL_META['안전'] : s >= 40 ? LEVEL_META['주의'] : LEVEL_META['위험']
+
   let color, label, title, desc, scoreText
 
   if (!hasDog) {
