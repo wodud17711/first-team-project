@@ -19,18 +19,16 @@ import { setAccessToken, removeAccessToken } from './tokenStorage'
 //   return accessToken
 // }
 export async function signup({ email, password, nickname, guardianLevel }) {
-  const res = await apiClient.post('/auth/signup', {
+  const accessToken = await apiClient.post('/auth/signup', {
     email,
     password,
     nickname,
     guardianLevel,
   })
 
-  const { accessToken } = res
-
   setAccessToken(accessToken)
 
-  return res
+  return accessToken
 }
 
 /**
@@ -43,12 +41,11 @@ export async function signup({ email, password, nickname, guardianLevel }) {
 //   return accessToken
 // }
 export async function login({ email, password }) {
-  const res = await apiClient.post('/auth/login', { email, password })
+  const accessToken = await apiClient.post('/auth/login', { email, password })
 
-  const { accessToken } = res
   setAccessToken(accessToken)
 
-  return res
+  return accessToken
 }
 
 /**
