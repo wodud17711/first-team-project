@@ -20,7 +20,6 @@ function Join() {
         { name: "nickname", type: "text", placeholder: "사용할 닉네임을 입력하세요" }
     ]
 
-
   return (
     <div className="flex flex-col items-center space-y-6">
       
@@ -102,6 +101,55 @@ function Join() {
                     </div>
                   )
                 })}
+            </div>
+
+            <div>
+              <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                보호자 연차 <span className="text-red-500">*</span>
+              </label>
+
+              <div className="flex gap-2">
+                {[
+                  { value: "BEGINNER", label: ["새싹", "보호자🌱"], desc: "(~1년)" },
+                  { value: "JUNIOR", label: ["초보", "보호자🦴"], desc: "(1~3년)" },
+                  { value: "SENIOR", label: ["숙련", "보호자🐕"], desc: "(3~5년)" },
+                  { value: "VETERAN", label: ["베테랑", "보호자🏆"], desc: "(5년+)" }
+                ].map((level) => (
+                  <button
+                    key={level.value}
+                    type="button"
+                    onClick={() =>
+                      handleChange({
+                        target: {
+                          name: "guardianLevel",
+                          value: level.value
+                        }
+                      })
+                    }
+                    className={`flex-1 flex justify-center px-3 py-4 rounded-xl border text-center transition ${
+                      form.guardianLevel === level.value
+                        ? "bg-brand-200 border-brand-500"
+                        : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0]"
+                    }`}
+                  >
+                    <div>
+                      <div className="text-[13px] font-medium">
+                        {level.label[0]} <br /> {level.label[1]}
+                      </div>
+
+                      <div
+                        className={`text-[11px] ${
+                          form.guardianLevel === level.value
+                            ? "text-brand-600"
+                            : "text-gray-400/80"
+                        }`}
+                      >
+                        {level.desc}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {error && (

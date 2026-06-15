@@ -29,6 +29,7 @@ export function useSignup({ redirectTo = '/', onSuccess } = {}) {
     password: '',
     password2: '',
     nickname: '',
+    guardianLevel: "BEGINNER"
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -63,10 +64,11 @@ export function useSignup({ redirectTo = '/', onSuccess } = {}) {
 
     setLoading(true)
     try {
-      await signup({
+      await signup({ 
         email: form.email,
         password: form.password,
         nickname: form.nickname,
+        guardianLevel: form.guardianLevel,
       })
       if (onSuccess) {
         onSuccess()
