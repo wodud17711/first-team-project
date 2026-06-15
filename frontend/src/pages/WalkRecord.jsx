@@ -13,6 +13,7 @@ import {
   formatElapsed,
   parseThermal,
 } from '../hooks/useWalkRecord'
+import WalkPathMap from '../components/WalkPathMap'
 
 // 체감 옵션 (docs/11 §1.2: HOT/OK/COLD). 라벨·이모지는 비주얼이라 정선혜가 조정 가능.
 const THERMAL_OPTIONS = [
@@ -133,7 +134,16 @@ function WalkRecord() {
               산책 종료 · {formatElapsed(elapsedSec)}
             </p>
 
-            <label className="block text-[13px] text-gray-500 mb-1">거리 (km, 선택)</label>
+            {/* 걸은 경로를 지도에 찍으면 거리 자동 계산 → 아래 input 에 반영(수동 보정 가능) */}
+            <label className="block text-[13px] text-gray-500 mb-1">걸은 경로 (지도 클릭)</label>
+            <div className="mb-3">
+              <WalkPathMap
+                height={220}
+                onDistanceChange={(km) => setDistanceKm(km ? String(km) : '')}
+              />
+            </div>
+
+            <label className="block text-[13px] text-gray-500 mb-1">거리 (km) · 자동계산, 수정 가능</label>
             <input
               type="number"
               step="0.1"
