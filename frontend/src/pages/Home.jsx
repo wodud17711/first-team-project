@@ -44,8 +44,10 @@ function Home() {
 
   return (
     <div className='relative'>
-      {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-brand-200 z-6">
+      {/* 상단 배경(산책지수 타이틀 
+      
+      배경) */}
+      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-brand-200 z-6">
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
         {/* <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
