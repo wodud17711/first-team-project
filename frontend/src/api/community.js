@@ -81,3 +81,8 @@ export async function toggleLike(postId) {
 export async function getMyPosts(params = {}) {
   return apiClient.get('/users/me/posts', { params })
 }
+
+// 내가 좋아요한 포스트 조회
+export async function getMyLikes(params = {}) {
+  return apiClient.get('/users/me/likes', { params })
+}
