@@ -4,7 +4,8 @@ const navItems = [
   { to: '/', label: '🏠 홈', end: true },
   { to: '/walk', label: '🐾 산책 기록' },
   { to: '/community', label: '💬 커뮤니티' },
-  { to: '/profile', label: '🐕 프로필' },
+  { to: '/mypage', label: '👤 마이페이지' },
+  { to: '/dog-profile-list', label: '🐕 반려견 프로필' },
 ]
 
 function Layout() {
