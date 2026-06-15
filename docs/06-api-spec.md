@@ -1216,6 +1216,14 @@ Authorization: Bearer {token}
 }
 ```
 
+> **MVP 구현 범위 (Week5)**
+> - `type`: `COMMENT`(내 글에 댓글) / `LIKE`(내 글에 좋아요). 그 외(BADGE_EARNED·COMPANION_REQUEST)는 Phase 2.
+> - **생성 트리거**: 댓글 작성·좋아요 등록 시 글 작성자에게 1건 생성. **자기 글에 자기가 단 댓글/좋아요는 생성 안 함.** 같은 트랜잭션이라 원 행위 롤백 시 알림도 롤백.
+> - `linkUrl` = `/posts/{postId}` (FE 가 클릭 시 이동).
+> - **정렬**: 안 읽은 것 우선 → 최신순. `unreadOnly=true` 면 안 읽은 것만.
+> - **읽음 처리**: `PATCH /api/notifications/{id}/read`(단건) / `PATCH /api/notifications/read-all`(전체). 본인 알림 아니면 404 `NOTIFICATION_NOT_FOUND`.
+> - 쿼리 파라미터: `unreadOnly`(기본 false)·`page`(기본 0)·`size`(기본 20).
+
 ---
 
 ### 📊 내 견주 유형 + 통계
@@ -1267,6 +1275,7 @@ Authorization: Bearer {token}
 | `WALK_NOT_FOUND` | 404 | 산책 기록 없음 |
 | `CATEGORY_NOT_FOUND` | 404 | 카테고리 없음 |
 | `MISSION_NOT_FOUND` | 404 | 미션 없음 |
+| `NOTIFICATION_NOT_FOUND` | 404 | 알림 없음 (또는 본인 알림 아님) |
 | `PASSWORD_MISMATCH` | 400 | 현재 비밀번호 불일치 (비번 변경·탈퇴, v3.6) |
 | `INVALID_FILE` | 400 | 업로드 파일 형식/크기 위반 (jpg·png, 5MB — v3.7) |
 | `EMAIL_DUPLICATED` | 409 | 이메일 중복 |
