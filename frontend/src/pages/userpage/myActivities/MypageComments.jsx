@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom"
 import { useMyComments } from "../../../hooks/useCommunity"
 
 // 컴포넌트 import
-import PostCard from "../../../components/PostCard"
 import CommentCard from "../../../components/CommentCard"
 
 
