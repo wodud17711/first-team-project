@@ -7,6 +7,7 @@ import com.example.demo.community.entity.Post;
 import com.example.demo.community.entity.PostLike;
 import com.example.demo.community.repository.PostLikeRepository;
 import com.example.demo.community.repository.PostRepository;
+import com.example.demo.notification.service.NotificationService;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class LikeService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
+    private final NotificationService notificationService;
 
     public LikeResponse toggleLike(
             Long postId,
@@ -80,6 +82,9 @@ public class LikeService {
         }
 
         post.increaseLikeCount();
+
+        // 내 글에 눌린 좋아요 → 글 작성자에게 알림 (자기 좋아요면 NotificationService 에서 skip)
+        notificationService.notifyNewLike(post, user);
 
         return LikeResponse.builder()
                 .postId(postId)

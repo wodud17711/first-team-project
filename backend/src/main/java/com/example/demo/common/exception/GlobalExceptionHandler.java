@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * 전역 예외 핸들러.
@@ -110,6 +111,30 @@ public class GlobalExceptionHandler {
                         ApiResponse.fail(
                                 ErrorCode.INVALID_INPUT.getMessage(),
                                 ErrorCode.INVALID_INPUT.name()
+                        )
+                );
+    }
+
+
+    /**
+     * 업로드 파일이 multipart 한도(5MB)를 초과.
+     *
+     * <p>컨테이너/Spring 이 controller 진입 전에 던지므로 별도 처리해
+     * {@code INVALID_FILE}(400) 로 통일한다(서비스 레이어 크기 검증과 동일 코드).
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(
+            MaxUploadSizeExceededException ex
+    ) {
+
+        log.warn("Upload size exceeded: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(ErrorCode.INVALID_FILE.getStatus())
+                .body(
+                        ApiResponse.fail(
+                                ErrorCode.INVALID_FILE.getMessage(),
+                                ErrorCode.INVALID_FILE.name()
                         )
                 );
     }

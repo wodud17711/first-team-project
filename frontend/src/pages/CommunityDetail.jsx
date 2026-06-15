@@ -59,6 +59,16 @@ function CommunityDetail() {
   const [replyText, setReplyText] = useState("")
   const [likeBusy, setLikeBusy] = useState(false)
 
+  // 목록으로 눌렀을 때, 상세 페이지로 들어오기 전 페이지로 이동
+  const backPath =
+  from === "mypagePosts"
+    ? "/mypage/posts"
+    : from === "mypageComments"
+      ? "/mypage/comments"
+    : from === "mypageLikes"
+    ? "/mypage/likes"
+    : base
+
   // 좋아요 토글 (낙관적 X — 응답으로 갱신)
   const handleLike = async () => {
     if (!post || likeBusy) return
@@ -119,7 +129,7 @@ function CommunityDetail() {
 
       {/* 뒤로 */}
       <button
-        onClick={() => navigate(from === "mypagePosts" ? "/mypage/posts" : base)}
+        onClick={() => navigate(backPath)}
         className="mb-4 text-[14px] text-gray-500 hover:text-sky-700 transition"
       >
         ← 목록으로

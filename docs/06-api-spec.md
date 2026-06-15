@@ -833,7 +833,7 @@ Authorization: Bearer {token}
 ### 📊 산책 통계
 
 ```
-GET /api/walks/statistics?period=WEEK
+GET /api/walks/statistics?dogId=1&period=WEEK
 Authorization: Bearer {token}
 ```
 
@@ -841,7 +841,15 @@ Authorization: Bearer {token}
 
 | 파라미터 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
-| period | String | ✅ | DAY / WEEK / MONTH |
+| dogId | Long | ✅ | 집계 대상 반려견 (본인 소유) |
+| period | String | ✅ | DAY / WEEK / MONTH (대소문자 무시) |
+
+> **집계 기준 (캘린더 정렬, 기준일=오늘)**
+> - `DAY` = 오늘 당일 / `WEEK` = 이번 주 월~일(ISO) / `MONTH` = 이번 달 1일~말일
+> - `achievementRate` = (산책한 날 수 ÷ 구간 일수) × 100, 반올림. 예: 주간에 5일 산책 → 5/7 = 71%
+> - `avgDuration` = totalMinutes ÷ totalWalks, 반올림. 산책 0회면 0
+> - `dailyBreakdown` 은 구간의 **모든 날짜**를 담으며 산책 없는 날은 `minutes:0, count:0`
+> - 미종료(진행 중) 산책은 시간/거리 0으로 계산
 
 **Response 200**
 ```json
@@ -862,6 +870,51 @@ Authorization: Bearer {token}
   }
 }
 ```
+
+**Error**
+- 400: `period` 가 DAY/WEEK/MONTH 가 아님 (`INVALID_INPUT`)
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
+- 404: 반려견 없음 (`DOG_NOT_FOUND`)
+
+---
+
+### 📅 산책 캘린더 (월별)
+
+```
+GET /api/walks/calendar?dogId=1&year=2026&month=6
+Authorization: Bearer {token}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| dogId | Long | ✅ | 조회 대상 반려견 (본인 소유) |
+| year | Integer | ✅ | 연도 (예: 2026) |
+| month | Integer | ✅ | 월 (1~12) |
+
+> `days` 는 해당 월에서 **산책이 1회 이상 있는 날짜만** 담는 희소 배열이다 (FE 히트맵 입력).
+> 산책이 없는 날짜는 응답에 없으며 FE 에서 0으로 채운다.
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": {
+    "year": 2026,
+    "month": 6,
+    "days": [
+      {"date": "2026-06-03", "count": 2, "minutes": 50},
+      {"date": "2026-06-10", "count": 1, "minutes": 60}
+    ]
+  }
+}
+```
+
+**Error**
+- 400: `year`/`month` 가 유효한 날짜 범위 아님 (`INVALID_INPUT`)
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
+- 404: 반려견 없음 (`DOG_NOT_FOUND`)
 
 ---
 
@@ -1163,6 +1216,14 @@ Authorization: Bearer {token}
 }
 ```
 
+> **MVP 구현 범위 (Week5)**
+> - `type`: `COMMENT`(내 글에 댓글) / `LIKE`(내 글에 좋아요). 그 외(BADGE_EARNED·COMPANION_REQUEST)는 Phase 2.
+> - **생성 트리거**: 댓글 작성·좋아요 등록 시 글 작성자에게 1건 생성. **자기 글에 자기가 단 댓글/좋아요는 생성 안 함.** 같은 트랜잭션이라 원 행위 롤백 시 알림도 롤백.
+> - `linkUrl` = `/posts/{postId}` (FE 가 클릭 시 이동).
+> - **정렬**: 안 읽은 것 우선 → 최신순. `unreadOnly=true` 면 안 읽은 것만.
+> - **읽음 처리**: `PATCH /api/notifications/{id}/read`(단건) / `PATCH /api/notifications/read-all`(전체). 본인 알림 아니면 404 `NOTIFICATION_NOT_FOUND`.
+> - 쿼리 파라미터: `unreadOnly`(기본 false)·`page`(기본 0)·`size`(기본 20).
+
 ---
 
 ### 📊 내 견주 유형 + 통계
@@ -1214,6 +1275,7 @@ Authorization: Bearer {token}
 | `WALK_NOT_FOUND` | 404 | 산책 기록 없음 |
 | `CATEGORY_NOT_FOUND` | 404 | 카테고리 없음 |
 | `MISSION_NOT_FOUND` | 404 | 미션 없음 |
+| `NOTIFICATION_NOT_FOUND` | 404 | 알림 없음 (또는 본인 알림 아님) |
 | `PASSWORD_MISMATCH` | 400 | 현재 비밀번호 불일치 (비번 변경·탈퇴, v3.6) |
 | `INVALID_FILE` | 400 | 업로드 파일 형식/크기 위반 (jpg·png, 5MB — v3.7) |
 | `EMAIL_DUPLICATED` | 409 | 이메일 중복 |

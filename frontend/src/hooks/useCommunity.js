@@ -8,6 +8,8 @@ import {
   getComments,
   createComment,
   toggleLike,
+  getMyLikes,
+  getMyComments,
 } from '../api/community'
 import {
   CATEGORIES_MOCK,
@@ -248,4 +250,64 @@ export function useMyPosts() {
   }, [])
 
   return { posts, total, loading, error }
+}
+
+// 내가 누른 좋아요 게시글 조회
+export function useMyLikes() {
+  const [posts, setPosts] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    async function fetchLikes() {
+      try {
+        setLoading(true)
+
+        const res = await getMyLikes()
+
+        setPosts(res.content ?? [])
+        setTotal(res.totalElements ?? 0)
+      } catch (err) {
+        console.error(err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLikes()
+  }, [])
+
+  return { posts, total, loading, error }
+}
+
+// 내가 작성한 댓글 조회
+export function useMyComments() {
+  const [comments, setComments] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    async function fetchComments() {
+      try {
+        setLoading(true)
+
+        const res = await getMyComments()
+
+        setComments(res.content ?? [])
+        setTotal(res.totalElements ?? 0)
+      } catch (err) {
+        console.error(err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchComments()
+  }, [])
+
+  return { comments, total, loading, error }
 }

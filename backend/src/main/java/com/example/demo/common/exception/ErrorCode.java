@@ -13,6 +13,7 @@ public enum ErrorCode {
 
     // ===== 공통 =====
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다"),
+    INVALID_FILE(HttpStatus.BAD_REQUEST, "허용되지 않는 파일입니다 (jpg·png, 최대 5MB)"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다"),
     FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다"),
@@ -45,6 +46,9 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다"),
     INVALID_SUB_TAG(HttpStatus.BAD_REQUEST, "이 카테고리에는 사용할 수 없는 서브태그입니다"),
     ALREADY_LIKED(HttpStatus.CONFLICT, "이미 좋아요를 누른 글입니다"),
+
+    // ===== Notification =====
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
 
     // ===== External API =====
     WEATHER_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "기상청 API 호출에 실패했습니다"),

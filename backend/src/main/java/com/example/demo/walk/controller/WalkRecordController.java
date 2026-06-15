@@ -3,10 +3,14 @@ package com.example.demo.walk.controller;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
+import com.example.demo.walk.domain.StatPeriod;
+import com.example.demo.walk.dto.WalkCalendarResponse;
 import com.example.demo.walk.dto.WalkEndRequest;
 import com.example.demo.walk.dto.WalkResponse;
 import com.example.demo.walk.dto.WalkStartRequest;
+import com.example.demo.walk.dto.WalkStatisticsResponse;
 import com.example.demo.walk.service.WalkService;
+import com.example.demo.walk.service.WalkStatisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,6 +41,7 @@ import java.util.List;
 public class WalkRecordController {
 
     private final WalkService walkService;
+    private final WalkStatisticsService walkStatisticsService;
 
     @PostMapping("/start")
     public ResponseEntity<ApiResponse<WalkResponse>> start(
@@ -65,6 +70,33 @@ public class WalkRecordController {
     ) {
         Long userId = resolveUserId(userDetails);
         return ResponseEntity.ok(ApiResponse.success(walkService.history(userId, dogId)));
+    }
+
+    /** 반려견의 기간별 산책 통계. {@code period} 는 DAY/WEEK/MONTH (캘린더 정렬). */
+    @GetMapping("/statistics")
+    public ResponseEntity<ApiResponse<WalkStatisticsResponse>> statistics(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Long dogId,
+            @RequestParam String period
+    ) {
+        Long userId = resolveUserId(userDetails);
+        WalkStatisticsResponse response =
+                walkStatisticsService.statistics(userId, dogId, StatPeriod.from(period));
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /** 반려견의 월별 산책 캘린더 (FE 히트맵 입력). */
+    @GetMapping("/calendar")
+    public ResponseEntity<ApiResponse<WalkCalendarResponse>> calendar(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Long dogId,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        Long userId = resolveUserId(userDetails);
+        WalkCalendarResponse response =
+                walkStatisticsService.calendar(userId, dogId, year, month);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     private Long resolveUserId(UserDetails userDetails) {

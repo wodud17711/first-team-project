@@ -81,3 +81,13 @@ export async function toggleLike(postId) {
 export async function getMyPosts(params = {}) {
   return apiClient.get('/users/me/posts', { params })
 }
+
+// 내가 좋아요한 포스트 조회
+export async function getMyLikes(params = {}) {
+  return apiClient.get('/users/me/likes', { params })
+}
+
+// 내가 작성한 댓글 조회
+export async function getMyComments(params = {}) {
+  return apiClient.get('/users/me/comments', { params })
+}

@@ -1,6 +1,10 @@
 # Claude Code
 .claude/
 
+# 업로드 이미지 저장 디렉터리 (로컬 디스크, 저장 파일 미커밋 — v3.7)
+backend/uploads/
+uploads/
+
 # Java / Gradle
 **/build/
 **/.gradle/
