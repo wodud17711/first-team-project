@@ -7,11 +7,24 @@ import { useNavigate } from "react-router-dom"
 
 // 훅 가져오기
 import { useMe } from "../../hooks/useMe"
+import { useMyComments, useMyLikes, useMyPosts } from "../../hooks/useCommunity"
 
 function MyPage() {
 
     const navigate = useNavigate()
     const { me, loading } = useMe()
+
+    // 활동 정보(활동수)
+    const { total: postTotal = 0 } = useMyPosts()
+    const { total: commentTotal = 0 } = useMyComments()
+    const { total: likeTotal = 0 } = useMyLikes()
+
+    const guardianLevelLabel = {
+        BEGINNER: "새싹 보호자🌱",
+        JUNIOR: "초보 보호자🦴",
+        SENIOR: "숙련 보호자🐕",
+        VETERAN: "베테랑 보호자🏆",
+    }
 
 
     // 정보 함수
@@ -19,16 +32,13 @@ function MyPage() {
         { label: "가입일", value: me?.createdAt?.split("T")[0] || "정보 없음" },
         { label: "이메일", value: me?.email || "정보 없음" },
         { label: "닉네임", value: me?.nickname || "정보 없음" },
-        { label: "보호자 연차", value: "새싹 보호자🌱" },
-        // { label: "이름(실명)", value: "홍길동" },
-        // { label: "생년월일", value: "2026-06-10" },
-        // { label: "휴대폰 번호", value: "010-1234-5678" },
+        { label: "보호자 연차", value: guardianLevelLabel[me?.guardianLevel] || "정보 없음" },
     ]
 
     const postInfo = [
-        { label: "작성한 게시글", value: "N개" || "정보 없음" },
-        { label: "작성한 댓글", value: "N개" || "정보 없음" },
-        { label: "좋아요한 게시글", value: "N개" || "정보 없음" },
+        { label: "작성한 게시글", value: `${postTotal}개` || "정보 없음" },
+        { label: "작성한 댓글", value: `${commentTotal}개` || "정보 없음" },
+        { label: "좋아요한 게시글", value: `${likeTotal}개` || "정보 없음" },
     ]
     
     // 메뉴 함수
@@ -43,6 +53,8 @@ function MyPage() {
         { label: "내가 작성한 댓글", path: "/mypage/comments" },
         { label: "좋아요한 게시글", path: "/mypage/likes" },
     ]
+
+    console.log(me)
 
 
     // 👉 로딩/빈 데이터 상태 UI
