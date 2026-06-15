@@ -9,6 +9,7 @@ import com.example.demo.community.entity.Comment;
 import com.example.demo.community.entity.Post;
 import com.example.demo.community.repository.CommentRepository;
 import com.example.demo.community.repository.PostRepository;
+import com.example.demo.notification.service.NotificationService;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * 댓글 작성 (대댓글 포함)
@@ -72,6 +74,9 @@ public class CommentService {
         Comment saved = commentRepository.save(comment);
 
         post.increaseCommentCount();
+
+        // 내 글에 달린 댓글 → 글 작성자에게 알림 (자기 댓글이면 NotificationService 에서 skip)
+        notificationService.notifyNewComment(post, user);
 
         return saved.getId();
     }

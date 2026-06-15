@@ -46,6 +46,9 @@ public enum ErrorCode {
     INVALID_SUB_TAG(HttpStatus.BAD_REQUEST, "이 카테고리에는 사용할 수 없는 서브태그입니다"),
     ALREADY_LIKED(HttpStatus.CONFLICT, "이미 좋아요를 누른 글입니다"),
 
+    // ===== Notification =====
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
+
     // ===== External API =====
     WEATHER_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "기상청 API 호출에 실패했습니다"),
     AIRQUALITY_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "에어코리아 API 호출에 실패했습니다"),
