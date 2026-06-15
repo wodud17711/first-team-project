@@ -37,7 +37,7 @@ function MypageLikes() {
 
         {/* 우측 통계 카드 */}
         <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm border min-w-[120px]">
-          <p className="text-[12px] text-gray-500">작성한 게시글</p>
+          <p className="text-[12px] text-gray-500">좋아요한 게시글</p>
           <p className="text-[20px] font-bold text-sky-700">
             {total ?? 0}개
           </p>
