@@ -83,7 +83,7 @@
 
 ---
 
-## 📋 API 목록 (총 61개)
+## 📋 API 목록 (총 64개)
 
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
@@ -94,7 +94,7 @@
 | 산책 점수 | 2 | MVP(1) + Phase 3(1) | walk_scores, weather_snapshots |
 | 산책 기록 | 7 | MVP(6) + Phase 3(1) | walks, walk_locations |
 | 산책로 | 5 | Phase 2 | walk_routes, walk_route_reviews |
-| 게시판 | 10 | MVP | posts, comments, categories |
+| 게시판 | 11 | MVP | posts, comments, categories, post_images |
 | 좋아요 | 1 | MVP | post_likes |
 | 내 활동 | 3 | MVP | posts, comments, post_likes |
 | 동반 산책 | 4 | Phase 2 | walking_companions |
@@ -105,7 +105,7 @@
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
 | 업로드 | 1 | MVP | - (로컬 디스크) |
-| **합계** | **63** | MVP 40 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **64** | MVP 41 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
@@ -245,7 +245,7 @@ GET /api/walk/optimal-time?dogId=1
 | GET | `/api/routes/{routeId}/reviews` | 산책로 리뷰 목록 | ❌ |
 | POST | `/api/routes/{routeId}/reviews` | 산책로 리뷰 작성 | ✅ |
 
-### 💬 Community (게시판) - 10개
+### 💬 Community (게시판) - 11개
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -259,6 +259,7 @@ GET /api/walk/optimal-time?dogId=1
 | POST | `/api/posts/{postId}/comments` | 댓글 작성 (대댓글 포함) | ✅ |
 | PATCH | `/api/comments/{commentId}` | 댓글 수정 | ✅ |
 | DELETE | `/api/comments/{commentId}` | 댓글 삭제 | ✅ |
+| POST | `/api/posts/{postId}/images` | 게시글 이미지 추가 (작성자 본인, v3.8) | ✅ |
 
 ### ❤️ Post Likes (좋아요) - 1개 (v3.5: 단일 POST 토글로 확정)
 
