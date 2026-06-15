@@ -13,9 +13,21 @@ import { setAccessToken, removeAccessToken } from './tokenStorage'
  *   nickname 은 윤소윤 nickname PR 머지 후 활성화 — 현재는 보내도 BE 가 무시.
  * @returns {Promise<string>} accessToken (자동으로 localStorage 에도 저장)
  */
-export async function signup({ email, password, nickname }) {
-  const accessToken = await apiClient.post('/auth/signup', { email, password, nickname })
+// export async function signup({ email, password, nickname }) {
+//   const accessToken = await apiClient.post('/auth/signup', { email, password, nickname })
+//   setAccessToken(accessToken)
+//   return accessToken
+// }
+export async function signup({ email, password, nickname, guardianLevel }) {
+  const accessToken = await apiClient.post('/auth/signup', {
+    email,
+    password,
+    nickname,
+    guardianLevel,
+  })
+
   setAccessToken(accessToken)
+
   return accessToken
 }
 
@@ -23,9 +35,16 @@ export async function signup({ email, password, nickname }) {
  * 로그인.
  * @returns {Promise<string>} accessToken (자동 저장)
  */
+// export async function login({ email, password }) {
+//   const accessToken = await apiClient.post('/auth/login', { email, password })
+//   setAccessToken(accessToken)
+//   return accessToken
+// }
 export async function login({ email, password }) {
   const accessToken = await apiClient.post('/auth/login', { email, password })
+
   setAccessToken(accessToken)
+
   return accessToken
 }
 

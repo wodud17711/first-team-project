@@ -26,9 +26,26 @@ function AccountEdit() {
     })
 
     const guardianLevels = [
-        { label: "새싹 보호자🌱", desc: "(~ 1년)" },
-        { label: "노련한 보호자🐕", desc: "(1 ~ 5년)" },
-        { label: "베테랑 보호자🏆", desc: "(5년+)" },
+        {
+            value: "BEGINNER",
+            label: "새싹 보호자🌱",
+            desc: "(~1년)"
+        },
+        {
+            value: "JUNIOR",
+            label: "초보 보호자🦴",
+            desc: "(1~3년)"
+        },
+        {
+            value: "SENIOR",
+            label: "숙련 보호자🐕",
+            desc: "(3~5년)"
+        },
+        {
+            value: "VETERAN",
+            label: "베테랑 보호자🏆",
+            desc: "(5년+)"
+        }
     ]
 
     // 이미지
@@ -84,6 +101,7 @@ function AccountEdit() {
             await updateMe({
                 nickname: form.nickname,
                 profileImageUrl: previewImg,
+                guardianLevel: form.guardianLevel,
             })
 
             alert("수정되었습니다.")
@@ -239,11 +257,11 @@ function AccountEdit() {
                                     onClick={() =>
                                         setForm({
                                         ...form,
-                                        guardianLevel: level.label,
+                                        guardianLevel: level.value,
                                         })
                                     }
                                     className={`flex-1 flex  justify-center px-3 py-4 rounded-xl border text-center ${
-                                        form.guardianLevel === level.label
+                                        form.guardianLevel === level.value
                                         ? "bg-brand-200 border-brand-500"
                                         : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
                                     }`}
@@ -253,7 +271,7 @@ function AccountEdit() {
                                         </div>
 
                                         <div className={`text-[11px] ${
-                                            form.guardianLevel === level.label
+                                            form.guardianLevel === level.value
                                             ? "text-brand-600 text-gray-500"
                                             : "text-gray-400/80"
                                         }`}
