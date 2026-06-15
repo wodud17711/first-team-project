@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.7 (2026-06-12, 63개 엔드포인트, schema v1.7 매핑)
+- **버전**: v3.8 (2026-06-15, 64개 엔드포인트, schema v1.7 매핑)
 
 ---
 
@@ -1095,6 +1095,57 @@ Authorization: Bearer {token}
 
 ---
 
+### 📷 게시글 이미지 (#105 구현 정본, v3.8)
+
+게시글에 이미지 URL 을 첨부한다. 실제 파일은 `POST /api/uploads`(v3.7)로 업로드해 받은 URL 을 저장하는 **URL-only** 방식. (반려견 프로필·공통 저장 구조는 추후 저장소 정책 확정 후 공통화)
+
+#### 이미지 추가
+
+```
+POST /api/posts/{postId}/images
+Authorization: Bearer {token}
+```
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| imageUrl | String | ✅ | 이미지 URL (최대 500자). 보통 `POST /api/uploads` 응답의 `url` |
+
+```json
+{ "imageUrl": "/uploads/2026/06/abc.png" }
+```
+
+**Response 200** — `data` = 생성된 이미지 id
+```json
+{
+  "success": true,
+  "data": 1,
+  "message": null
+}
+```
+
+**Error**
+- 400: `imageUrl` 누락·500자 초과 (`INVALID_INPUT`)
+- 401: 비인증 (`UNAUTHORIZED`)
+- 403: 본인 글 아님 (`FORBIDDEN`)
+- 404: 글 없음 (`POST_NOT_FOUND`)
+
+#### 게시글 상세 응답에 이미지 포함
+
+`GET /api/posts/{postId}` 응답(`PostResponse`)에 `images[]` 가 포함된다. 추가된 순서(`createdAt` 오름차순).
+
+```json
+"images": [
+  { "imageId": 1, "imageUrl": "/uploads/2026/06/a.png" },
+  { "imageId": 2, "imageUrl": "/uploads/2026/06/b.png" }
+]
+```
+
+> 목록 응답(`PostSummaryResponse`)에는 **미포함** — 목록 N+1 회피. 이미지는 상세에서만 로드한다.
+
+---
+
 ### 🗂 내 활동 조회 (마이페이지)
 
 > 마이페이지 "내가 쓴 글 / 내가 쓴 댓글 / 좋아요한 글" 카운트 + 목록.
@@ -1347,3 +1398,4 @@ Authorization: Bearer {token}
 | v3.5 | 2026-06-11 | 좋아요 = 단일 POST 토글 확정(#89 구현 반영, DELETE 폐기, 62→61개) — 응답 `LikeResponse{postId,likeCount,liked}`, 목록·상세에 `liked` 필드, ALREADY_LIKED 미사용 | 재영 |
 | v3.6 | 2026-06-12 | user 보안 2종(#91 후속, 61→62개) — `PATCH /users/me/password`(현재 비번 검증, RT 삭제) 신규 + `DELETE /users/me` body `password` 필수화 / 에러 `PASSWORD_MISMATCH`(400) / 탈퇴 사유 서버 미저장 확정 | 재영 |
 | v3.7 | 2026-06-12 | 이미지 업로드 `POST /api/uploads` 신규(62→63개) — multipart 1파일, jpg·png 5MB, 로컬디스크+정적서빙, URL 반환(blob: 비영속 문제 해결) / 에러 `INVALID_FILE`(400) | 재영 |
+| v3.8 | 2026-06-15 | 게시글 이미지 `POST /api/posts/{postId}/images` 신규(63→64개) — URL-only(업로드 URL 저장), 작성자 본인만(403), 상세 응답 `images[]` 포함(목록 미포함=N+1 회피), `post_images` 엔티티 (#105 구현 정본) | 재영 |
