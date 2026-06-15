@@ -833,7 +833,7 @@ Authorization: Bearer {token}
 ### 📊 산책 통계
 
 ```
-GET /api/walks/statistics?period=WEEK
+GET /api/walks/statistics?dogId=1&period=WEEK
 Authorization: Bearer {token}
 ```
 
@@ -841,7 +841,15 @@ Authorization: Bearer {token}
 
 | 파라미터 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
-| period | String | ✅ | DAY / WEEK / MONTH |
+| dogId | Long | ✅ | 집계 대상 반려견 (본인 소유) |
+| period | String | ✅ | DAY / WEEK / MONTH (대소문자 무시) |
+
+> **집계 기준 (캘린더 정렬, 기준일=오늘)**
+> - `DAY` = 오늘 당일 / `WEEK` = 이번 주 월~일(ISO) / `MONTH` = 이번 달 1일~말일
+> - `achievementRate` = (산책한 날 수 ÷ 구간 일수) × 100, 반올림. 예: 주간에 5일 산책 → 5/7 = 71%
+> - `avgDuration` = totalMinutes ÷ totalWalks, 반올림. 산책 0회면 0
+> - `dailyBreakdown` 은 구간의 **모든 날짜**를 담으며 산책 없는 날은 `minutes:0, count:0`
+> - 미종료(진행 중) 산책은 시간/거리 0으로 계산
 
 **Response 200**
 ```json
@@ -862,6 +870,51 @@ Authorization: Bearer {token}
   }
 }
 ```
+
+**Error**
+- 400: `period` 가 DAY/WEEK/MONTH 가 아님 (`INVALID_INPUT`)
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
+- 404: 반려견 없음 (`DOG_NOT_FOUND`)
+
+---
+
+### 📅 산책 캘린더 (월별)
+
+```
+GET /api/walks/calendar?dogId=1&year=2026&month=6
+Authorization: Bearer {token}
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| dogId | Long | ✅ | 조회 대상 반려견 (본인 소유) |
+| year | Integer | ✅ | 연도 (예: 2026) |
+| month | Integer | ✅ | 월 (1~12) |
+
+> `days` 는 해당 월에서 **산책이 1회 이상 있는 날짜만** 담는 희소 배열이다 (FE 히트맵 입력).
+> 산책이 없는 날짜는 응답에 없으며 FE 에서 0으로 채운다.
+
+**Response 200**
+```json
+{
+  "success": true,
+  "data": {
+    "year": 2026,
+    "month": 6,
+    "days": [
+      {"date": "2026-06-03", "count": 2, "minutes": 50},
+      {"date": "2026-06-10", "count": 1, "minutes": 60}
+    ]
+  }
+}
+```
+
+**Error**
+- 400: `year`/`month` 가 유효한 날짜 범위 아님 (`INVALID_INPUT`)
+- 403: 본인 반려견 아님 (`NOT_YOUR_DOG`)
+- 404: 반려견 없음 (`DOG_NOT_FOUND`)
 
 ---
 
