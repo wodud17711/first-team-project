@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -36,6 +37,8 @@ public class PostResponse {
 
     private String authorLevel;
 
+    private List<PostImageResponse> images;
+
     public static PostResponse from(
             Post post,
             boolean liked
@@ -58,6 +61,12 @@ public class PostResponse {
                         post.getUser().getGuardianLevel() != null
                                 ? post.getUser().getGuardianLevel().name()
                                 : null
+                )
+                .images(
+                        post.getImages()
+                                .stream()
+                                .map(PostImageResponse::from)
+                                .toList()
                 )
                 .build();
     }
