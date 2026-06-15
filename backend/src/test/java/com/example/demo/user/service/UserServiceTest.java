@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -35,6 +36,9 @@ class UserServiceTest {
     private UserService userService;
 
     private User user;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
@@ -177,7 +181,15 @@ class UserServiceTest {
     void withdraw_success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        userService.withdraw(1L);
+        when(passwordEncoder.matches(
+                "password",
+                user.getPassword()
+        )).thenReturn(true);
+
+        userService.withdraw(
+                1L,
+                "password"
+        );
 
         assertNotNull(user.getDeletedAt(), "deleted_at 이 세팅됨");
         verify(refreshTokenRepository).deleteByUser_Id(1L);
@@ -190,7 +202,10 @@ class UserServiceTest {
 
         BusinessException ex = assertThrows(
                 BusinessException.class,
-                () -> userService.withdraw(999L)
+                () -> userService.withdraw(
+                        999L,
+                        "password"
+                )
         );
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
         verify(refreshTokenRepository, never()).deleteByUser_Id(any());

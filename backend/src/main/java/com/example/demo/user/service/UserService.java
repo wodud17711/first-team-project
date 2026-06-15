@@ -2,12 +2,14 @@ package com.example.demo.user.service;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.user.dto.PasswordChangeRequest;
 import com.example.demo.user.dto.UserResponse;
 import com.example.demo.user.dto.UserUpdateRequest;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.RefreshTokenRepository;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 내 정보 조회.
@@ -87,6 +90,51 @@ public class UserService {
         return UserResponse.from(user);
     }
 
+    // =========================
+    // 비밀번호 변경
+    // =========================
+
+    @Transactional
+    public void changePassword(
+            Long userId,
+            PasswordChangeRequest request
+    ) {
+
+        User user = findUserOrThrow(userId);
+
+        // 현재 비밀번호 검증
+        if (!passwordEncoder.matches(
+                request.currentPassword(),
+                user.getPassword()
+        )) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_INPUT
+            );
+        }
+
+
+        // 기존 비밀번호와 동일한 새 비밀번호 차단
+        if (passwordEncoder.matches(
+                request.newPassword(),
+                user.getPassword()
+        )) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_INPUT
+            );
+        }
+
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.newPassword()
+                )
+        );
+
+
+        // 비밀번호 변경 후 기존 refresh token 폐기
+        refreshTokenRepository.deleteByUser_Id(userId);
+    }
+
     /**
      * 회원 탈퇴 (soft delete).
      *
@@ -99,9 +147,26 @@ public class UserService {
      * @throws BusinessException USER_NOT_FOUND — 토큰 유효하지만 유저 사라진 비정상 케이스
      */
     @Transactional
-    public void withdraw(Long userId) {
+    public void withdraw(
+            Long userId,
+            String password
+    ) {
+
         User user = findUserOrThrow(userId);
+
+
+        if (!passwordEncoder.matches(
+                password,
+                user.getPassword()
+        )) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_INPUT
+            );
+        }
+
+
         user.setDeletedAt(LocalDateTime.now());
+
         refreshTokenRepository.deleteByUser_Id(userId);
     }
 
@@ -112,4 +177,6 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
+
+
 }
