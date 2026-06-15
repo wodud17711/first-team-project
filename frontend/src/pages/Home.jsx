@@ -121,6 +121,8 @@ function Home() {
                 </div>
               </div>
 
+              
+
               {/* 로그아웃 */}
               <div className="mt-auto pt-3">
                 <div className="flex justify-center items-center gap-4 font-medium
