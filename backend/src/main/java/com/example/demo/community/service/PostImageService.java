@@ -9,8 +9,6 @@ import com.example.demo.community.repository.PostImageRepository;
 import com.example.demo.community.repository.PostRepository;
 import com.example.demo.community.dto.CreatePostImageRequest;
 
-import com.example.demo.user.entity.User;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;

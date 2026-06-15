@@ -1,6 +1,8 @@
 package com.example.demo.community.controller;
 
 
+import com.example.demo.common.exception.BusinessException;
+import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.community.dto.CreatePostImageRequest;
 import com.example.demo.community.service.PostImageService;
@@ -40,10 +42,7 @@ public class PostImageController {
     ) {
 
 
-        Long userId =
-                Long.parseLong(
-                        userDetails.getUsername()
-                );
+        Long userId = resolveUserId(userDetails);
 
 
         return ResponseEntity.ok(
@@ -55,5 +54,28 @@ public class PostImageController {
                         )
                 )
         );
+    }
+
+    private Long resolveUserId(
+            UserDetails userDetails
+    ) {
+
+        if (userDetails == null) {
+            throw new BusinessException(
+                    ErrorCode.UNAUTHORIZED
+            );
+        }
+
+        try {
+            return Long.parseLong(
+                    userDetails.getUsername()
+            );
+
+        } catch (NumberFormatException e) {
+
+            throw new BusinessException(
+                    ErrorCode.UNAUTHORIZED
+            );
+        }
     }
 }

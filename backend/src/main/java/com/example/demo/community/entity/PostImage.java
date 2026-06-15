@@ -27,7 +27,7 @@ public class PostImage {
     private String imageUrl;
 
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
 
