@@ -41,3 +41,35 @@ export async function getWalkScore(dogId) {
 export async function getOptimalTime(dogId) {
   return apiClient.get('/walk/optimal-time', { params: { dogId } })
 }
+
+/**
+ * 산책 시작. POST /api/walks/start
+ * 미종료 산책이 있으면 BE가 WALK_ALREADY_IN_PROGRESS(409) 반환.
+ * @param {number} dogId
+ * @returns {Promise<{walkId:number, dogId:number, startTime:string}>}
+ */
+export async function startWalk(dogId) {
+  return apiClient.post('/walks/start', { dogId })
+}
+
+/**
+ * 산책 종료. POST /api/walks/{walkId}/end
+ * durationMinutes 는 BE 가 startTime~endTime 으로 자동 계산(웹 = GPS 없는 수동 기록).
+ * userFeedback 은 docs/11 수집 컨벤션(JSON 문자열 {"thermal":"HOT|OK|COLD",...})으로 보내면
+ * 룰베이스 v2 피드백 수집과 연결된다.
+ * @param {number} walkId
+ * @param {{distanceKm?: number|null, memo?: string|null, userFeedback?: string|null}} body
+ * @returns {Promise<object>} WalkResponse
+ */
+export async function endWalk(walkId, body) {
+  return apiClient.post(`/walks/${walkId}/end`, body)
+}
+
+/**
+ * 반려견별 산책 이력 (최신순). GET /api/walks/history?dogId=
+ * @param {number} dogId
+ * @returns {Promise<Array<object>>} WalkResponse[]
+ */
+export async function getWalkHistory(dogId) {
+  return apiClient.get('/walks/history', { params: { dogId } })
+}
