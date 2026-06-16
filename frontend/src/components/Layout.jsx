@@ -99,7 +99,7 @@ function Layout() {
                 : 'max-h-0 opacity-0 pointer-events-none'}
             `}
           >
-            <div className="max-w-6xl mx-auto px-3 grid grid-cols-[70px_1fr_65px] gap-[60px]">
+            <div className="max-w-6xl mx-auto px-3 grid grid-cols-[70px_1fr_65px] gap-[200px]">
               <div></div>
               <div className="w-[600px] py-6 mx-auto">
                 <div className="grid grid-cols-4">
