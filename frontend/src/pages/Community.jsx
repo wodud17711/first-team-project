@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { useCategories, usePosts } from "../hooks/useCommunity"
 
 // 컴포넌트 import
@@ -37,8 +37,24 @@ function Community() {
   const { pathname } = useLocation()
   const base = pathname.startsWith("/dev") ? "/dev/community" : "/community"
 
+  const [searchParams] = useSearchParams()
+
   // 필터 state (카테고리 / 서브태그 / 정렬)
-  const [categoryId, setCategoryId] = useState(null)
+  const [categoryId, setCategoryId] = useState(
+    searchParams.get("category")
+      ? Number(searchParams.get("category"))
+      : null
+  )
+
+  useEffect(() => {
+    const category = searchParams.get("category")
+
+    setCategoryId(
+      category
+        ? Number(category)
+        : null
+    )
+  }, [searchParams])
   const [subTag, setSubTag] = useState(null)
   const [sort, setSort] = useState("latest")
 
