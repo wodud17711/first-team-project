@@ -102,22 +102,25 @@ public class UserService {
 
         User user = findUserOrThrow(userId);
 
+
         // 현재 비밀번호 검증
         if (!passwordEncoder.matches(
                 request.currentPassword(),
                 user.getPassword()
         )) {
+
             throw new BusinessException(
                     ErrorCode.PASSWORD_MISMATCH
             );
         }
 
 
-        // 기존 비밀번호와 동일한 새 비밀번호 차단
+        // 새 비밀번호가 기존 비밀번호와 동일한 경우 차단
         if (passwordEncoder.matches(
                 request.newPassword(),
                 user.getPassword()
         )) {
+
             throw new BusinessException(
                     ErrorCode.INVALID_INPUT
             );
@@ -131,7 +134,7 @@ public class UserService {
         );
 
 
-        // 비밀번호 변경 후 기존 refresh token 폐기
+        // 기존 refresh token 폐기
         refreshTokenRepository.deleteByUser_Id(userId);
     }
 
@@ -145,6 +148,8 @@ public class UserService {
      * <p>호출자(컨트롤러)는 응답에서 RT 쿠키를 만료시켜야 클라이언트 측 정리도 완결.
      *
      * @throws BusinessException USER_NOT_FOUND — 토큰 유효하지만 유저 사라진 비정상 케이스
+     *
+     * <p>현재 비밀번호 검증 성공 시에만 탈퇴 처리한다.
      */
     @Transactional
     public void withdraw(
@@ -159,15 +164,21 @@ public class UserService {
                 password,
                 user.getPassword()
         )) {
+
             throw new BusinessException(
                     ErrorCode.PASSWORD_MISMATCH
             );
         }
 
 
-        user.setDeletedAt(LocalDateTime.now());
+        user.setDeletedAt(
+                LocalDateTime.now()
+        );
 
-        refreshTokenRepository.deleteByUser_Id(userId);
+
+        refreshTokenRepository.deleteByUser_Id(
+                userId
+        );
     }
 
     // =========================

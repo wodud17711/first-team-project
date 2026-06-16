@@ -15,10 +15,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.demo.user.dto.PasswordChangeRequest;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -209,5 +211,191 @@ class UserServiceTest {
         );
         assertEquals(ErrorCode.USER_NOT_FOUND, ex.getErrorCode());
         verify(refreshTokenRepository, never()).deleteByUser_Id(any());
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 - 비밀번호 불일치")
+    void withdraw_wrong_password() {
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+
+        when(passwordEncoder.matches(
+                "wrongPassword",
+                "encodedPassword"
+        )).thenReturn(false);
+
+
+        BusinessException ex =
+                assertThrows(
+                        BusinessException.class,
+                        () -> userService.withdraw(
+                                1L,
+                                "wrongPassword"
+                        )
+                );
+
+
+        assertEquals(
+                ErrorCode.PASSWORD_MISMATCH,
+                ex.getErrorCode()
+        );
+
+
+        assertNull(
+                user.getDeletedAt()
+        );
+
+
+        verify(refreshTokenRepository, never())
+                .deleteByUser_Id(anyLong());
+    }
+
+    // =========================
+    // 비밀번호
+    // =========================
+
+    @Test
+    @DisplayName("비밀번호 변경 - 성공")
+    void changePassword_success() {
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(
+                "oldPassword",
+                "encodedPassword"
+        )).thenReturn(true);
+
+        when(passwordEncoder.matches(
+                "newPassword",
+                "encodedPassword"
+        )).thenReturn(false);
+
+        when(passwordEncoder.encode(
+                "newPassword"
+        )).thenReturn("encodedNewPassword");
+
+
+        PasswordChangeRequest request =
+                new PasswordChangeRequest(
+                        "oldPassword",
+                        "newPassword"
+                );
+
+
+        userService.changePassword(
+                1L,
+                request
+        );
+
+
+        assertEquals(
+                "encodedNewPassword",
+                user.getPassword()
+        );
+
+
+        verify(passwordEncoder)
+                .encode("newPassword");
+
+
+        verify(refreshTokenRepository)
+                .deleteByUser_Id(1L);
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 - 현재 비밀번호 불일치")
+    void changePassword_wrong_current_password() {
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+
+        when(passwordEncoder.matches(
+                "wrongPassword",
+                "encodedPassword"
+        )).thenReturn(false);
+
+
+        PasswordChangeRequest request =
+                new PasswordChangeRequest(
+                        "wrongPassword",
+                        "newPassword"
+                );
+
+
+        BusinessException ex =
+                assertThrows(
+                        BusinessException.class,
+                        () -> userService.changePassword(
+                                1L,
+                                request
+                        )
+                );
+
+
+        assertEquals(
+                ErrorCode.PASSWORD_MISMATCH,
+                ex.getErrorCode()
+        );
+
+
+        verify(refreshTokenRepository, never())
+                .deleteByUser_Id(anyLong());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 - 기존 비밀번호와 동일")
+    void changePassword_same_password() {
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+
+        // 현재 비밀번호 검증 성공
+        when(passwordEncoder.matches(
+                "oldPassword",
+                "encodedPassword"
+        )).thenReturn(true);
+
+
+        // 새 비밀번호가 기존과 동일
+        when(passwordEncoder.matches(
+                "samePassword",
+                "encodedPassword"
+        )).thenReturn(true);
+
+
+        PasswordChangeRequest request =
+                new PasswordChangeRequest(
+                        "oldPassword",
+                        "samePassword"
+                );
+
+
+        BusinessException ex =
+                assertThrows(
+                        BusinessException.class,
+                        () -> userService.changePassword(
+                                1L,
+                                request
+                        )
+                );
+
+
+        assertEquals(
+                ErrorCode.INVALID_INPUT,
+                ex.getErrorCode()
+        );
+
+
+        verify(passwordEncoder, never())
+                .encode(anyString());
+
+
+        verify(refreshTokenRepository, never())
+                .deleteByUser_Id(anyLong());
     }
 }
