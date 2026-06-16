@@ -5,6 +5,8 @@ import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.user.dto.UserResponse;
 import com.example.demo.user.dto.UserUpdateRequest;
+import com.example.demo.user.dto.PasswordChangeRequest;
+import com.example.demo.user.dto.WithdrawRequest;
 import com.example.demo.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -58,14 +60,40 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.updateMyInfo(userId, request)));
     }
 
+    @PatchMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody PasswordChangeRequest request
+    ) {
+
+        Long userId = resolveUserId(userDetails);
+
+        userService.changePassword(
+                userId,
+                request
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(null)
+        );
+    }
+
     @DeleteMapping("/me")
     public ResponseEntity<Void> withdraw(
             @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody WithdrawRequest request,
             HttpServletResponse response
     ) {
+
         Long userId = resolveUserId(userDetails);
-        userService.withdraw(userId);
+
+        userService.withdraw(
+                userId,
+                request.password()
+        );
+
         clearRefreshCookie(response);
+
         return ResponseEntity.noContent().build();
     }
 
