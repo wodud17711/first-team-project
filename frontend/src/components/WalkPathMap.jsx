@@ -61,7 +61,21 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
         const position = new kakao.maps.LatLng(center.lat, center.lng)
         const map = new kakao.maps.Map(containerRef.current, { center: position, level: 4 })
         mapRef.current = map
-        new kakao.maps.Marker({ map, position }) // 출발(현재 위치) 마커
+        // 출발(현재 위치) 표식 — 기본 핀 대신 위치 중앙에 작은 점(점이라 시작지점을 덜 가림).
+        // CustomOverlay 는 clickable:false 라 점 위를 클릭해도 지도 click 이 통과됨.
+        // ⚠️ 색/크기는 비주얼 placeholder(sky 톤) — 정선혜 영역.
+        const dotEl = document.createElement('div')
+        dotEl.style.cssText =
+          'width:14px;height:14px;border-radius:9999px;background:#0284c7;' +
+          'border:2px solid #fff;box-shadow:0 0 0 3px rgba(2,132,199,0.30);'
+        new kakao.maps.CustomOverlay({
+          map,
+          position,
+          content: dotEl,
+          xAnchor: 0.5,
+          yAnchor: 0.5,
+          clickable: false,
+        })
 
         const polyline = new kakao.maps.Polyline({
           map,
@@ -77,7 +91,7 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
           const ll = mouseEvent.latLng
           pointsRef.current.push({ lat: ll.getLat(), lng: ll.getLng() })
           polyline.setPath(pointsRef.current.map((p) => new kakao.maps.LatLng(p.lat, p.lng)))
-          markersRef.current.push(new kakao.maps.Marker({ map, position: ll }))
+          markersRef.current.push(new kakao.maps.Marker({ map, position: ll, clickable: false }))
           recompute()
         })
 
