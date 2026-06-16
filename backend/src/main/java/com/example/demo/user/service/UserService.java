@@ -108,7 +108,7 @@ public class UserService {
                 user.getPassword()
         )) {
             throw new BusinessException(
-                    ErrorCode.INVALID_INPUT
+                    ErrorCode.PASSWORD_MISMATCH
             );
         }
 
@@ -160,7 +160,7 @@ public class UserService {
                 user.getPassword()
         )) {
             throw new BusinessException(
-                    ErrorCode.INVALID_INPUT
+                    ErrorCode.PASSWORD_MISMATCH
             );
         }
 
