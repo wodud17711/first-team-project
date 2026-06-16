@@ -7,7 +7,6 @@ import WalkRecord from './pages/WalkRecord'
 import Community from './pages/Community'
 import CommunityWrite from './pages/CommunityWrite'
 import CommunityDetail from './pages/CommunityDetail'
-import Profile from './pages/Profile'
 
 import Login from './pages/Login'
 import Join from './pages/Join'
@@ -58,7 +57,6 @@ function App() {
               <Route path="/community" element={<Community />} />
               <Route path="/community/write" element={<CommunityWrite />} />
               <Route path="/community/:postId" element={<CommunityDetail />} />
-              <Route path="/profile" element={<Profile />} />
 
               {/* 마이페이지(유저 정보관리) */}
               <Route path="/mypage" element={<MyPage/>}/>
