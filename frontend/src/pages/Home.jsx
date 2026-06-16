@@ -142,20 +142,25 @@ function Home() {
 
         {/* 산책지수 + 시간별 날씨 */}
         <section className="flex gap-4 mt-[72px]">
-          <div>
-            <p className='font-bold text-[24px]'>오늘의 산책지수</p>
-            <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
-          </div>
-          <WalkScore
-            score={walk?.score}
-            level={walk?.level}
-            reasons={walk?.topReasons ?? []}
-            loading={walkLoading}
-            notReady={walkNotReady}
-            hasDog={firstDogId != null}
-          />
+          <div className='flex flex-col gap-4'>
+            <div className='flex gap-4'>
+              <div>
+                <p className='font-bold text-[24px]'>오늘의 산책지수</p>
+                <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
+              </div>
+              <WalkScore
+                score={walk?.score}
+                level={walk?.level}
+                reasons={walk?.topReasons ?? []}
+                loading={walkLoading}
+                notReady={walkNotReady}
+                hasDog={firstDogId != null}
+              />
+            </div>
+            <WeatherCard />
 
-          {/* <WeatherCard /> */}
+          </div>
+          
         </section>
         
 
