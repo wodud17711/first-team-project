@@ -47,6 +47,19 @@ public enum StatPeriod {
         }
     }
 
+    /**
+     * 기준일 {@code base} 를 이 기간 단위만큼 이동한 날짜를 돌려준다.
+     * 직전 구간 조회 시 {@code shift(today, -1)} 로 한 구간 전의 기준일을 얻는다.
+     * (DAY=일, WEEK=주, MONTH=월 단위 이동)
+     */
+    public LocalDate shift(LocalDate base, long periods) {
+        return switch (this) {
+            case DAY -> base.plusDays(periods);
+            case WEEK -> base.plusWeeks(periods);
+            case MONTH -> base.plusMonths(periods);
+        };
+    }
+
     /** 기준일 {@code base} 를 포함하는 캘린더 정렬 구간을 계산한다. */
     public Range range(LocalDate base) {
         return switch (this) {

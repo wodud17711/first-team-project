@@ -851,6 +851,9 @@ Authorization: Bearer {token}
 > - `avgDuration` = totalMinutes ÷ totalWalks, 반올림. 산책 0회면 0
 > - `dailyBreakdown` 은 구간의 **모든 날짜**를 담으며 산책 없는 날은 `minutes:0, count:0`
 > - 미종료(진행 중) 산책은 시간/거리 0으로 계산
+> - `previous` = **직전 동일 구간** 요약 (WEEK→지난주, MONTH→지난달, DAY→어제). FE "지난주 대비 변화" 델타용.
+>   현재와 동일 지표(`totalWalks·totalMinutes·totalDistance·avgDuration·achievementRate`)를 담되 **`dailyBreakdown` 은 제외**.
+>   기록 없는 직전 구간은 **모든 값 0**으로 안전 응답. (단일 호출로 현재+직전 수신 → FE가 추가 호출 없이 델타 계산)
 
 **Response 200**
 ```json
@@ -867,7 +870,14 @@ Authorization: Bearer {token}
       {"date": "2026-05-13", "minutes": 45, "count": 1},
       {"date": "2026-05-14", "minutes": 0, "count": 0},
       {"date": "2026-05-15", "minutes": 50, "count": 1}
-    ]
+    ],
+    "previous": {
+      "totalWalks": 3,
+      "totalMinutes": 150,
+      "totalDistance": 7.2,
+      "avgDuration": 50,
+      "achievementRate": 43
+    }
   }
 }
 ```
