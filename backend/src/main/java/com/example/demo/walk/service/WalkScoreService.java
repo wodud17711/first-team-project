@@ -12,19 +12,30 @@ import com.example.demo.walk.dto.WalkScoreResult;
 import com.example.demo.walk.repository.WalkScoreRepository;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
+import com.example.demo.weather.service.WeatherSnapshotService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalkScoreService {
 
+    // 최신 스냅샷이 이 시간 이상 오래되면 수집이 멈춘 것으로 보고 "폴백(직전 값 재사용)" 으로 로깅.
+    // 수집 스케줄러가 1시간 주기이므로 여유를 둬 6시간으로 잡는다.
+    private static final long STALE_AFTER_HOURS = 6;
+
     private final AiClient aiClient;
     private final DogRepository dogRepository;
     private final WeatherSnapshotRepository weatherSnapshotRepository;
+    private final WeatherSnapshotService weatherSnapshotService;
     private final WalkScoreRepository walkScoreRepository;
 
     public WalkScoreResult calculateScore(
@@ -43,13 +54,7 @@ public class WalkScoreService {
                                 )
                         );
 
-        WeatherSnapshot snapshot =
-                weatherSnapshotRepository.findTopByOrderByBaseDateTimeDesc()
-                        .orElseThrow(
-                                () -> new BusinessException(
-                                        ErrorCode.WEATHER_API_ERROR
-                                )
-                        );
+        WeatherSnapshot snapshot = resolveWeatherSnapshot();
 
         WalkScoreRequest request =
                 new WalkScoreRequest(
@@ -67,6 +72,66 @@ public class WalkScoreService {
         );
 
         return result;
+    }
+
+    /**
+     * 점수 계산에 쓸 날씨 스냅샷을 결정한다.
+     * 기상청 키/네트워크 없이도 항상 점수가 나오도록 503 을 던지지 않고 폴백을 보장한다.
+     *
+     * <ul>
+     *   <li>최신 스냅샷이 충분히 신선 → 실데이터 사용 (INFO)</li>
+     *   <li>최신 스냅샷이 오래됨(수집 지연/실패) → 직전 스냅샷 재사용 폴백 (WARN)</li>
+     *   <li>스냅샷이 아예 없음 → 부산 baseline 폴백 시드 후 사용 (WARN)</li>
+     * </ul>
+     * 어느 경로든 실제 룰베이스가 이 스냅샷으로 점수를 계산한다(가짜 점수 아님).
+     */
+    private WeatherSnapshot resolveWeatherSnapshot() {
+
+        Optional<WeatherSnapshot> latest =
+                weatherSnapshotRepository.findTopByOrderByBaseDateTimeDesc();
+
+        if (latest.isEmpty()) {
+
+            WeatherSnapshot seeded =
+                    weatherSnapshotService.ensureBaselinePresent();
+
+            log.warn(
+                    "[WalkScore] 날씨 스냅샷 없음 → 부산 baseline 폴백 사용 (id={}, baseDateTime={}). 실제 룰로 점수 계산.",
+                    seeded.getId(),
+                    seeded.getBaseDateTime()
+            );
+
+            return seeded;
+        }
+
+        WeatherSnapshot snapshot = latest.get();
+
+        long ageHours =
+                Duration.between(
+                        snapshot.getBaseDateTime(),
+                        LocalDateTime.now()
+                ).toHours();
+
+        if (ageHours >= STALE_AFTER_HOURS) {
+
+            log.warn(
+                    "[WalkScore] 최신 날씨 수집 지연(age={}h) → 직전 스냅샷 재사용 폴백 (id={}, baseDateTime={})",
+                    ageHours,
+                    snapshot.getId(),
+                    snapshot.getBaseDateTime()
+            );
+
+        } else {
+
+            log.info(
+                    "[WalkScore] 실데이터 날씨 스냅샷 사용 (id={}, baseDateTime={}, age={}h)",
+                    snapshot.getId(),
+                    snapshot.getBaseDateTime(),
+                    ageHours
+            );
+        }
+
+        return snapshot;
     }
 
     private WalkScoreRequest.DogInfo buildDogInfo(
