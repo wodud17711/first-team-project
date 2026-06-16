@@ -6,10 +6,6 @@ const navItems = [
     label: '오늘의 산책지수',
     to: '/mypage', 
     // 아직 오늘의 산책지수 링크가 없어서 그냥 임시로 걸어둔 링크
-    children: [
-      { label: '주간/월간 리포트', to: '/walk' },
-      { label: '산책 캘린더', to: '/walk' },
-    ],
   },
   {
     label: '산책 기록',
@@ -45,9 +41,8 @@ function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="relative bg-white border-b border-gray-200 sticky top-0 z-50"
-              onMouseLeave={() => setIsMenuOpen(false)}>
-        <div className="max-w-6xl mx-auto px-3 py-3 grid grid-cols-[70px_1fr_65px] gap-[60px]">
+      <header className="relative bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-3 py-3 grid grid-cols-[70px_1fr_65px] gap-[200px]">
           <Link to="/" className="inline-flex items-center w-fit">
             <img
                 src="/navigationbar/SiteLogo.png"
@@ -55,43 +50,44 @@ function Layout() {
                 className="w-[70px] h-auto block hover:scale-105 transition"
               />
           </Link>
-          <div onMouseEnter={() => setIsMenuOpen(true)}>
-            <div className="flex-1 flex justify-center">
-              <nav className="grid grid-cols-4 w-[600px] mx-auto">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={({ isActive }) =>
-                      `group relative flex justify-center py-[10px] text-[16px] font-semibold transition-colors
-                      ${isActive ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span className="relative inline-block px-4">
-                          {item.label}
 
-                          {/* underline */}
-                          <span
-                            className={`
-                              absolute left-0 -bottom-[22px] w-full h-[4px]
-                              bg-brand-500 rounded-full
-                              transition-transform duration-200 origin-center
-                              ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}
-                            `}
-                          />
-                        </span>
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
+          <div className="flex-1 flex justify-center"
+                onMouseEnter={() => setIsMenuOpen(true)}
+                onMouseLeave={() => setIsMenuOpen(false)}>
+            <nav className="grid grid-cols-4 w-[600px] mx-auto">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `group relative flex justify-center py-[10px] text-[16px] font-semibold transition-colors
+                    ${isActive ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`
+                  }
+                >
+                  {({ isActive }) => (
+                    <span className="relative inline-block px-4">
+                      {item.label}
+
+                      {/* underline */}
+                      <span
+                        className={`
+                          absolute left-0 -bottom-[22px] w-full h-[4px]
+                          bg-brand-500 rounded-full
+                          transition-transform duration-200 origin-center
+                          ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}
+                        `}
+                      />
+                    </span>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
           </div>
 
-          {/* 네비게이션바에 마우스 가져다 댔을 때 메뉴판 내려오는 거 */}
+          {/* 드롭다운 */}
           <div
+            onMouseEnter={() => setIsMenuOpen(true)}
+            onMouseLeave={() => setIsMenuOpen(false)}
             className={`
               absolute top-full left-0 w-full
               bg-white/60 backdrop-blur
@@ -112,7 +108,7 @@ function Layout() {
                       key={item.to}
                       className="flex flex-col items-center gap-2"
                     >
-                      {item.children.map((sub) => (
+                      {item.children?.map((sub) => (
                         <Link
                           key={sub.label}
                           to={sub.to}
@@ -138,7 +134,7 @@ function Layout() {
               <img
                 src="/navigationbar/mypage.png"
                 alt="마이페이지"
-                className="w-[20px] h-[20px] block shrink-0 hover:scale-105 transition"
+                className="w-[20px] h-[20px] block shrink-0 transition opacity-60 hover:opacity-100"
               />
 
               <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
@@ -154,7 +150,7 @@ function Layout() {
               <img
                 src="/navigationbar/notice.png"
                 alt="알림"
-                className="w-[21px] h-[21px] block shrink-0 hover:scale-105 transition"
+                className="w-[21px] h-[21px] block shrink-0 transition opacity-60 hover:opacity-100"
               />
 
               <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
