@@ -83,6 +83,14 @@ export function useWalkRecord() {
         setActive(null)
         return res
       } catch (e) {
+        // 서버에 없는(이미 종료됐거나 DB 리셋으로 사라진) 산책이면 로컬 세션만 정리하고
+        // idle 로 복귀 — 갇힘(stuck) 방지. WALK_NOT_FOUND 는 종료할 대상 자체가 없는 케이스.
+        if (e?.errorCode === 'WALK_NOT_FOUND') {
+          localStorage.removeItem(STORAGE_KEY)
+          setActive(null)
+          setError(null)
+          return null
+        }
         setError(e)
         throw e
       } finally {

@@ -14,6 +14,7 @@ import {
   parseThermal,
 } from '../hooks/useWalkRecord'
 import WalkPathMap from '../components/WalkPathMap'
+import { subjectName } from '../lib/korean'
 
 // 체감 옵션 (docs/11 §1.2: HOT/OK/COLD). 라벨·이모지는 비주얼이라 정선혜가 조정 가능.
 const THERMAL_OPTIONS = [
@@ -34,6 +35,7 @@ function WalkRecord() {
 
   // 종료 폼 입력 상태
   const [showEndForm, setShowEndForm] = useState(false)
+  const [frozenSec, setFrozenSec] = useState(0) // '산책 종료' 누른 순간 경과시간 고정(폼에서 타이머 멈춤)
   const [distanceKm, setDistanceKm] = useState('')
   const [thermal, setThermal] = useState(null)
   const [memo, setMemo] = useState('')
@@ -85,7 +87,7 @@ function WalkRecord() {
     <div className="p-4 animate-fadeIn">
       <h1 className="text-[28px] font-extrabold text-sky-800 mb-1">🐾 산책 기록</h1>
       <p className="text-[13px] text-gray-500 mb-4">
-        {dog.name}와의 산책을 기록하고 체감을 남겨보세요.
+        {subjectName(dog.name)}와의 산책을 기록하고 체감을 남겨보세요.
       </p>
 
       {error && (
@@ -104,7 +106,7 @@ function WalkRecord() {
         {!active ? (
           // idle: 시작
           <>
-            <p className="text-[14px] text-gray-500 mb-4">지금 {dog.name}와 산책을 시작할까요?</p>
+            <p className="text-[14px] text-gray-500 mb-4">지금 {subjectName(dog.name)}와 산책을 시작할까요?</p>
             <button
               onClick={handleStart}
               disabled={busy}
@@ -121,7 +123,10 @@ function WalkRecord() {
               {formatElapsed(elapsedSec)}
             </div>
             <button
-              onClick={() => setShowEndForm(true)}
+              onClick={() => {
+                setFrozenSec(elapsedSec) // 종료 누른 순간 시간 고정
+                setShowEndForm(true)
+              }}
               className="px-8 py-3 rounded-full bg-orange-500 text-white text-[16px] font-bold"
             >
               ■ 산책 종료
@@ -131,7 +136,7 @@ function WalkRecord() {
           // 종료 폼: 거리 · 체감 · 메모
           <div className="text-left">
             <p className="text-[16px] font-bold text-gray-800 mb-4 text-center">
-              산책 종료 · {formatElapsed(elapsedSec)}
+              산책 종료 · {formatElapsed(frozenSec)}
             </p>
 
             {/* 걸은 경로를 지도에 찍으면 거리 자동 계산 → 아래 input 에 반영(수동 보정 가능) */}
