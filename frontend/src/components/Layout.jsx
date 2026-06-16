@@ -3,11 +3,20 @@ import { Outlet, NavLink, Link } from 'react-router-dom'
 
 const navItems = [
   {
+    label: '오늘의 산책지수',
+    to: '/mypage', 
+    // 아직 오늘의 산책지수 링크가 없어서 그냥 임시로 걸어둔 링크
+    children: [
+      { label: '주간/월간 리포트', to: '/walk' },
+      { label: '산책 캘린더', to: '/walk' },
+    ],
+  },
+  {
     label: '산책 기록',
     to: '/walk',
     children: [
-      { label: '산책 기록 조회', to: '/walk' },
-      { label: '산책 통계', to: '/walk' },
+      { label: '주간/월간 리포트', to: '/walk' },
+      { label: '산책 캘린더', to: '/walk' },
     ],
   },
   {
@@ -25,46 +34,60 @@ const navItems = [
     label: '반려견 프로필',
     to: '/dog-profile-list',
     children: [
-      // { label: '반려견 프로필 목록', to: '/walk' },
-      // { label: '산책 통계', to: '/walk' },
+      { label: '반려견 프로필 등록', to: '/dog-profile-create' },
     ],
   },
 ]
 
 function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="relative bg-white border-b border-gray-200 sticky top-0 z-50"
               onMouseLeave={() => setIsMenuOpen(false)}>
-        <div className="max-w-6xl mx-auto px-3 py-3 grid grid-cols-[1fr_600px_40px] gap-4 items-center">
-          <Link to="/" className="text-lg font-bold text-brand-600">
+        <div className="max-w-6xl mx-auto px-3 py-3 grid grid-cols-[70px_1fr_65px] gap-[60px]">
+          <Link to="/" className="inline-flex items-center w-fit">
             <img
                 src="/navigationbar/SiteLogo.png"
                 alt="사이트 로고"
-                className="w-[70px] h-full block shrink-0 hover:scale-105 transition"
+                className="w-[70px] h-auto block hover:scale-105 transition"
               />
           </Link>
-          <div className="w-[600px]"
-               onMouseEnter={() => setIsMenuOpen(true)}>
-            <nav className="grid grid-cols-3">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `py-2 rounded-md text-center text-[16px] font-semibold transition-colors" ${
-                      isActive
-                        ? 'bg-brand-50 text-brand-600'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
+          <div onMouseEnter={() => setIsMenuOpen(true)}>
+            <div className="flex-1 flex justify-center">
+              <nav className="grid grid-cols-4 w-[600px] mx-auto">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `group relative flex justify-center py-[10px] text-[16px] font-semibold transition-colors
+                      ${isActive ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span className="relative inline-block px-4">
+                          {item.label}
+
+                          {/* underline */}
+                          <span
+                            className={`
+                              absolute left-0 -bottom-[22px] w-full h-[4px]
+                              bg-brand-500 rounded-full
+                              transition-transform duration-200 origin-center
+                              ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}
+                            `}
+                          />
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
           </div>
 
           {/* 네비게이션바에 마우스 가져다 댔을 때 메뉴판 내려오는 거 */}
@@ -73,20 +96,17 @@ function Layout() {
               absolute top-full left-0 w-full
               bg-white/60 backdrop-blur
               shadow-lg border-t border-gray-200 z-50
-              overflow-hidden
-              transition-all duration-300 ease-in-out
+              overflow-hidden transition-all duration-300 ease-in-out
 
-              ${
-                isMenuOpen
-                  ? 'max-h-80 opacity-100 translate-y-0'
-                  : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'
-              }
+              ${isMenuOpen
+                ? 'max-h-80 opacity-100'
+                : 'max-h-0 opacity-0 pointer-events-none'}
             `}
           >
-            <div className="max-w-6xl mx-auto px-3 grid grid-cols-[1fr_600px_40px] gap-4">
+            <div className="max-w-6xl mx-auto px-3 grid grid-cols-[70px_1fr_65px] gap-[60px]">
               <div></div>
-              <div className="w-[600px] py-6 ml-auto">
-                <div className="grid grid-cols-3">
+              <div className="w-[600px] py-6 mx-auto">
+                <div className="grid grid-cols-4">
                   {navItems.map((item) => (
                     <div
                       key={item.to}
@@ -109,7 +129,7 @@ function Layout() {
           </div>
 
           {/* 마이페이지, 알림 아이콘 */}
-          <div className="flex items-center gap-4 h-full">
+          <div className="flex items-center gap-6 h-full">
             {/* 마이페이지 */}
             <Link
               to="/mypage"
@@ -121,7 +141,7 @@ function Layout() {
                 className="w-[20px] h-[20px] block shrink-0 hover:scale-105 transition"
               />
 
-              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
                 마이페이지
               </span>
             </Link>
@@ -137,11 +157,10 @@ function Layout() {
                 className="w-[21px] h-[21px] block shrink-0 hover:scale-105 transition"
               />
 
-              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
                 알림
               </span>
             </Link>
-
           </div>
         </div>
 
