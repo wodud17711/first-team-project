@@ -144,7 +144,7 @@ function Layout() {
 
             {/* 알림 */}
             <Link
-              to="/"
+              to="/notifications"
               className="relative group flex items-center justify-center h-10"
             >
               <img
