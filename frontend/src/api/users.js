@@ -25,10 +25,13 @@ export async function updateMe(payload) {
 
 /**
  * 회원 탈퇴 (soft delete + RT 무효화).
+ * v3.6: body 의 현재 비밀번호 검증 필수 — 불일치 시 BE 400 PASSWORD_MISMATCH.
+ * axios delete 는 body 를 config.data 로 전송한다.
  * 성공 시 로컬 AT 도 정리. BE 에서 204 반환.
+ * @param {string} password 현재 비밀번호
  */
-export async function deleteMe() {
-  await apiClient.delete('/users/me')
+export async function deleteMe(password) {
+  await apiClient.delete('/users/me', { data: { password } })
   removeAccessToken()
 }
 
@@ -40,5 +43,5 @@ export async function deleteMe() {
  * }} payload
  */
 export async function changePassword(payload) {
-  return apiClient.patch('/users/password', payload)
+  return apiClient.patch('/users/me/password', payload)
 }

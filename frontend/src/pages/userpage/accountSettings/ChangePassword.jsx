@@ -16,7 +16,7 @@ function ChangePassword() {
     const navigate = useNavigate()
     const { me, loading } = useMe()
 
-    const isApiReady = false
+    const isApiReady = true
 
     const [form, setForm] = useState({
       currentPassword: "",
@@ -107,7 +107,14 @@ function ChangePassword() {
         navigate("/mypage")
       } catch (err) {
         console.error(err)
-        setError("비밀번호 변경에 실패했습니다.")
+        const code = err?.errorCode
+        setError(
+          code === "PASSWORD_MISMATCH"
+            ? "현재 비밀번호가 일치하지 않습니다."
+            : code === "INVALID_INPUT"
+              ? "새 비밀번호가 형식에 맞지 않거나 기존 비밀번호와 동일합니다."
+              : "비밀번호 변경에 실패했습니다."
+        )
       } finally {
         setSubmitting(false)
       }
@@ -291,10 +298,10 @@ function ChangePassword() {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 mt-2 mb-1 border-t">
-                        <button disabled
-                        className="px-4 py-2 w-[140px] bg-sky-500 text-white text-[14px] font-bold rounded-xl hover:bg-sky-600 transition"
+                        <button onClick={handleSubmit} disabled={submitting}
+                        className="px-4 py-2 w-[140px] bg-sky-500 text-white text-[14px] font-bold rounded-xl hover:bg-sky-600 transition disabled:opacity-50"
                         >
-                        비밀번호 변경 (준비 중)
+                        {submitting ? "변경 중..." : "비밀번호 변경"}
                         </button>
 
                         <button onClick={handleGoDetail}
