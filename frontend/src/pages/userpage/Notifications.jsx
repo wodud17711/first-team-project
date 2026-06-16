@@ -12,7 +12,7 @@ import NotificationCard from "../../components/NotificationCard"
 function Notifications() {
 
     const navigate = useNavigate()
-    const { notifications, total, unreadCount, loading, error } = useNotifications()
+    const { notifications, unreadCount, loading, error } = useNotifications()
 
     // 👉 로딩/빈 데이터 상태 UI
     if (loading) {
@@ -58,7 +58,7 @@ function Notifications() {
         </div>
 
         {/* 우측 통계 */}
-        <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm border min-w-[120px]">
+        <div className="text-center px-4 py-2 bg -white rounded-xl shadow-sm border min-w-[120px]">
           <p className="text-[12px] text-gray-500">안 읽은 알림</p>
           <p className="text-[20px] font-bold text-sky-700">
             {unreadCount ?? 0}개
@@ -80,7 +80,7 @@ function Notifications() {
         <div className="flex flex-col gap-3">
           {notifications.map((n) => (
             <NotificationCard
-              key={n.id}
+              key={`${n.id ?? ''}-${n.createdAt}`}
               notification={n}
               onClick={() => navigate(n.linkUrl)}
             />

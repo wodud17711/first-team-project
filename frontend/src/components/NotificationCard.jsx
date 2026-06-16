@@ -6,11 +6,20 @@ function NotificationCard({ notification, onClick }) {
         ${notification.isRead ? "bg-white" : "bg-sky-50 border-sky-200"}
       `}
     >
-      <div className="flex justify-between">
-        <p className="text-[14px] text-gray-800">
-          {notification.message}
-        </p>
+      {/* 상단: 타입 + 제목 */}
+      <div className="flex justify-between items-start">
+        
+        <div>
+          <p className="text-[14px] font-medium text-gray-800">
+            {notification.title}
+          </p>
 
+          <p className="text-[13px] text-gray-600 mt-1">
+            {notification.content}
+          </p>
+        </div>
+
+        {/* NEW 뱃지 */}
         {!notification.isRead && (
           <span className="text-[10px] text-sky-600 font-bold">
             NEW
@@ -18,10 +27,19 @@ function NotificationCard({ notification, onClick }) {
         )}
       </div>
 
-      <p className="text-[12px] text-gray-400 mt-1">
+      {/* 링크 대상 (게시글) */}
+      {notification.linkUrl && (
+        <p className="text-[12px] text-sky-500 mt-2">
+          👉 게시글 보기
+        </p>
+      )}
+
+      {/* 시간 */}
+      <p className="text-[11px] text-gray-400 mt-2">
         {notification.createdAt}
       </p>
     </div>
   )
 }
+
 export default NotificationCard

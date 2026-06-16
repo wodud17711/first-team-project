@@ -1,38 +1,59 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { useAuth } from "./useAuth"
+import { getAccessToken } from "../api/tokenStorage"
 import axios from "axios"
 
 export function useNotifications() {
+  const { isAuthenticated } = useAuth()
+
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true)
+  const refetch = useCallback(async () => {
+    setLoading(true)
+    setError(null)
 
-        const res = await axios.get("/api/notifications")
+    try {
+      const token = getAccessToken()
 
-        const data = res.data.data
-
-        setNotifications(data?.notifications ?? [])
-        setUnreadCount(data?.unreadCount ?? 0)
-
-      } catch (err) {
-        setError(err)
-      } finally {
-        setLoading(false)
+      if (!token) {
+        console.log("NO TOKEN")
+        return
       }
-    }
 
-    fetchNotifications()
+      const cleanToken = token.startsWith("Bearer ")
+        ? token
+        : `Bearer ${token}`
+
+      const res = await axios.get("http://localhost:8081/api/notifications", {
+        headers: { Authorization: cleanToken }
+      })
+
+      const data = res.data.data
+
+      setNotifications(data.notifications ?? [])
+      setUnreadCount(data.unreadCount ?? 0)
+
+    } catch (e) {
+      console.error(e)
+      setError(e)
+      setNotifications([])
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  return {
-    notifications,
-    unreadCount,
-    loading,
-    error,
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      refetch()
+    } else {
+      setNotifications([])
+      setUnreadCount(0)
+      setLoading(false)
+    }
+  }, [isAuthenticated, refetch])
+
+  return { notifications, unreadCount, loading, error, refetch }
 }
