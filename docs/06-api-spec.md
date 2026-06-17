@@ -1265,13 +1265,30 @@ Authorization: Bearer {token}
   "data": {
     "notifications": [
       {
-        "notificationId": 1,
-        "type": "BADGE_EARNED",
-        "title": "새 배지 획득!",
-        "content": "산책 마스터 배지를 획득했습니다",
-        "linkUrl": "/badges",
+        "notificationId": 12,
+        "type": "COMMENT",
+        "title": "새 댓글",
+        "content": "댓글러님이 회원님의 글에 댓글을 남겼습니다.",
+        "linkUrl": "/posts/5",
         "isRead": false,
-        "createdAt": "2026-05-20T18:30:00"
+        "createdAt": "2026-06-17T18:30:00",
+        "actor": { "id": 3, "nickname": "댓글러", "profileImageUrl": "https://.../u3.jpg" },
+        "post": { "id": 5, "title": "해운대 야간 산책 코스 공유" },
+        "comment": { "id": 9, "content": "좋은 글이네요" },
+        "actorCount": 1
+      },
+      {
+        "notificationId": 11,
+        "type": "LIKE",
+        "title": "새 좋아요",
+        "content": "박지민님이 회원님의 글을 좋아합니다.",
+        "linkUrl": "/posts/5",
+        "isRead": false,
+        "createdAt": "2026-06-17T18:25:00",
+        "actor": { "id": 7, "nickname": "박지민", "profileImageUrl": "https://.../u7.jpg" },
+        "post": { "id": 5, "title": "해운대 야간 산책 코스 공유" },
+        "comment": null,
+        "actorCount": 3
       }
     ],
     "unreadCount": 5
@@ -1279,10 +1296,12 @@ Authorization: Bearer {token}
 }
 ```
 
-> **MVP 구현 범위 (Week5)**
+> **MVP 구현 범위 (Week5, v3.8 컨텍스트 보강)**
 > - `type`: `COMMENT`(내 글에 댓글) / `LIKE`(내 글에 좋아요). 그 외(BADGE_EARNED·COMPANION_REQUEST)는 Phase 2.
 > - **생성 트리거**: 댓글 작성·좋아요 등록 시 글 작성자에게 1건 생성. **자기 글에 자기가 단 댓글/좋아요는 생성 안 함.** 같은 트랜잭션이라 원 행위 롤백 시 알림도 롤백.
 > - `linkUrl` = `/posts/{postId}` (FE 가 클릭 시 이동).
+> - **컨텍스트(조회 시 조인)**: `actor`(반응한 사용자 — `id`·`nickname`·`profileImageUrl`) / `post`(게시글 — `id`·현재 `title`) / `comment`(댓글 — `id`·`content`, COMMENT 타입만, 그 외 `null`). 모두 조회 시점 최신값이며, 원본이 삭제됐으면 해당 객체는 `null`.
+> - **좋아요 집계**: 같은 게시글의 LIKE 알림은 **게시글 기준으로 묶여 대표 1건**만 내려간다. `actor` = 가장 최근 반응자, `actorCount` = 그 글에 좋아요를 누른 총 인원. FE 표기 예: `"{actor.nickname}님 외 {actorCount-1}명"`. COMMENT·단건은 `actorCount=1`. (묶음은 한 페이지 안에서 적용 — `unreadCount` 벨 뱃지는 묶음과 무관한 안 읽은 행 수.)
 > - **정렬**: 안 읽은 것 우선 → 최신순. `unreadOnly=true` 면 안 읽은 것만.
 > - **읽음 처리**: `PATCH /api/notifications/{id}/read`(단건) / `PATCH /api/notifications/read-all`(전체). 본인 알림 아니면 404 `NOTIFICATION_NOT_FOUND`.
 > - 쿼리 파라미터: `unreadOnly`(기본 false)·`page`(기본 0)·`size`(기본 20).

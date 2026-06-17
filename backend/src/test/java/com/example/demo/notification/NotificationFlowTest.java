@@ -59,6 +59,14 @@ class NotificationFlowTest {
         assertThat(noti.content()).contains("댓글러");
         assertThat(noti.linkUrl()).isEqualTo("/posts/" + post.getId());
         assertThat(noti.isRead()).isFalse();
+        // 조회 보강: 게시글 제목 / 댓글 내용 / 반응자 프로필
+        assertThat(noti.post()).isNotNull();
+        assertThat(noti.post().title()).isEqualTo("제목");
+        assertThat(noti.comment()).isNotNull();
+        assertThat(noti.comment().content()).isEqualTo("좋은 글이네요");
+        assertThat(noti.actor()).isNotNull();
+        assertThat(noti.actor().nickname()).isEqualTo("댓글러");
+        assertThat(noti.actorCount()).isEqualTo(1);
 
         // when: 읽음 처리
         notificationService.markRead(author.getId(), noti.notificationId());
@@ -82,6 +90,31 @@ class NotificationFlowTest {
                 notificationService.list(author.getId(), true, PageRequest.of(0, 20));
         assertThat(list.notifications()).hasSize(1);
         assertThat(list.notifications().get(0).type()).isEqualTo(NotificationType.LIKE.name());
+    }
+
+    @Test
+    void 같은_글_좋아요는_게시글_기준으로_집계되어_대표1건_외N명() {
+        User author = saveUser("a3@test.com", "글쓴이3");
+        User liker1 = saveUser("liker1@test.com", "김철수");
+        User liker2 = saveUser("liker2@test.com", "이영희");
+        User liker3 = saveUser("liker3@test.com", "박지민");
+        Post post = savePost(author);
+
+        likeService.toggleLike(post.getId(), liker1.getId());
+        likeService.toggleLike(post.getId(), liker2.getId());
+        likeService.toggleLike(post.getId(), liker3.getId());
+
+        NotificationListResponse list =
+                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+
+        // 좋아요 알림 3건이 한 게시글 기준으로 묶여 대표 1건만
+        assertThat(list.notifications()).hasSize(1);
+        var noti = list.notifications().get(0);
+        assertThat(noti.type()).isEqualTo(NotificationType.LIKE.name());
+        // 대표 = 가장 최근 반응자(박지민), 총 인원 3 → "박지민님 외 2명"
+        assertThat(noti.actor().nickname()).isEqualTo("박지민");
+        assertThat(noti.actorCount()).isEqualTo(3);
+        assertThat(noti.post().title()).isEqualTo("제목");
     }
 
     @Test
