@@ -7,6 +7,7 @@ import com.example.demo.dog.repository.DogRepository;
 import com.example.demo.walk.client.AiClient;
 import com.example.demo.walk.domain.WalkScore;
 import com.example.demo.walk.dto.WalkScoreRequest;
+import com.example.demo.walk.dto.WalkScoreResponse;
 import com.example.demo.walk.dto.WalkScoreResult;
 import com.example.demo.weather.domain.WeatherSnapshot;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
@@ -157,7 +158,7 @@ class WalkScoreServiceTest {
                 .willReturn(aiResult);
 
         // when: 503(WEATHER_API_ERROR) 없이 점수가 나와야 한다
-        WalkScoreResult result =
+        WalkScoreResponse result =
                 walkScoreService.calculateScore(
                         1L,
                         dog.getId()
@@ -179,5 +180,12 @@ class WalkScoreServiceTest {
         assertThat(weather.temperature()).isEqualTo(24.0);
         assertThat(weather.humidity()).isEqualTo(65);
         assertThat(weather.pm10()).isEqualTo(35);
+
+        // then 4) 응답에도 동일한 baseline 날씨값이 실려 FE 카드가 실측을 표시할 수 있다
+        assertThat(result.weather()).isNotNull();
+        assertThat(result.weather().temperature()).isEqualTo(24.0);
+        assertThat(result.weather().humidity()).isEqualTo(65.0);
+        assertThat(result.weather().pm10()).isEqualTo(35);
+        assertThat(result.weather().uvIndex()).isEqualTo(5);
     }
 }

@@ -8,6 +8,7 @@ import com.example.demo.dog.repository.DogRepository;
 import com.example.demo.walk.client.AiClient;
 import com.example.demo.walk.domain.WalkScore;
 import com.example.demo.walk.dto.WalkScoreRequest;
+import com.example.demo.walk.dto.WalkScoreResponse;
 import com.example.demo.walk.dto.WalkScoreResult;
 import com.example.demo.walk.repository.WalkScoreRepository;
 import com.example.demo.weather.domain.WeatherSnapshot;
@@ -38,7 +39,7 @@ public class WalkScoreService {
     private final WeatherSnapshotService weatherSnapshotService;
     private final WalkScoreRepository walkScoreRepository;
 
-    public WalkScoreResult calculateScore(
+    public WalkScoreResponse calculateScore(
             Long userId,
             Long dogId
     ) {
@@ -71,7 +72,8 @@ public class WalkScoreService {
                 result
         );
 
-        return result;
+        // 점수 산출에 사용된 스냅샷의 실측 날씨값을 응답에 함께 실어 FE 카드가 표시할 수 있게 한다.
+        return WalkScoreResponse.from(result, snapshot);
     }
 
     /**

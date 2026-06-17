@@ -19,6 +19,8 @@ import java.util.Map;
 @Component
 public class UvIdxClient {
 
+    // 생활기상지수 조회서비스(3.0)의 자외선지수 오퍼레이션. base-url 은 LivingWthrIdxServiceV5
+    // (application.properties)와 짝을 이룬다. 실측 확인: V5/getUVIdxV5 + 공통 인증키 → resultCode 00.
     private static final String UV_PATH = "/getUVIdxV5";
 
     private static final List<Integer> BASE_HOURS = List.of(6, 18);
