@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "./useAuth"
 import { getAccessToken } from "../api/tokenStorage"
-import { markRead } from "../api/notifications"
+import { markRead, markAllRead } from "../api/notifications"
 import axios from "axios"
 
 export function useNotifications() {
@@ -9,6 +9,7 @@ export function useNotifications() {
 
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -29,12 +30,18 @@ export function useNotifications() {
         : `Bearer ${token}`
 
       const res = await axios.get("http://localhost:8081/api/notifications", {
+        params: {
+          page: 0,
+          size: 200
+        },
         headers: { Authorization: cleanToken }
       })
 
       const data = res.data.data
 
-      setNotifications(data.notifications ?? [])
+      const list = data.notifications ?? []
+
+      setNotifications(list)
       setUnreadCount(data.unreadCount ?? 0)
 
     } catch (e) {
@@ -60,6 +67,19 @@ export function useNotifications() {
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
+  const markAllNotificationsRead = async () => {
+    await markAllRead()
+
+    setNotifications(prev =>
+      prev.map(n => ({
+        ...n,
+        isRead: true,
+      }))
+    )
+
+    setUnreadCount(0)
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       refetch()
@@ -77,5 +97,6 @@ export function useNotifications() {
     error,
     refetch,
     markNotificationRead,
+    markAllNotificationsRead,
   }
 }

@@ -12,6 +12,9 @@ function timeAgo(iso) {
 }
 
 function NotificationCard({ notification, onClick }) {
+  // 닉네임 bold 처리
+  const parts = notification.content?.split("님이 ")
+
   return (
     <div
       onClick={onClick}
@@ -31,7 +34,16 @@ function NotificationCard({ notification, onClick }) {
 
           {/* @@님이 회원님의 글에 댓글을 남겼습니다(or 글을 좋아합니다) */}
           <p className="text-[14px] text-gray-600 mt-1">
-            {notification.content}
+            {parts?.length > 1 ? (
+              <>
+                <span className="font-semibold text-gray-900">
+                  {parts[0]}
+                </span>
+                님이 {parts[1]}
+              </>
+            ) : (
+              notification.content
+            )}
           </p>
         </div>
 

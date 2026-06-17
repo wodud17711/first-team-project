@@ -2,20 +2,67 @@
 
 
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
-
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 // 훅 가져오기
-import { useNotifications } from "../../hooks/useNotifications"
+import { useNotifications } from "../../hooks/usenotifications"
 import NotificationCard from "../../components/NotificationCard"
 
 // api 연결
 import { markRead } from "../../api/notifications"
 
+
+// 카테고리 탭
+function NotificationTabs({ selected, onSelect }) {
+  const base =
+    "px-4 py-[6px] rounded-full text-[14px] font-bold whitespace-nowrap transition"
+
+  const tabs = [
+    { key: "all", label: "전체" },
+    { key: "like", label: "좋아요" },
+    { key: "comment", label: "댓글" },
+  ]
+
+  return (
+    <div className="flex gap-2 overflow-x-auto mb-[30px]">
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          onClick={() => onSelect(t.key)}
+          className={`${base} ${
+            selected === t.key
+              ? "bg-sky-700 text-white"
+              : "bg-white text-gray-600 border"
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+
 function Notifications() {
 
-    const navigate = useNavigate()
-    const {notifications, unreadCount, loading, error, markNotificationRead,} = useNotifications()
+  const navigate = useNavigate()
+  const { notifications, unreadCount, loading, error, filterNotifications,
+          markNotificationRead, markAllNotificationsRead, refetch
+  } = useNotifications()
+
+  // 카테고리
+  const [filter, setFilter] = useState("all")
+    const filteredNotifications = notifications.filter((n) => {
+    const type = (n.type || "").toUpperCase()
+
+    if (filter === "all") return true
+    if (filter === "like") return n.type === "LIKE"
+    if (filter === "comment") return n.type === "COMMENT"
+    return true
+  })
+
+  const list = filteredNotifications
 
     // 👉 로딩/빈 데이터 상태 UI
     if (loading) {
@@ -61,18 +108,40 @@ function Notifications() {
         </div>
 
         {/* 우측 통계 */}
-        <div className="text-center px-4 py-2 bg -white rounded-xl shadow-sm border min-w-[120px]">
+        <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm border min-w-[120px]">
           <p className="text-[12px] text-gray-500">안 읽은 알림</p>
           <p className="text-[20px] font-bold text-sky-700">
             {unreadCount ?? 0}개
           </p>
         </div>
       </div>
-      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+      <div className='w-full h-[1px] bg-sky-700/50 mb-4'/>
+
+      {/* 카테고리 + 모두읽음 */}
+      <div className="flex items-center gap-2">
+        <NotificationTabs selected={filter} onSelect={setFilter} />
+        <button
+          onClick={async () => {
+            await markAllNotificationsRead()
+            await refetch()
+            window.dispatchEvent(new Event("notifications-updated"))
+          }}
+          className="
+            px-3 py-2
+            text-[12px]
+            rounded-lg
+            border
+            text-gray-600
+            hover:bg-gray-50
+          "
+        >
+          모두 읽음
+        </button>
+      </div>
 
       
       {/* empty state */}
-      {notifications.length === 0 ? (
+      {list.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 text-gray-400">
           <div className="text-[40px]">🔔</div>
           <p className="text-[14px]">
@@ -81,12 +150,14 @@ function Notifications() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {notifications.map((n) => (
+          {filteredNotifications.map((n) => (
             <NotificationCard
               key={`${n.notificationId ?? ''}-${n.createdAt}`}
               notification={n}
               onClick={async () => {
                 await markNotificationRead(n.notificationId)
+                await refetch()
+                window.dispatchEvent(new Event("notifications-updated"))
                 const path = n.linkUrl.replace("/posts/", "/community/")
                 navigate(path)
               }}

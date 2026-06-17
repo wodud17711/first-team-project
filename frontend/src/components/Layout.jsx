@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Outlet, NavLink, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, NavLink, Link, useLocation, } from 'react-router-dom'
+
+import { useNotifications } from '../hooks/useNotifications'
 
 const navItems = [
   {
@@ -36,8 +38,25 @@ const navItems = [
 ]
 
 function Layout() {
+  // 드롭다운
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  
+
+  // 알람 표시
+  const { unreadCount, refetch } = useNotifications()
+
+  const location = useLocation()
+
+  useEffect(() => {
+  const handler = () => {
+      refetch()
+    }
+
+    window.addEventListener("notifications-updated", handler)
+
+    return () => {
+      window.removeEventListener("notifications-updated", handler)
+    }
+  }, [refetch])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -152,7 +171,16 @@ function Layout() {
                 alt="알림"
                 className="w-[21px] h-[21px] block shrink-0 transition opacity-60 hover:opacity-100"
               />
-
+              {unreadCount > 0 && (
+              <span
+                className="
+                  absolute top-[6px] right-[-2px]
+                  w-2.5 h-2.5
+                  rounded-full bg-red-500
+                  border border-white
+                "
+              />
+            )}
               <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
                 알림
               </span>
