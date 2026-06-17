@@ -678,7 +678,18 @@ Authorization: Bearer {token}
       "지면이 매우 뜨거워 발바닥 화상 위험이 큽니다",
       "체감온도가 35℃로 높습니다",
       "말티즈는 더위에 취약한 견종입니다"
-    ]
+    ],
+    "weather": {
+      "temperature": 24.0,
+      "groundTemperature": 30.0,
+      "humidity": 65.0,
+      "feelsLikeTemperature": 25.0,
+      "windSpeed": 3.0,
+      "uvIndex": 5,
+      "pm10": 35,
+      "pm25": 18,
+      "measuredAt": "2026-06-16T09:00:00"
+    }
   },
   "message": null,
   "errorCode": null
@@ -691,6 +702,23 @@ Authorization: Bearer {token}
 | level | string | `안전`(70~100) / `주의`(40~69) / `위험`(0~39) |
 | reasons | string[] | 매칭된 모든 룰 사유. 모두 통과(100점) 시 `["산책하기 좋은 날씨예요!"]` |
 | topReasons | string[] | 감점 큰 순 상위 3개 (FE 카드용). 100점이면 `[]` |
+| weather | object | **점수 산출에 실제 사용된 날씨 스냅샷 실측값** (FE 홈 카드 날씨 줄). 폴백 시 baseline 값. 아래 표 참조 |
+
+**`weather` 블록** (숫자 원본 — 등급 라벨 변환은 FE 표현 영역)
+
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| temperature | number | 기온(℃) |
+| groundTemperature | number\|null | 지면온도(℃). KMA 허브 미연동 시 null 가능 |
+| humidity | number | 습도(%) |
+| feelsLikeTemperature | number | 체감온도(℃) |
+| windSpeed | number | 풍속(m/s) — FE: 약함/보통/강함 변환 |
+| uvIndex | int\|null | 자외선 지수 — FE: 낮음/보통/높음 변환 |
+| pm10 | int\|null | 미세먼지(㎍/㎥) — FE: 좋음/보통/나쁨 변환 |
+| pm25 | int\|null | 초미세먼지(㎍/㎥) |
+| measuredAt | datetime | 스냅샷 기준 시각(신선도/폴백 판단용) |
+
+> 🌤️ 하늘상태(sky/맑음·흐림·비) 코드는 현재 스냅샷에 없어 `weather` 블록에서 제외. 날씨 아이콘은 FE 기본값 유지(단기예보 SKY/PTY 수집 복구 시 추가 예정).
 
 **Error**
 - 404: 반려견 없음 (`DOG_NOT_FOUND`)
@@ -698,7 +726,8 @@ Authorization: Bearer {token}
 
 > ⚙️ **날씨 폴백 (데모 보장, 2026-06-16)**: 스냅샷이 없거나(키 없음/수집 실패) 오래돼도 **`WEATHER_API_ERROR(503)` 를 던지지 않는다.** 스냅샷이 0건이면 부산 baseline 폴백을 시드하고, 직전 스냅샷이 있으면 재사용해 **실제 룰로 계산된 점수**를 반환한다. 폴백 여부는 서버 로그(`[WalkScore]` 실데이터/폴백, `[WeatherSnapshot]`/`[WeatherSeed]`)로 구분된다. 구현: `WalkScoreService.resolveWeatherSnapshot()` + `WeatherSnapshotSeeder`(앱 시작 시 보장).
 
-> 🔮 **Phase 2/3 확장 (현재 미구현)**: `dogName` · `weather` 상세 블록 · `supplies`(준비물 추천) · `measuredAt`(측정 시각)은 추후 추가. 최적 산책 시간은 별도 엔드포인트 **`GET /api/walk/optimal-time`(MVP, 위 계약 참조)**로 분리한다.
+> ✅ **`weather` 상세 블록 · `measuredAt`은 MVP 반영됨 (2026-06-17)** — 위 응답 참조.
+> 🔮 **Phase 2/3 확장 (현재 미구현)**: `dogName` · `supplies`(준비물 추천) · 하늘상태(sky) 아이콘은 추후 추가. 최적 산책 시간은 별도 엔드포인트 **`GET /api/walk/optimal-time`(MVP, 위 계약 참조)**로 분리한다.
 
 ---
 

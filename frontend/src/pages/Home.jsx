@@ -151,6 +151,7 @@ function Home() {
             loading={walkLoading}
             notReady={walkNotReady}
             hasDog={firstDogId != null}
+            weather={walk?.weather}
           />
 
           {/* <WeatherCard /> */}

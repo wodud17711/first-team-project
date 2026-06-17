@@ -63,6 +63,7 @@ import weatherTest from '../../assets/weatherTest.png'
 // WalkScore 요소
 import WalkScoreHeader from './WalkScoreHeader'
 import WalkScoreCard from './WalkScoreCard'
+import { buildWeatherItems } from './weatherDisplay'
 
 
 // 날씨요소 코드 줄이는 컴포넌트
@@ -106,6 +107,7 @@ function WalkScore(props) {
     loading = false,
     notReady = false,
     hasDog = true,
+    weather = null,
   } = props
 
   const ready = typeof score === 'number'
@@ -164,15 +166,10 @@ function WalkScore(props) {
     desc = reasons[0] ?? meta.desc
   }
 
-  const weatherItems = [
-    { label:'날씨', icon: weatherTest },
-    { label:'기온', value:'17℃' },
-    { label:'지면온도', value:'32℃' },
-    { label:'습도', value:'83%' },
-    { label:'미세먼지', value:'좋음' },
-    { label:'바람', value:'약함' },
-    { label:'자외선', value:'낮음' },
-  ]
+  // BE /walk/score 응답의 weather 블록(실측 스냅샷)으로 카드 날씨 줄을 채운다.
+  // 등급 라벨 변환·null 방어는 weatherDisplay 의 순수 함수가 담당.
+  // 날씨 아이콘(sky)은 스냅샷에 데이터가 없어 현재는 고정 이미지를 유지한다.
+  const weatherItems = buildWeatherItems(weather, weatherTest)
 
   return (
     <div className="flex flex-col">
