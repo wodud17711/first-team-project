@@ -2,7 +2,7 @@
 
 
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 // 훅 가져오기
@@ -47,23 +47,63 @@ function NotificationTabs({ selected, onSelect }) {
 function Notifications() {
 
   const navigate = useNavigate()
-  const { notifications, unreadCount, loading, error, filterNotifications,
+  const { notifications, unreadCount, loading, error, filterNotifications, hasMore, loadMore,
           markNotificationRead, markAllNotificationsRead, refetch
   } = useNotifications()
 
   // 카테고리
   const [filter, setFilter] = useState("all")
-    const filteredNotifications = notifications.filter((n) => {
+  const filteredNotifications = notifications.filter((n) => {
     const type = (n.type || "").toUpperCase()
 
     if (filter === "all") return true
-    if (filter === "like") return n.type === "LIKE"
-    if (filter === "comment") return n.type === "COMMENT"
+
+    if (filter === "like")
+      return type.includes("LIKE")
+
+    if (filter === "comment")
+      return type.includes("COMMENT")
+
     return true
   })
 
   const list = filteredNotifications
 
+  // 페이지 젤 상,하단으로 이동
+  const lastScrollY = useRef(0)
+  const [showTop, setShowTop] = useState(false)
+  const [showBottom, setShowBottom] = useState(true)
+
+  useEffect(() => {
+  const handleScroll = () => {
+    const currentY = window.scrollY
+    const windowHeight = window.innerHeight
+    const fullHeight = document.documentElement.scrollHeight
+
+    // 위아래로 스크롤 중
+    const scrollingUp = currentY < lastScrollY.current
+    const scrollingDown = currentY > lastScrollY.current
+
+      if (scrollingUp) {
+        setShowTop(currentY > 300)
+        setShowBottom(false)
+      }
+
+      if (scrollingDown) {
+        setShowBottom(currentY + windowHeight < fullHeight - 300)
+        setShowTop(false)
+      }
+
+      lastScrollY.current = currentY
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    handleScroll()
+
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  
     // 👉 로딩/빈 데이터 상태 UI
     if (loading) {
         return (
@@ -123,7 +163,6 @@ function Notifications() {
         <button
           onClick={async () => {
             await markAllNotificationsRead()
-            await refetch()
             window.dispatchEvent(new Event("notifications-updated"))
           }}
           className="
@@ -156,14 +195,46 @@ function Notifications() {
               notification={n}
               onClick={async () => {
                 await markNotificationRead(n.notificationId)
-                await refetch()
                 window.dispatchEvent(new Event("notifications-updated"))
                 const path = n.linkUrl.replace("/posts/", "/community/")
                 navigate(path)
               }}
             />
           ))}
+          {hasMore && (
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={loadMore}
+              className="px-4 py-2 bg-sky-700 text-white rounded-lg"
+            >
+              더보기
+            </button>
+          </div>
+        )}
         </div>
+      )}
+      {/* 페이지 젤 상단으로 이동 */}
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 bg-gray-800 text-white px-3 py-2 rounded-full transition"
+        >
+          ↑
+        </button>
+      )}
+
+      {showBottom && (
+        <button
+          onClick={() =>
+            window.scrollTo({
+              top: document.documentElement.scrollHeight,
+              behavior: "smooth"
+            })
+          }
+          className="fixed bottom-6 right-6 bg-gray-800 text-white px-3 py-2 rounded-full transition"
+        >
+          ↓
+        </button>
       )}
 
     </div>
