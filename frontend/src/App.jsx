@@ -19,6 +19,7 @@ import AccountDelete from './pages/userpage/accountSettings/AccountDelete'
 import MypagePosts from './pages/userpage/myActivities/MypagePosts'
 import MypageComments from './pages/userpage/myActivities/MypageComments'
 import MypageLikes from './pages/userpage/myActivities/MypageLikes'
+import Notifications from './pages/userpage/Notifications'
 
 import DogListPage from './pages/dogs/DogListPage'
 import DogDetailPage from './pages/dogs/DogDetailPage'
@@ -29,6 +30,7 @@ import NotFound from './pages/NotFound'
 
 // [개발 전용] 최적시간 차트 미리보기 (mock). 실화면 배치 후 제거 가능.
 import OptimalTimePreview from './pages/dev/OptimalTimePreview'
+
 
 
 function App() {
@@ -66,6 +68,7 @@ function App() {
               <Route path="/mypage/posts" element={<MypagePosts/>}/>
               <Route path="/mypage/comments" element={<MypageComments/>}/>
               <Route path="/mypage/likes" element={<MypageLikes/>}/>
+              <Route path="/notifications" element={<Notifications/>}/>
               
 
               {/* 반려견 프로필 페이지 */}
