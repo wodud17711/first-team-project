@@ -77,6 +77,73 @@ class WalkStatisticsServiceTest {
     }
 
     @Test
+    void 주간_통계에_직전주_요약이_포함된다() {
+        Dog dog = saveDog(OWNER_ID);
+        LocalDate thisMonday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate lastMonday = thisMonday.minusWeeks(1);
+
+        // 이번 주: 2건 (30+50=80분)
+        saveWalk(dog, thisMonday, 30, "1.5");
+        saveWalk(dog, thisMonday.plusDays(2), 50, "2.5");
+        // 지난 주: 3건 (40+40+60=140분, 3일 산책 → 3/7=43%, 평균 47)
+        saveWalk(dog, lastMonday, 40, "2.0");
+        saveWalk(dog, lastMonday.plusDays(1), 40, "2.0");
+        saveWalk(dog, lastMonday.plusDays(3), 60, "3.0");
+
+        WalkStatisticsResponse res =
+                walkStatisticsService.statistics(OWNER_ID, dog.getId(), StatPeriod.WEEK);
+
+        // 현재 구간은 직전 구간 데이터에 오염되지 않는다
+        assertThat(res.totalWalks()).isEqualTo(2);
+        assertThat(res.totalMinutes()).isEqualTo(80);
+
+        // 직전 주 요약
+        assertThat(res.previous()).isNotNull();
+        assertThat(res.previous().totalWalks()).isEqualTo(3);
+        assertThat(res.previous().totalMinutes()).isEqualTo(140);
+        assertThat(res.previous().totalDistance()).isEqualByComparingTo("7.0");
+        assertThat(res.previous().avgDuration()).isEqualTo(47); // 140/3 반올림
+        assertThat(res.previous().achievementRate()).isEqualTo(43); // 3일/7일
+    }
+
+    @Test
+    void 월간_통계에_직전달_요약이_포함된다() {
+        Dog dog = saveDog(OWNER_ID);
+        LocalDate thisFirst = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate lastMonthDay = thisFirst.minusMonths(1).plusDays(4); // 지난달 5일
+
+        saveWalk(dog, thisFirst.plusDays(1), 30, "1.0"); // 이번 달 1건
+        saveWalk(dog, lastMonthDay, 25, "1.2");          // 지난 달 2건
+        saveWalk(dog, lastMonthDay.plusDays(1), 35, "1.8");
+
+        WalkStatisticsResponse res =
+                walkStatisticsService.statistics(OWNER_ID, dog.getId(), StatPeriod.MONTH);
+
+        assertThat(res.totalWalks()).isEqualTo(1);
+        assertThat(res.previous()).isNotNull();
+        assertThat(res.previous().totalWalks()).isEqualTo(2);
+        assertThat(res.previous().totalMinutes()).isEqualTo(60);
+        assertThat(res.previous().totalDistance()).isEqualByComparingTo("3.0");
+    }
+
+    @Test
+    void 직전_구간_기록이_없으면_previous_는_0이다() {
+        Dog dog = saveDog(OWNER_ID);
+        LocalDate thisMonday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        saveWalk(dog, thisMonday, 30, "1.5"); // 이번 주만 기록, 지난 주 없음
+
+        WalkStatisticsResponse res =
+                walkStatisticsService.statistics(OWNER_ID, dog.getId(), StatPeriod.WEEK);
+
+        assertThat(res.previous()).isNotNull();
+        assertThat(res.previous().totalWalks()).isZero();
+        assertThat(res.previous().totalMinutes()).isZero();
+        assertThat(res.previous().totalDistance()).isEqualByComparingTo("0");
+        assertThat(res.previous().avgDuration()).isZero();      // 0으로 나누지 않음
+        assertThat(res.previous().achievementRate()).isZero();
+    }
+
+    @Test
     void 기록_없는_기간은_0으로_안전응답한다() {
         Dog dog = saveDog(OWNER_ID);
 

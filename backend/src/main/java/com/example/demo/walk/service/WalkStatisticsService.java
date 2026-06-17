@@ -10,6 +10,7 @@ import com.example.demo.walk.dto.WalkCalendarResponse;
 import com.example.demo.walk.dto.WalkCalendarResponse.CalendarDay;
 import com.example.demo.walk.dto.WalkStatisticsResponse;
 import com.example.demo.walk.dto.WalkStatisticsResponse.DailyStat;
+import com.example.demo.walk.dto.WalkStatisticsResponse.PreviousStat;
 import com.example.demo.walk.repository.WalkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,10 +49,39 @@ public class WalkStatisticsService {
     public WalkStatisticsResponse statistics(Long userId, Long dogId, StatPeriod period) {
         getMyDog(userId, dogId);
 
-        StatPeriod.Range range = period.range(LocalDate.now());
+        LocalDate today = LocalDate.now();
+
+        // 현재 구간 + 직전 동일 구간(지난주/지난달/어제)을 같은 로직으로 집계한다.
+        PeriodAgg current = aggregate(dogId, period.range(today));
+        PeriodAgg previous = aggregate(dogId, period.range(period.shift(today, -1)));
+
+        List<DailyStat> breakdown = current.range().startInclusive()
+                .datesUntil(current.range().endInclusive().plusDays(1))
+                .map(date -> {
+                    DayAgg agg = current.byDate().get(date);
+                    return new DailyStat(date,
+                            agg == null ? 0 : agg.minutes(),
+                            agg == null ? 0 : agg.count());
+                })
+                .toList();
+
+        return new WalkStatisticsResponse(
+                period.name(),
+                current.totalWalks(), current.totalMinutes(), current.totalDistance(),
+                current.avgDuration(), current.achievementRate(), breakdown,
+                new PreviousStat(
+                        previous.totalWalks(), previous.totalMinutes(), previous.totalDistance(),
+                        previous.avgDuration(), previous.achievementRate()));
+    }
+
+    /**
+     * 한 구간의 합계 지표를 집계한다. 현재/직전 구간이 동일 규칙을 공유한다.
+     * 기록이 없는 구간이면 모든 값이 0으로 안전하게 나온다(0으로 나누지 않음).
+     */
+    private PeriodAgg aggregate(Long dogId, StatPeriod.Range range) {
         List<Walk> walks = walksIn(dogId, range.startInclusive(), range.endInclusive());
 
-        // 날짜별 집계 (산책이 있는 날만 우선 모은 뒤, 빈 날은 dailyBreakdown 생성 시 0으로 채움)
+        // 날짜별 집계 (산책이 있는 날만 모음. 빈 날은 dailyBreakdown 생성 시 0으로 채움)
         Map<LocalDate, DayAgg> byDate = aggregateByDate(walks);
 
         long totalWalks = walks.size();
@@ -64,19 +94,8 @@ public class WalkStatisticsService {
         long walkDays = byDate.values().stream().filter(a -> a.count() > 0).count();
         int achievementRate = (int) Math.round(walkDays * 100.0 / range.days());
 
-        List<DailyStat> breakdown = range.startInclusive()
-                .datesUntil(range.endInclusive().plusDays(1))
-                .map(date -> {
-                    DayAgg agg = byDate.get(date);
-                    return new DailyStat(date,
-                            agg == null ? 0 : agg.minutes(),
-                            agg == null ? 0 : agg.count());
-                })
-                .toList();
-
-        return new WalkStatisticsResponse(
-                period.name(), totalWalks, totalMinutes, totalDistance,
-                avgDuration, achievementRate, breakdown);
+        return new PeriodAgg(totalWalks, totalMinutes, totalDistance,
+                avgDuration, achievementRate, byDate, range);
     }
 
     /**
@@ -131,6 +150,18 @@ public class WalkStatisticsService {
             throw new BusinessException(ErrorCode.NOT_YOUR_DOG);
         }
         return dog;
+    }
+
+    /** 한 구간의 집계 결과 (현재/직전 공용). {@code byDate}·{@code range} 는 dailyBreakdown 생성에 쓴다. */
+    private record PeriodAgg(
+            long totalWalks,
+            long totalMinutes,
+            BigDecimal totalDistance,
+            int avgDuration,
+            int achievementRate,
+            Map<LocalDate, DayAgg> byDate,
+            StatPeriod.Range range
+    ) {
     }
 
     /** 하루치 누적값 (횟수·분·거리). */
