@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "./useAuth"
 import { getAccessToken } from "../api/tokenStorage"
+import { markRead } from "../api/notifications"
 import axios from "axios"
 
 export function useNotifications() {
@@ -45,6 +46,20 @@ export function useNotifications() {
     }
   }, [])
 
+  const markNotificationRead = async (id) => {
+    await markRead(id)
+
+    setNotifications(prev =>
+      prev.map(n =>
+        n.notificationId === id
+          ? { ...n, isRead: true }
+          : n
+      )
+    )
+
+    setUnreadCount(prev => Math.max(0, prev - 1))
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       refetch()
@@ -55,5 +70,12 @@ export function useNotifications() {
     }
   }, [isAuthenticated, refetch])
 
-  return { notifications, unreadCount, loading, error, refetch }
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    refetch,
+    markNotificationRead,
+  }
 }

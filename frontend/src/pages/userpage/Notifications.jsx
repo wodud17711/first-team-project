@@ -9,10 +9,13 @@ import { useNavigate } from "react-router-dom"
 import { useNotifications } from "../../hooks/useNotifications"
 import NotificationCard from "../../components/NotificationCard"
 
+// api 연결
+import { markRead } from "../../api/notifications"
+
 function Notifications() {
 
     const navigate = useNavigate()
-    const { notifications, unreadCount, loading, error } = useNotifications()
+    const {notifications, unreadCount, loading, error, markNotificationRead,} = useNotifications()
 
     // 👉 로딩/빈 데이터 상태 UI
     if (loading) {
@@ -80,9 +83,13 @@ function Notifications() {
         <div className="flex flex-col gap-3">
           {notifications.map((n) => (
             <NotificationCard
-              key={`${n.id ?? ''}-${n.createdAt}`}
+              key={`${n.notificationId ?? ''}-${n.createdAt}`}
               notification={n}
-              onClick={() => navigate(n.linkUrl)}
+              onClick={async () => {
+                await markNotificationRead(n.notificationId)
+                const path = n.linkUrl.replace("/posts/", "/community/")
+                navigate(path)
+              }}
             />
           ))}
         </div>
