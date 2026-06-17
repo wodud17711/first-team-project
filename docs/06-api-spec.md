@@ -695,7 +695,8 @@ Authorization: Bearer {token}
 **Error**
 - 404: 반려견 없음 (`DOG_NOT_FOUND`)
 - 503: AI(룰베이스) 서버 호출 실패 (`AI_SERVER_ERROR`)
-- 503: 날씨 데이터 없음/조회 실패 (`WEATHER_API_ERROR`)
+
+> ⚙️ **날씨 폴백 (데모 보장, 2026-06-16)**: 스냅샷이 없거나(키 없음/수집 실패) 오래돼도 **`WEATHER_API_ERROR(503)` 를 던지지 않는다.** 스냅샷이 0건이면 부산 baseline 폴백을 시드하고, 직전 스냅샷이 있으면 재사용해 **실제 룰로 계산된 점수**를 반환한다. 폴백 여부는 서버 로그(`[WalkScore]` 실데이터/폴백, `[WeatherSnapshot]`/`[WeatherSeed]`)로 구분된다. 구현: `WalkScoreService.resolveWeatherSnapshot()` + `WeatherSnapshotSeeder`(앱 시작 시 보장).
 
 > 🔮 **Phase 2/3 확장 (현재 미구현)**: `dogName` · `weather` 상세 블록 · `supplies`(준비물 추천) · `measuredAt`(측정 시각)은 추후 추가. 최적 산책 시간은 별도 엔드포인트 **`GET /api/walk/optimal-time`(MVP, 위 계약 참조)**로 분리한다.
 
