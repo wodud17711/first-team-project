@@ -4,6 +4,7 @@ import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.notification.dto.NotificationListResponse;
+import com.example.demo.notification.entity.NotificationType;
 import com.example.demo.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -35,14 +36,30 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<ApiResponse<NotificationListResponse>> list(
             @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "false") boolean unreadOnly,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
         Long userId = resolveUserId(userDetails);
         NotificationListResponse response =
-                notificationService.list(userId, unreadOnly, PageRequest.of(page, size));
+                notificationService.list(userId, parseType(type), unreadOnly, PageRequest.of(page, size));
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 카테고리 탭 파라미터 파싱. {@code null}·빈값·{@code ALL}(대소문자 무관)은 전체({@code null}),
+     * {@code LIKE}/{@code COMMENT} 는 해당 타입. 그 외 값은 400 {@code INVALID_INPUT}.
+     */
+    private NotificationType parseType(String type) {
+        if (type == null || type.isBlank() || "ALL".equalsIgnoreCase(type)) {
+            return null;
+        }
+        try {
+            return NotificationType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
     }
 
     /** 단건 읽음 처리. */

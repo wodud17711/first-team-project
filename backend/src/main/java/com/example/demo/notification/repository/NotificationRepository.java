@@ -19,6 +19,14 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     /** 내 안 읽은 알림만. 최신순. */
     Page<Notification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    /** 특정 타입 알림. 안 읽은 것 우선, 최신순. (카테고리 탭: 좋아요/댓글) */
+    Page<Notification> findByUserIdAndTypeOrderByIsReadAscCreatedAtDesc(
+            Long userId, NotificationType type, Pageable pageable);
+
+    /** 특정 타입의 안 읽은 알림만. 최신순. */
+    Page<Notification> findByUserIdAndTypeAndIsReadFalseOrderByCreatedAtDesc(
+            Long userId, NotificationType type, Pageable pageable);
+
     /** 안 읽은 알림 개수 (벨 뱃지용). */
     long countByUserIdAndIsReadFalse(Long userId);
 

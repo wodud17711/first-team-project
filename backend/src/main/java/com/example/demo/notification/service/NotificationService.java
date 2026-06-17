@@ -101,15 +101,15 @@ public class NotificationService {
     }
 
     /**
-     * 내 알림 목록(+안읽음 수). {@code unreadOnly} 면 안 읽은 것만.
+     * 내 알림 목록(+안읽음 수). {@code unreadOnly} 면 안 읽은 것만, {@code type} 이 주어지면
+     * 그 타입만(카테고리 탭: 좋아요/댓글). {@code type} 이 {@code null} 이면 전체.
      *
      * <p>LIKE 알림은 한 페이지 안에서 게시글 기준으로 묶어 대표 1건만 내려간다(나머지는 접힘).
-     * {@code unreadCount}(벨 뱃지)는 묶음과 무관하게 안 읽은 행 수 그대로다.
+     * {@code unreadCount}(벨 뱃지)는 타입·묶음과 무관하게 전체 안 읽은 행 수다.
      */
-    public NotificationListResponse list(Long userId, boolean unreadOnly, Pageable pageable) {
-        Page<Notification> page = unreadOnly
-                ? notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId, pageable)
-                : notificationRepository.findByUserIdOrderByIsReadAscCreatedAtDesc(userId, pageable);
+    public NotificationListResponse list(Long userId, NotificationType type,
+                                         boolean unreadOnly, Pageable pageable) {
+        Page<Notification> page = findPage(userId, type, unreadOnly, pageable);
 
         List<Notification> rows = page.getContent();
         Context ctx = loadContext(rows);
@@ -144,6 +144,19 @@ public class NotificationService {
     @Transactional
     public void markAllRead(Long userId) {
         notificationRepository.markAllReadByUserId(userId);
+    }
+
+    /** 타입 필터(null=전체) × 안읽음 필터 조합으로 페이지를 조회한다. */
+    private Page<Notification> findPage(Long userId, NotificationType type,
+                                        boolean unreadOnly, Pageable pageable) {
+        if (type == null) {
+            return unreadOnly
+                    ? notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId, pageable)
+                    : notificationRepository.findByUserIdOrderByIsReadAscCreatedAtDesc(userId, pageable);
+        }
+        return unreadOnly
+                ? notificationRepository.findByUserIdAndTypeAndIsReadFalseOrderByCreatedAtDesc(userId, type, pageable)
+                : notificationRepository.findByUserIdAndTypeOrderByIsReadAscCreatedAtDesc(userId, type, pageable);
     }
 
     /** 페이지 내 알림들이 참조하는 actor·post·comment 를 한 번에 적재(조회 N+1 방지). */

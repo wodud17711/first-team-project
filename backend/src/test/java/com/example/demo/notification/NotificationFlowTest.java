@@ -51,7 +51,7 @@ class NotificationFlowTest {
 
         // then: 글쓴이에게 COMMENT 알림 1건
         NotificationListResponse list =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
         assertThat(list.notifications()).hasSize(1);
         assertThat(list.unreadCount()).isEqualTo(1);
         var noti = list.notifications().get(0);
@@ -73,7 +73,7 @@ class NotificationFlowTest {
 
         // then: 안읽음 0
         NotificationListResponse after =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
         assertThat(after.unreadCount()).isZero();
         assertThat(after.notifications().get(0).isRead()).isTrue();
     }
@@ -87,7 +87,7 @@ class NotificationFlowTest {
         likeService.toggleLike(post.getId(), liker.getId());
 
         NotificationListResponse list =
-                notificationService.list(author.getId(), true, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, true, PageRequest.of(0, 20));
         assertThat(list.notifications()).hasSize(1);
         assertThat(list.notifications().get(0).type()).isEqualTo(NotificationType.LIKE.name());
     }
@@ -105,7 +105,7 @@ class NotificationFlowTest {
         likeService.toggleLike(post.getId(), liker3.getId());
 
         NotificationListResponse list =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
 
         // 좋아요 알림 3건이 한 게시글 기준으로 묶여 대표 1건만
         assertThat(list.notifications()).hasSize(1);
@@ -118,6 +118,36 @@ class NotificationFlowTest {
     }
 
     @Test
+    void 타입으로_필터하면_해당_카테고리만_조회된다() {
+        User author = saveUser("a4@test.com", "글쓴이4");
+        User actor = saveUser("actor4@test.com", "행위자");
+        Post post = savePost(author);
+
+        commentService.createComment(post.getId(), commentRequest("댓글입니다"), actor.getId());
+        likeService.toggleLike(post.getId(), actor.getId());
+
+        // 전체 = 2건(댓글 + 좋아요)
+        NotificationListResponse all =
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
+        assertThat(all.notifications()).hasSize(2);
+
+        // 댓글 탭 = COMMENT 만
+        NotificationListResponse comments =
+                notificationService.list(author.getId(), NotificationType.COMMENT, false, PageRequest.of(0, 20));
+        assertThat(comments.notifications()).hasSize(1);
+        assertThat(comments.notifications().get(0).type()).isEqualTo(NotificationType.COMMENT.name());
+
+        // 좋아요 탭 = LIKE 만
+        NotificationListResponse likes =
+                notificationService.list(author.getId(), NotificationType.LIKE, false, PageRequest.of(0, 20));
+        assertThat(likes.notifications()).hasSize(1);
+        assertThat(likes.notifications().get(0).type()).isEqualTo(NotificationType.LIKE.name());
+
+        // unreadCount 는 타입과 무관하게 전체 안 읽은 수(2)
+        assertThat(likes.unreadCount()).isEqualTo(2);
+    }
+
+    @Test
     void 자기_글에_자기가_댓글_좋아요하면_알림_없음() {
         User author = saveUser("self@test.com", "본인");
         Post post = savePost(author);
@@ -126,7 +156,7 @@ class NotificationFlowTest {
         likeService.toggleLike(post.getId(), author.getId());
 
         NotificationListResponse list =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
         assertThat(list.notifications()).isEmpty();
         assertThat(list.unreadCount()).isZero();
     }

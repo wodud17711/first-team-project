@@ -1254,7 +1254,7 @@ Authorization: Bearer {token}
 ### 🔔 알림 목록
 
 ```
-GET /api/notifications?unreadOnly=true&page=0&size=20
+GET /api/notifications?type=LIKE&unreadOnly=true&page=0&size=20
 Authorization: Bearer {token}
 ```
 
@@ -1303,8 +1303,10 @@ Authorization: Bearer {token}
 > - **컨텍스트(조회 시 조인)**: `actor`(반응한 사용자 — `id`·`nickname`·`profileImageUrl`) / `post`(게시글 — `id`·현재 `title`) / `comment`(댓글 — `id`·`content`, COMMENT 타입만, 그 외 `null`). 모두 조회 시점 최신값이며, 원본이 삭제됐으면 해당 객체는 `null`.
 > - **좋아요 집계**: 같은 게시글의 LIKE 알림은 **게시글 기준으로 묶여 대표 1건**만 내려간다. `actor` = 가장 최근 반응자, `actorCount` = 그 글에 좋아요를 누른 총 인원. FE 표기 예: `"{actor.nickname}님 외 {actorCount-1}명"`. COMMENT·단건은 `actorCount=1`. (묶음은 한 페이지 안에서 적용 — `unreadCount` 벨 뱃지는 묶음과 무관한 안 읽은 행 수.)
 > - **정렬**: 안 읽은 것 우선 → 최신순. `unreadOnly=true` 면 안 읽은 것만.
+> - **카테고리 탭 필터**: `type=LIKE`/`type=COMMENT` 면 해당 타입만. `type` 생략·빈값·`type=ALL` 은 전체. 필터링은 **서버에서** 처리하므로 페이지네이션도 타입별로 적용된다(프론트에서 전체를 받아 거르지 않아도 됨). 잘못된 값은 400 `INVALID_INPUT`.
 > - **읽음 처리**: `PATCH /api/notifications/{id}/read`(단건) / `PATCH /api/notifications/read-all`(전체). 본인 알림 아니면 404 `NOTIFICATION_NOT_FOUND`.
-> - 쿼리 파라미터: `unreadOnly`(기본 false)·`page`(기본 0)·`size`(기본 20).
+> - 쿼리 파라미터: `type`(기본 전체)·`unreadOnly`(기본 false)·`page`(기본 0)·`size`(기본 20).
+> - `unreadCount` 는 `type`·`unreadOnly` 와 무관하게 **전체** 안 읽은 알림 수(벨 뱃지용)다.
 
 ---
 
