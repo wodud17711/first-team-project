@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, Link, useLocation, } from 'react-router-dom'
 
-import { useNotifications } from '../hooks/useNotifications'
+import { useNotifications } from '../hooks/usenotifications'
 
 const navItems = [
   {

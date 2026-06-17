@@ -1,4 +1,4 @@
-import apiClient from "./Client"
+import apiClient from "./client"
 
 // api notifications 호출
 export const getNotifications = (params) =>

@@ -125,5 +125,7 @@ export function useNotifications() {
 
     markNotificationRead,
     markAllNotificationsRead,
+    
+    refetch: initLoad,
   }
 }
