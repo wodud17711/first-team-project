@@ -80,9 +80,10 @@ export function useCategories() {
  * @param {{categoryId?:number, subTag?:string, sort?:'latest'|'popular'}} [filter]
  * @returns {{posts: Array, total: number, loading: boolean, error: Error|null}}
  */
-export function usePosts({ categoryId, subTag, sort = 'latest' } = {}) {
+export function usePosts({ categoryId, subTag, sort = 'latest', page = 0 } = {}) {
   const [posts, setPosts] = useState([])
   const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -94,10 +95,11 @@ export function usePosts({ categoryId, subTag, sort = 'latest' } = {}) {
       try {
         const data = USE_MOCK_POSTS
           ? getPostsMock({ categoryId, subTag, sort })
-          : await getPosts({ categoryId, subTag, sort })
+          : await getPosts({ categoryId, subTag, sort, page, size:10 })
         if (alive) {
           setPosts(data?.content ?? [])
           setTotal(data?.totalElements ?? 0)
+          setTotalPages(data?.totalPages ?? 0)
         }
       } catch (e) {
         if (alive) setError(e)
@@ -106,9 +108,9 @@ export function usePosts({ categoryId, subTag, sort = 'latest' } = {}) {
       }
     })()
     return () => { alive = false }
-  }, [categoryId, subTag, sort])
+  }, [categoryId, subTag, sort, page])
 
-  return { posts, total, loading, error }
+  return { posts, total, totalPages, loading, error }
 }
 
 /**

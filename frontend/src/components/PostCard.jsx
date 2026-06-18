@@ -15,6 +15,15 @@ function timeAgo(iso) {
 
 // 게시글 1건 카드 (목록 행)
 function PostCard({ post, onClick }) {
+
+  // 닉네임 옆 보호자 연차 표기(아이콘)
+  const guardianLevelIcon = {
+    BEGINNER: "🌱",
+    JUNIOR: "🦴",
+    SENIOR: "🐕",
+    VETERAN: "🏆",
+  }
+  
   return (
     <div
       onClick={onClick}
@@ -31,8 +40,8 @@ function PostCard({ post, onClick }) {
         />
       )}
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex items-center gap-[6px] mb-1">
+      <div className="flex flex-col flex-1 min-w-0 gap-2">
+        <div className="flex items-center gap-[6px]">
           <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-700 text-[12px] font-medium">
             {post.category}
           </span>
@@ -48,11 +57,12 @@ function PostCard({ post, onClick }) {
           {post.title}
         </p>
 
-        <div className="flex items-center gap-3 mt-2 text-[12px] text-gray-400">
-          <span className="text-gray-500">
-            {post.author ?? "익명"}
-          </span>
-
+        <div className="flex items-center gap-3 text-[12px] text-gray-400">
+          <div className="flex gap-1">
+            <span>{guardianLevelIcon[post.authorLevel]}</span>
+            <span className="text-gray-500">{post.author ?? "익명"}</span>
+          </div>
+        
           <span>{timeAgo(post.createdAt)}</span>
 
           <span className="ml-auto flex items-center gap-3">
