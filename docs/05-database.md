@@ -70,7 +70,7 @@
 | 테이블 | 설명 |
 | --- | --- |
 | `qna_history` | OpenAI Q&A 이력 + 토큰 사용량 |
-| `notifications` | 사용자 알림 (배지/댓글/동반 신청 등) |
+| `notifications` | 사용자 알림 (배지/댓글/동반 신청 등). `actor_id`·`post_id`·`comment_id` FK 로 조회 시 반응자 프로필·게시글 제목·댓글 내용을 조인(v3.8) |
 
 ---
 

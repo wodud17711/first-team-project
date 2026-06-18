@@ -38,6 +38,18 @@ public class Notification {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    /** 알림을 유발한 사용자 id (댓글·좋아요를 누른 사람). 조회 시 프로필을 조인한다. */
+    @Column(name = "actor_id")
+    private Long actorId;
+
+    /** 관련 게시글 id. 조회 시 제목을 조인하고, LIKE 집계의 그룹 키가 된다. */
+    @Column(name = "post_id")
+    private Long postId;
+
+    /** 관련 댓글 id (COMMENT 타입만). 조회 시 댓글 내용을 조인한다. */
+    @Column(name = "comment_id")
+    private Long commentId;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private NotificationType type;
@@ -58,8 +70,12 @@ public class Notification {
     private LocalDateTime createdAt;
 
     @Builder
-    private Notification(Long userId, NotificationType type, String title, String content, String linkUrl) {
+    private Notification(Long userId, Long actorId, Long postId, Long commentId,
+                         NotificationType type, String title, String content, String linkUrl) {
         this.userId = userId;
+        this.actorId = actorId;
+        this.postId = postId;
+        this.commentId = commentId;
         this.type = type;
         this.title = title;
         this.content = content;
@@ -67,11 +83,14 @@ public class Notification {
         this.isRead = false;
     }
 
-    /** 새 알림 생성 (미읽음 상태). */
-    public static Notification create(Long userId, NotificationType type,
-                                      String title, String content, String linkUrl) {
+    /** 새 알림 생성 (미읽음 상태). {@code actorId}/{@code postId}/{@code commentId} 는 조회 보강용 참조. */
+    public static Notification create(Long userId, Long actorId, Long postId, Long commentId,
+                                      NotificationType type, String title, String content, String linkUrl) {
         return Notification.builder()
                 .userId(userId)
+                .actorId(actorId)
+                .postId(postId)
+                .commentId(commentId)
                 .type(type)
                 .title(title)
                 .content(content)
