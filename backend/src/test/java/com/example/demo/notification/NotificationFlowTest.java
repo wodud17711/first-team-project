@@ -51,7 +51,7 @@ class NotificationFlowTest {
 
         // then: 글쓴이에게 COMMENT 알림 1건
         NotificationListResponse list =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
         assertThat(list.notifications()).hasSize(1);
         assertThat(list.unreadCount()).isEqualTo(1);
         var noti = list.notifications().get(0);
@@ -59,13 +59,21 @@ class NotificationFlowTest {
         assertThat(noti.content()).contains("댓글러");
         assertThat(noti.linkUrl()).isEqualTo("/posts/" + post.getId());
         assertThat(noti.isRead()).isFalse();
+        // 조회 보강: 게시글 제목 / 댓글 내용 / 반응자 프로필
+        assertThat(noti.post()).isNotNull();
+        assertThat(noti.post().title()).isEqualTo("제목");
+        assertThat(noti.comment()).isNotNull();
+        assertThat(noti.comment().content()).isEqualTo("좋은 글이네요");
+        assertThat(noti.actor()).isNotNull();
+        assertThat(noti.actor().nickname()).isEqualTo("댓글러");
+        assertThat(noti.actorCount()).isEqualTo(1);
 
         // when: 읽음 처리
         notificationService.markRead(author.getId(), noti.notificationId());
 
         // then: 안읽음 0
         NotificationListResponse after =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
         assertThat(after.unreadCount()).isZero();
         assertThat(after.notifications().get(0).isRead()).isTrue();
     }
@@ -79,9 +87,64 @@ class NotificationFlowTest {
         likeService.toggleLike(post.getId(), liker.getId());
 
         NotificationListResponse list =
-                notificationService.list(author.getId(), true, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, true, PageRequest.of(0, 20));
         assertThat(list.notifications()).hasSize(1);
         assertThat(list.notifications().get(0).type()).isEqualTo(NotificationType.LIKE.name());
+    }
+
+    @Test
+    void 같은_글_좋아요는_게시글_기준으로_집계되어_대표1건_외N명() {
+        User author = saveUser("a3@test.com", "글쓴이3");
+        User liker1 = saveUser("liker1@test.com", "김철수");
+        User liker2 = saveUser("liker2@test.com", "이영희");
+        User liker3 = saveUser("liker3@test.com", "박지민");
+        Post post = savePost(author);
+
+        likeService.toggleLike(post.getId(), liker1.getId());
+        likeService.toggleLike(post.getId(), liker2.getId());
+        likeService.toggleLike(post.getId(), liker3.getId());
+
+        NotificationListResponse list =
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
+
+        // 좋아요 알림 3건이 한 게시글 기준으로 묶여 대표 1건만
+        assertThat(list.notifications()).hasSize(1);
+        var noti = list.notifications().get(0);
+        assertThat(noti.type()).isEqualTo(NotificationType.LIKE.name());
+        // 대표 = 가장 최근 반응자(박지민), 총 인원 3 → "박지민님 외 2명"
+        assertThat(noti.actor().nickname()).isEqualTo("박지민");
+        assertThat(noti.actorCount()).isEqualTo(3);
+        assertThat(noti.post().title()).isEqualTo("제목");
+    }
+
+    @Test
+    void 타입으로_필터하면_해당_카테고리만_조회된다() {
+        User author = saveUser("a4@test.com", "글쓴이4");
+        User actor = saveUser("actor4@test.com", "행위자");
+        Post post = savePost(author);
+
+        commentService.createComment(post.getId(), commentRequest("댓글입니다"), actor.getId());
+        likeService.toggleLike(post.getId(), actor.getId());
+
+        // 전체 = 2건(댓글 + 좋아요)
+        NotificationListResponse all =
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
+        assertThat(all.notifications()).hasSize(2);
+
+        // 댓글 탭 = COMMENT 만
+        NotificationListResponse comments =
+                notificationService.list(author.getId(), NotificationType.COMMENT, false, PageRequest.of(0, 20));
+        assertThat(comments.notifications()).hasSize(1);
+        assertThat(comments.notifications().get(0).type()).isEqualTo(NotificationType.COMMENT.name());
+
+        // 좋아요 탭 = LIKE 만
+        NotificationListResponse likes =
+                notificationService.list(author.getId(), NotificationType.LIKE, false, PageRequest.of(0, 20));
+        assertThat(likes.notifications()).hasSize(1);
+        assertThat(likes.notifications().get(0).type()).isEqualTo(NotificationType.LIKE.name());
+
+        // unreadCount 는 타입과 무관하게 전체 안 읽은 수(2)
+        assertThat(likes.unreadCount()).isEqualTo(2);
     }
 
     @Test
@@ -93,7 +156,7 @@ class NotificationFlowTest {
         likeService.toggleLike(post.getId(), author.getId());
 
         NotificationListResponse list =
-                notificationService.list(author.getId(), false, PageRequest.of(0, 20));
+                notificationService.list(author.getId(), null, false, PageRequest.of(0, 20));
         assertThat(list.notifications()).isEmpty();
         assertThat(list.unreadCount()).isZero();
     }

@@ -465,7 +465,10 @@ CREATE TABLE walk_missions (
 -- ============================================================
 CREATE TABLE notifications (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL COMMENT '수신자(알림 받는 사용자)',
+    actor_id BIGINT COMMENT '알림 유발자(댓글·좋아요 누른 사람). 조회 시 프로필 조인',
+    post_id BIGINT COMMENT '관련 게시글. 제목 조인 + LIKE 집계 그룹 키',
+    comment_id BIGINT COMMENT '관련 댓글(COMMENT 타입만). 내용 조인',
     type VARCHAR(30) COMMENT 'BADGE_EARNED / COMMENT / COMPANION_REQUEST 등',
     title VARCHAR(200),
     content TEXT,
@@ -474,7 +477,11 @@ CREATE TABLE notifications (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_notifications_user_unread (user_id, is_read),
     INDEX idx_notifications_created_at (created_at),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    INDEX idx_notifications_user_type_post (user_id, type, post_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 알림';
 
 -- ============================================================

@@ -76,7 +76,7 @@ public class CommentService {
         post.increaseCommentCount();
 
         // 내 글에 달린 댓글 → 글 작성자에게 알림 (자기 댓글이면 NotificationService 에서 skip)
-        notificationService.notifyNewComment(post, user);
+        notificationService.notifyNewComment(post, user, saved);
 
         return saved.getId();
     }
