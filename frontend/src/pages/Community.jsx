@@ -13,7 +13,7 @@ function CategoryTabs({ categories, selectedId, onSelect }) {
     <div className="flex overflow-x-auto bg-white rounded-xl border shadow-sm mb-[20px]">
       <button
         onClick={() => onSelect(null)}
-        className={`${base} ${selectedId == null ? "bg-sky-700 rounded-xl text-white" : "bg-white text-gray-600 rounded-xl hover:bg-gray-100"}`}
+        className={`${base} ${selectedId == null ? "bg-[#FCCD47] rounded-xl text-white" : "bg-white text-gray-600 rounded-xl hover:bg-gray-100"}`}
       >
         전체
       </button>
@@ -21,7 +21,7 @@ function CategoryTabs({ categories, selectedId, onSelect }) {
         <button
           key={c.categoryId}
           onClick={() => onSelect(c.categoryId)}
-          className={`${base} ${selectedId === c.categoryId ? "bg-sky-700 rounded-xl text-white" : "bg-white text-gray-600 rounded-xl hover:bg-gray-100"}`}
+          className={`${base} ${selectedId === c.categoryId ? "bg-[#FCCD47] rounded-xl text-white" : "bg-white text-gray-600 rounded-xl hover:bg-gray-100"}`}
         >
           {c.name}
         </button>
@@ -87,9 +87,9 @@ function Community() {
       {/* 상단 */}
       <div className="relative flex justify-between items-start mb-4">
         <div>
-          <h1 className="text-[32px] font-extrabold text-sky-800">커뮤니티</h1>
+          <h1 className="text-[32px] font-extrabold text-[#403D3A]">커뮤니티</h1>
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-[4px] h-[20px] rounded-full bg-sky-700" />
+            <div className="w-[4px] h-[20px] rounded-full bg-[#FFD52E]" />
             <p className="text-[14px] text-gray-500 font-light">
               사료·산책로·자랑·메이트까지, 견주끼리 나누는 이야기
             </p>
@@ -98,15 +98,16 @@ function Community() {
         {/* 글쓰기 */}
         <button
           onClick={() => navigate(`${base}/write`)}
-          className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 rounded-xl bg-sky-700 text-white text-[14px] font-bold
-            shadow-sm transition hover:bg-sky-800"
+          className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 
+                     rounded-xl bg-[#403D3A] text-white text-[14px] font-bold
+                     shadow-sm transition hover:bg-sky-800"
         >
           <img src="/write.png" alt="마이페이지" className="w-[14px] h-[14px] invert brightness-0"/> 
           글쓰기
         </button>
       </div>
 
-      <div className="w-full h-[1px] bg-sky-700/40 mb-[20px]" />
+      <div className="w-full h-[1px] bg-[#454040]/40 mb-[20px]" />
 
 
       {/* 카테고리 탭 */}
@@ -145,7 +146,7 @@ function Community() {
                   setPage(0)
                 }}
                 className={`px-3 py-1 rounded-full text-[12px] font-medium transition
-                  ${sort === key ? "bg-sky-700 text-white" : "text-gray-500"}`}
+                  ${sort === key ? "bg-[#FCCD47] text-white" : "text-gray-500"}`}
               >
                 {label}
               </button>

@@ -80,7 +80,7 @@ function Layout() {
                   to={item.to}
                   className={({ isActive }) =>
                     `group relative flex justify-center py-[10px] text-[16px] font-semibold transition-colors
-                    ${isActive ? 'text-brand-600' : 'text-gray-600 hover:text-[#6E450D]'}`
+                    ${isActive ? 'text-[#FCCD47]' : 'text-gray-600 hover:text-[#6E450D]'}`
                   }
                 >
                   {({ isActive }) => (
@@ -91,7 +91,7 @@ function Layout() {
                       <span
                         className={`
                           absolute left-0 -bottom-[22px] w-full h-[4px]
-                          bg-[#F8B51F] rounded-full
+                          bg-[#FCCD47] rounded-full
                           transition-transform duration-200 origin-center
                           ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}
                         `}
@@ -131,7 +131,7 @@ function Layout() {
                         <Link
                           key={sub.label}
                           to={sub.to}
-                          className="text-sm text-gray-500 hover:text-[#F8B51F]"
+                          className="text-sm text-gray-500 hover:text-[#FCCD47]"
                         >
                           {sub.label}
                         </Link>
@@ -156,7 +156,9 @@ function Layout() {
                 className="w-[20px] h-[20px] block shrink-0 transition opacity-60 hover:opacity-100"
               />
 
-              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 
+                               text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 
+                               group-hover:opacity-100 transition pointer-events-none z-50">
                 마이페이지
               </span>
             </Link>
