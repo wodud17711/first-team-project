@@ -5,15 +5,15 @@ import { useCategories, usePosts } from "../hooks/useCommunity"
 // 컴포넌트 import
 import PostCard from "../components/PostCard"
 
-// 카테고리 탭 (전체 + 카테고리 목록). 정선혜 dog 페이지 sky 톤 따라감.
+// 카테고리 탭 (전체 + 카테고리 목록)
 function CategoryTabs({ categories, selectedId, onSelect }) {
   const base =
-    "px-4 py-[6px] rounded-full text-[14px] font-bold whitespace-nowrap transition"
+    "flex-1 px-4 py-2 text-[14px] font-bold whitespace-nowrap transition"
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="flex overflow-x-auto bg-white rounded-xl border shadow-sm mb-[20px]">
       <button
         onClick={() => onSelect(null)}
-        className={`${base} ${selectedId == null ? "bg-sky-700 text-white" : "bg-white text-gray-600 border"}`}
+        className={`${base} ${selectedId == null ? "bg-sky-700 rounded-xl text-white" : "bg-white text-gray-600"}`}
       >
         전체
       </button>
@@ -21,7 +21,7 @@ function CategoryTabs({ categories, selectedId, onSelect }) {
         <button
           key={c.categoryId}
           onClick={() => onSelect(c.categoryId)}
-          className={`${base} ${selectedId === c.categoryId ? "bg-sky-700 text-white" : "bg-white text-gray-600 border"}`}
+          className={`${base} ${selectedId === c.categoryId ? "bg-sky-700 rounded-xl text-white" : "bg-white text-gray-600"}`}
         >
           {c.name}
         </button>
@@ -94,43 +94,47 @@ function Community() {
           + 글쓰기
         </button>
       </div>
+      <div className="w-full h-[1px] bg-sky-700/40 mb-[20px]" />
+
 
       {/* 카테고리 탭 */}
       <CategoryTabs categories={categories} selectedId={categoryId} onSelect={handleCategory} />
 
-      {/* 서브태그 (카테고리 선택 시) */}
-      {subTags.length > 0 && (
-        <div className="flex gap-2 flex-wrap mt-3">
-          {subTags.map((t) => (
-            <button
-              key={t}
-              onClick={() => setSubTag(subTag === t ? null : t)}
-              className={`px-3 py-[2px] rounded-full text-[12px] transition
-                ${subTag === t ? "bg-sky-100 text-sky-700 font-medium" : "bg-gray-100 text-gray-500"}`}
-            >
-              #{t}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="w-full h-[1px] bg-sky-700/40 my-[20px]" />
-
-      {/* 정렬 + 개수 */}
-      <div className="flex justify-between items-center mb-3">
+      {/* 개수 + 서브카테 + 최신/인기 */}
+      <div className="flex justify-between items-center mb-2">
         <p className="text-[13px] text-gray-500">총 {total}개</p>
-        <div className="flex gap-1">
-          {[["latest", "최신순"], ["popular", "인기순"]].map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setSort(key)}
-              className={`px-3 py-1 rounded-full text-[12px] font-medium transition
-                ${sort === key ? "bg-sky-700 text-white" : "text-gray-500"}`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex items-center gap-[2px]">
+          {/* 서브태그 (카테고리 선택 시) */}
+          {subTags.length > 0 && (
+            <div className="flex gap-[2px] flex-wrap items-center">
+              {subTags.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setSubTag(subTag === t ? null : t)}
+                  className={`px-3 py-1 rounded-full text-[12px] transition
+                    ${subTag === t ? "bg-sky-100 text-sky-700 font-medium" : "bg-gray-100 text-gray-500"}`}
+                >
+                  #{t}
+                </button>
+              ))}
+              <div className="w-px h-4 bg-gray-400 mx-3" />
+            </div>
+          )}
+
+          <div className="flex gap-1">
+            {[["latest", "최신순"], ["popular", "인기순"]].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setSort(key)}
+                className={`px-3 py-1 rounded-full text-[12px] font-medium transition
+                  ${sort === key ? "bg-sky-700 text-white" : "text-gray-500"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
+        
       </div>
 
       {/* 목록 */}
