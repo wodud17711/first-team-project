@@ -1,0 +1,254 @@
+import { useMemo, useState } from 'react'
+import { useDogs } from '../hooks/useDogs'
+import { useWalkStatistics, useWalkCalendar } from '../hooks/useWalkStatistics'
+import dogImgFallback from '../assets/dogImg1.jpg'
+
+// 요일 라벨 (일~토)
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+// 'YYYY-MM-DD' → 로컬 Date (타임존 시프트 방지로 직접 파싱)
+function parseDate(iso) {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+// 현재 − 직전 델타. 부호·색을 위해 객체로 반환.
+function delta(current, prev) {
+  const diff = (current ?? 0) - (prev ?? 0)
+  return {
+    diff,
+    text: diff > 0 ? `+${diff}` : `${diff}`,
+    color: diff > 0 ? 'text-success' : diff < 0 ? 'text-danger' : 'text-gray-400',
+  }
+}
+
+// 통계 지표 카드 한 칸
+function MetricCard({ label, value, unit, deltaInfo, deltaLabel }) {
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm flex flex-col gap-1">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-2xl font-bold">
+        {value}
+        <span className="text-sm font-normal text-gray-500 ml-1">{unit}</span>
+      </p>
+      {deltaInfo && (
+        <p className={`text-xs font-medium ${deltaInfo.color}`}>
+          {deltaLabel} {deltaInfo.text}
+          {deltaInfo.diff === 0 && ' (변화 없음)'}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function Statistics() {
+  const { dogs } = useDogs()
+  const mainDog = useMemo(() => dogs.find((d) => d.isMain) ?? dogs[0], [dogs])
+  const [dogId, setDogId] = useState(null)
+  const activeDogId = dogId ?? mainDog?.dogId ?? null
+  const activeDog = dogs.find((d) => d.dogId === activeDogId) ?? mainDog
+
+  const [period, setPeriod] = useState('WEEK')
+  const { data: stat, loading } = useWalkStatistics(activeDogId, period)
+
+  // 캘린더: 이번 달 기준
+  const now = new Date()
+  const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
+  const { data: cal } = useWalkCalendar(activeDogId, ym.year, ym.month)
+
+  const periodLabel = period === 'WEEK' ? '지난주' : '지난달'
+
+  // 요일별 산책 횟수 집계 (dailyBreakdown → 일~토)
+  const weekdayCounts = useMemo(() => {
+    const acc = [0, 0, 0, 0, 0, 0, 0]
+    for (const d of stat?.dailyBreakdown ?? []) {
+      acc[parseDate(d.date).getDay()] += d.count
+    }
+    return acc
+  }, [stat])
+  const maxWeekdayCount = Math.max(1, ...weekdayCounts)
+  const topWeekday = weekdayCounts.some((c) => c > 0)
+    ? weekdayCounts.indexOf(Math.max(...weekdayCounts))
+    : null
+
+  // 캘린더 그리드(주 단위) — 산책한 날 표시용 map
+  const calMap = useMemo(() => {
+    const m = new Map()
+    for (const d of cal?.days ?? []) m.set(d.date, d)
+    return m
+  }, [cal])
+
+  const calendarCells = useMemo(() => {
+    const first = new Date(ym.year, ym.month - 1, 1)
+    const daysInMonth = new Date(ym.year, ym.month, 0).getDate()
+    const lead = first.getDay() // 1일 앞 빈칸 수
+    const cells = []
+    for (let i = 0; i < lead; i++) cells.push(null)
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = `${ym.year}-${String(ym.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      cells.push({ day, iso, info: calMap.get(iso) })
+    }
+    return cells
+  }, [ym, calMap])
+
+  const shiftMonth = (delta) => {
+    setYm((prev) => {
+      const d = new Date(prev.year, prev.month - 1 + delta, 1)
+      return { year: d.getFullYear(), month: d.getMonth() + 1 }
+    })
+  }
+
+  if (!activeDogId) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        반려견을 먼저 등록하면 산책 통계를 볼 수 있어요.
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6 animate-fadeIn">
+      {/* 헤더 + 강아지/구간 선택 */}
+      <section className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">산책 통계</h1>
+          <p className="text-sm text-gray-500">
+            {activeDog?.name}의 {period === 'WEEK' ? '이번 주' : '이번 달'} 산책 기록
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {dogs.length > 1 && (
+            <select
+              value={activeDogId}
+              onChange={(e) => setDogId(Number(e.target.value))}
+              className="text-sm border rounded-lg px-2 py-1"
+            >
+              {dogs.map((d) => (
+                <option key={d.dogId} value={d.dogId}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="inline-flex rounded-lg bg-gray-100 p-1">
+            {['WEEK', 'MONTH'].map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-1 text-sm rounded-md ${
+                  period === p ? 'bg-white font-bold shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                {p === 'WEEK' ? '주간' : '월간'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 지표 4개 + 지난주 대비 델타 */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <MetricCard
+          label="총 산책 횟수"
+          value={loading ? '–' : stat?.totalWalks ?? 0}
+          unit="회"
+          deltaInfo={stat && delta(stat.totalWalks, stat.previous?.totalWalks)}
+          deltaLabel={`${periodLabel} 대비`}
+        />
+        <MetricCard
+          label="총 산책 시간"
+          value={loading ? '–' : stat?.totalMinutes ?? 0}
+          unit="분"
+          deltaInfo={stat && delta(stat.totalMinutes, stat.previous?.totalMinutes)}
+          deltaLabel={`${periodLabel} 대비`}
+        />
+        <MetricCard
+          label="1회 평균"
+          value={loading ? '–' : stat?.avgDuration ?? 0}
+          unit="분"
+          deltaInfo={stat && delta(stat.avgDuration, stat.previous?.avgDuration)}
+          deltaLabel={`${periodLabel} 대비`}
+        />
+        <MetricCard
+          label="달성률"
+          value={loading ? '–' : stat?.achievementRate ?? 0}
+          unit="%"
+          deltaInfo={stat && delta(stat.achievementRate, stat.previous?.achievementRate)}
+          deltaLabel={`${periodLabel} 대비`}
+        />
+      </section>
+
+      {/* 요일별 산책 + 가장 많이 산책한 요일 */}
+      <section className="bg-white rounded-xl p-5 shadow-sm">
+        <div className="flex items-baseline justify-between mb-4">
+          <h3 className="font-semibold">요일별 산책</h3>
+          {topWeekday != null && (
+            <p className="text-xs text-gray-500">
+              가장 많이 산책한 요일{' '}
+              <span className="font-bold text-success">{WEEKDAYS[topWeekday]}요일</span>
+            </p>
+          )}
+        </div>
+        <div className="flex items-end justify-between gap-2 h-32">
+          {weekdayCounts.map((count, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <div className="w-full flex-1 flex items-end">
+                <div
+                  className={`w-full rounded-t-md transition-all ${
+                    i === topWeekday ? 'bg-success' : 'bg-brand-200'
+                  }`}
+                  style={{ height: `${(count / maxWeekdayCount) * 100}%`, minHeight: count > 0 ? '6px' : '0' }}
+                  title={`${count}회`}
+                />
+              </div>
+              <span className="text-xs text-gray-500">{WEEKDAYS[i]}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 산책 캘린더 (강아지 사진 스티커) */}
+      <section className="bg-white rounded-xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold">산책 캘린더</h3>
+          <div className="flex items-center gap-3 text-sm">
+            <button onClick={() => shiftMonth(-1)} className="text-gray-400 hover:text-gray-700">‹</button>
+            <span className="font-medium">
+              {ym.year}.{String(ym.month).padStart(2, '0')}
+            </span>
+            <button onClick={() => shiftMonth(1)} className="text-gray-400 hover:text-gray-700">›</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {WEEKDAYS.map((w, i) => (
+            <div key={w} className={`text-xs py-1 ${i === 0 ? 'text-danger' : 'text-gray-400'}`}>
+              {w}
+            </div>
+          ))}
+          {calendarCells.map((cell, idx) => (
+            <div
+              key={idx}
+              className="aspect-square flex items-center justify-center rounded-md relative"
+            >
+              {cell && (
+                <>
+                  <span className="text-xs text-gray-600 z-10">{cell.day}</span>
+                  {cell.info && cell.info.count > 0 && (
+                    <img
+                      src={activeDog?.profileImageUrl || dogImgFallback}
+                      alt="산책함"
+                      className="absolute inset-0 w-full h-full object-cover rounded-md opacity-70"
+                      title={`${cell.info.count}회 · ${cell.info.minutes}분`}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default Statistics

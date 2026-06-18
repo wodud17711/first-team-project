@@ -73,3 +73,31 @@ export async function endWalk(walkId, body) {
 export async function getWalkHistory(dogId) {
   return apiClient.get('/walks/history', { params: { dogId } })
 }
+
+/**
+ * 산책 통계 (주/월). GET /api/walks/statistics?dogId=&period=
+ *
+ * 응답 (docs/06-api-spec.md 산책 통계):
+ *   { period, totalWalks, totalMinutes, totalDistance, avgDuration, achievementRate,
+ *     dailyBreakdown: [{date, minutes, count}],
+ *     previous: {totalWalks, totalMinutes, totalDistance, avgDuration, achievementRate} }
+ * - previous = 직전 동일 구간(지난주/지난달) → FE 가 "지난주 대비" 델타 계산 (현재 − previous)
+ * - dailyBreakdown = 구간 내 모든 날짜(산책 없는 날 0) → 요일별 집계·막대용
+ *
+ * @param {number} dogId
+ * @param {'WEEK'|'MONTH'} period
+ */
+export async function getWalkStatistics(dogId, period = 'WEEK') {
+  return apiClient.get('/walks/statistics', { params: { dogId, period } })
+}
+
+/**
+ * 산책 캘린더 (월별 히트맵 입력). GET /api/walks/calendar?dogId=&year=&month=
+ * 응답: { year, month, days: [{date, count, minutes}] }
+ * @param {number} dogId
+ * @param {number} year
+ * @param {number} month  1~12
+ */
+export async function getWalkCalendar(dogId, year, month) {
+  return apiClient.get('/walks/calendar', { params: { dogId, year, month } })
+}

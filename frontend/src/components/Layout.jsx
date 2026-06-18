@@ -13,8 +13,8 @@ const navItems = [
     label: '산책 기록',
     to: '/walk',
     children: [
-      { label: '주간/월간 리포트', to: '/walk' },
-      { label: '산책 캘린더', to: '/walk' },
+      { label: '주간/월간 리포트', to: '/statistics' },
+      { label: '산책 캘린더', to: '/statistics' },
     ],
   },
   {

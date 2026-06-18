@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import WalkRecord from './pages/WalkRecord'
+import Statistics from './pages/Statistics'
 import Community from './pages/Community'
 import CommunityWrite from './pages/CommunityWrite'
 import CommunityDetail from './pages/CommunityDetail'
@@ -56,6 +57,7 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/walk" element={<WalkRecord />} />
+              <Route path="/statistics" element={<Statistics />} />
               <Route path="/community" element={<Community />} />
               <Route path="/community/write" element={<CommunityWrite />} />
               <Route path="/community/:postId" element={<CommunityDetail />} />
