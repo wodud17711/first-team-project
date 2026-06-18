@@ -121,16 +121,13 @@ public class PostService {
             Long categoryId,
             String subTag,
             int page,
+            String sort,
             Long userId
     ) {
 
-        Pageable pageable = PageRequest.of(
+        Pageable pageable = createPostSortPageable(
                 page,
-                20,
-                Sort.by(
-                        Sort.Direction.DESC,
-                        "createdAt"
-                )
+                sort
         );
 
         Page<Post> posts;
@@ -165,23 +162,62 @@ public class PostService {
                             );
         }
 
+
         return posts.map(post -> {
 
             boolean liked = false;
 
             if (userId != null) {
-                liked = postLikeRepository
-                        .existsByUser_IdAndPost_Id(
-                                userId,
-                                post.getId()
-                        );
+
+                liked =
+                        postLikeRepository
+                                .existsByUser_IdAndPost_Id(
+                                        userId,
+                                        post.getId()
+                                );
             }
+
 
             return PostSummaryResponse.from(
                     post,
                     liked
             );
         });
+    }
+
+
+    /**
+     * 게시글 목록 정렬 생성
+     *
+     * latest  : 작성일 최신순
+     * popular : 좋아요 많은 순
+     */
+    private Pageable createPostSortPageable(
+            int page,
+            String sort
+    ) {
+
+        if ("popular".equalsIgnoreCase(sort)) {
+
+            return PageRequest.of(
+                    page,
+                    20,
+                    Sort.by(
+                            Sort.Direction.DESC,
+                            "likeCount"
+                    )
+            );
+        }
+
+
+        return PageRequest.of(
+                page,
+                20,
+                Sort.by(
+                        Sort.Direction.DESC,
+                        "createdAt"
+                )
+        );
     }
 
     /**
