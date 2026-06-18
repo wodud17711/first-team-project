@@ -66,7 +66,7 @@ function Layout() {
             <img
                 src="/navigationbar/SiteLogo.png"
                 alt="사이트 로고"
-                className="w-[70px] h-auto block hover:scale-105 transition"
+                className="w-[70px] h-auto block transition"
               />
           </Link>
 

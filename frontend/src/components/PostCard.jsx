@@ -68,7 +68,10 @@ function PostCard({ post, onClick }) {
           <span className="ml-auto flex items-center gap-3">
             <span>💬 {post.commentCount ?? 0}</span>
             <span>❤️ {post.likeCount ?? 0}</span>
-            <span>👁 {post.viewCount ?? 0}</span>
+            <span className="flex items-center gap-1">
+              <span className="text-txtcolor-700">👁</span>
+              <span className="text-txtcolor-300">{post.viewCount ?? 0}</span>
+            </span>
           </span>
         </div>
       </div>
