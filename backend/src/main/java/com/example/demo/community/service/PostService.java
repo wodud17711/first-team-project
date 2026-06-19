@@ -10,7 +10,6 @@ import com.example.demo.community.repository.PostLikeRepository;
 import com.example.demo.community.repository.PostRepository;
 import com.example.demo.user.entity.User;
 import com.example.demo.user.repository.UserRepository;
-import com.example.demo.community.dto.CreatePostResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -120,17 +119,16 @@ public class PostService {
     public Page<PostSummaryResponse> getPosts(
             Long categoryId,
             String subTag,
+            String sort,
             int page,
+            int size,
             Long userId
     ) {
 
-        Pageable pageable = PageRequest.of(
+        Pageable pageable = createPostSortPageable(
                 page,
-                20,
-                Sort.by(
-                        Sort.Direction.DESC,
-                        "createdAt"
-                )
+                size,
+                sort
         );
 
         Page<Post> posts;
@@ -165,17 +163,21 @@ public class PostService {
                             );
         }
 
+
         return posts.map(post -> {
 
             boolean liked = false;
 
             if (userId != null) {
-                liked = postLikeRepository
-                        .existsByUser_IdAndPost_Id(
-                                userId,
-                                post.getId()
-                        );
+
+                liked =
+                        postLikeRepository
+                                .existsByUser_IdAndPost_Id(
+                                        userId,
+                                        post.getId()
+                                );
             }
+
 
             return PostSummaryResponse.from(
                     post,
@@ -183,6 +185,48 @@ public class PostService {
             );
         });
     }
+
+
+    /**
+     * 게시글 목록 정렬 생성
+     *
+     * latest  : 작성일 최신순
+     * popular : 좋아요 많은 순 + 최신 작성순(동점 처리)
+     */
+    private Pageable createPostSortPageable(
+            int page,
+            int size,
+            String sort
+    ) {
+
+        if ("popular".equalsIgnoreCase(sort)) {
+
+            return PageRequest.of(
+                    page,
+                    size,
+                    Sort.by(
+                            Sort.Direction.DESC,
+                            "likeCount"
+                    ).and(
+                            Sort.by(
+                                    Sort.Direction.DESC,
+                                    "createdAt"
+                            )
+                    )
+            );
+        }
+
+
+        return PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                        Sort.Direction.DESC,
+                        "createdAt"
+                )
+        );
+    }
+
 
     /**
      * 게시글 수정
@@ -223,6 +267,7 @@ public class PostService {
         );
     }
 
+
     /**
      * 게시글 삭제
      */
@@ -246,6 +291,7 @@ public class PostService {
         post.softDelete();
     }
 
+
     /**
      * 작성자 검증
      */
@@ -263,6 +309,7 @@ public class PostService {
             );
         }
     }
+
 
     /**
      * 서브태그 검증
