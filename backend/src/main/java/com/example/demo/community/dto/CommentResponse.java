@@ -18,6 +18,11 @@ public class CommentResponse {
 
     private String author;
 
+    /**
+     * 작성자 프로필 이미지 URL
+     */
+    private String authorProfileImageUrl;
+
     private String content;
 
     private boolean mine;
@@ -27,6 +32,7 @@ public class CommentResponse {
     private List<CommentResponse> replies;
 
     private String authorLevel;
+
 
     public static CommentResponse from(
             Comment comment,
@@ -38,6 +44,9 @@ public class CommentResponse {
                 .commentId(comment.getId())
                 .userId(comment.getUser().getId())
                 .author(comment.getUser().getNickname())
+                .authorProfileImageUrl(
+                        comment.getUser().getProfileImageUrl()
+                )
                 .mine(
                         Objects.equals(
                                 comment.getUser().getId(),

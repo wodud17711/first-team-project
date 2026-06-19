@@ -25,6 +25,11 @@ public class PostResponse {
 
     private String author;
 
+    /**
+     * 작성자 프로필 이미지 URL
+     */
+    private String authorProfileImageUrl;
+
     private Integer viewCount;
 
     private Integer likeCount;
@@ -39,6 +44,7 @@ public class PostResponse {
 
     private List<PostImageResponse> images;
 
+
     public static PostResponse from(
             Post post,
             boolean liked
@@ -52,6 +58,9 @@ public class PostResponse {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .author(post.getUser().getNickname())
+                .authorProfileImageUrl(
+                        post.getUser().getProfileImageUrl()
+                )
                 .viewCount(post.getViewCount())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
