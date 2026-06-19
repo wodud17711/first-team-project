@@ -47,7 +47,7 @@ function NotificationTabs({ selected, onSelect }) {
 function Notifications() {
 
   const navigate = useNavigate()
-  const { notifications, unreadCount, loading, error, filterNotifications, hasMore, loadMore,
+  const { notifications, unreadCount, loading, error, hasMore, loadMore,
           markNotificationRead, markAllNotificationsRead, refetch
   } = useNotifications()
 
@@ -196,8 +196,9 @@ function Notifications() {
               onClick={async () => {
                 await markNotificationRead(n.notificationId)
                 window.dispatchEvent(new Event("notifications-updated"))
-                const path = n.linkUrl.replace("/posts/", "/community/")
-                navigate(path)
+                if (n.linkUrl) {
+                  navigate(n.linkUrl.replace("/posts/", "/community/"))
+                }
               }}
             />
           ))}
