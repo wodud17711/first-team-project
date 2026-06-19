@@ -60,13 +60,13 @@ function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="relative bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="relative bg-white border-b border-txtcolor-100 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 py-3 grid grid-cols-[70px_1fr_65px] gap-[200px]">
           <Link to="/" className="inline-flex items-center w-fit">
             <img
                 src="/navigationbar/SiteLogo.png"
                 alt="사이트 로고"
-                className="w-[70px] h-auto block hover:scale-105 transition"
+                className="w-[70px] h-auto block transition"
               />
           </Link>
 
@@ -80,7 +80,7 @@ function Layout() {
                   to={item.to}
                   className={({ isActive }) =>
                     `group relative flex justify-center py-[10px] text-[16px] font-semibold transition-colors
-                    ${isActive ? 'text-brand-600' : 'text-gray-600 hover:text-brand-600'}`
+                    ${isActive ? 'text-txtcolor-700' : 'text-txtcolor-400 hover:text-txtcolor-700'}`
                   }
                 >
                   {({ isActive }) => (
@@ -131,7 +131,7 @@ function Layout() {
                         <Link
                           key={sub.label}
                           to={sub.to}
-                          className="text-sm text-gray-500 hover:text-brand-600"
+                          className="text-[14px] text-txtcolor-300 hover:text-brand-700"
                         >
                           {sub.label}
                         </Link>
@@ -156,7 +156,9 @@ function Layout() {
                 className="w-[20px] h-[20px] block shrink-0 transition opacity-60 hover:opacity-100"
               />
 
-              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 
+                               text-[12px] text-white bg-txtcolor-700 rounded whitespace-nowrap opacity-0 
+                               group-hover:opacity-100 transition pointer-events-none z-50">
                 마이페이지
               </span>
             </Link>
@@ -181,7 +183,9 @@ function Layout() {
                 "
               />
             )}
-              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[12px] text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 
+                               text-[12px] text-white bg-txtcolor-700 rounded whitespace-nowrap opacity-0  
+                               group-hover:opacity-100 transition pointer-events-none z-50">
                 알림
               </span>
             </Link>
