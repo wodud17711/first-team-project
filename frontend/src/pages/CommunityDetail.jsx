@@ -12,6 +12,15 @@ function timeAgo(iso) {
   return iso.slice(0, 10).replaceAll("-", "/")
 }
 
+function MetaCount({ icon, count }) {
+  return (
+    <span className="flex items-center gap-1">
+      <span className="text-txtcolor-700">{icon}</span>
+      <span className="text-txtcolor-300">{count ?? 0}</span>
+    </span>
+  )
+}
+
 // 댓글 1건 (대댓글이면 isReply=true → 들여쓰기 + 좌측 선)
 function CommentItem({ comment, isReply, onReply }) {
   return (
@@ -58,6 +67,14 @@ function CommunityDetail() {
   const [replyTo, setReplyTo] = useState(null) // 대댓글 대상 commentId
   const [replyText, setReplyText] = useState("")
   const [likeBusy, setLikeBusy] = useState(false)
+
+  // 닉네임 옆 보호자 연차 표기
+  const guardianLevelIcon = {
+    BEGINNER: "새싹 보호자🌱",
+    JUNIOR: "초보 보호자🦴",
+    SENIOR: "숙련 보호자🐕",
+    VETERAN: "베테랑 보호자🏆",
+  }
 
   // 목록으로 눌렀을 때, 상세 페이지로 들어오기 전 페이지로 이동
   const backPath =
@@ -125,42 +142,87 @@ function CommunityDetail() {
   const repliesOf = (id) => comments.filter((c) => c.parentCommentId === id)
 
   return (
-    <div className="p-4 animate-fadeIn max-w-[820px]">
+    <div className="p-4 animate-fadeIn">
 
-      {/* 뒤로 */}
-      <button
-        onClick={() => navigate(backPath)}
-        className="mb-4 text-[14px] text-gray-500 hover:text-sky-700 transition"
-      >
-        ← 목록으로
-      </button>
+      {/* 상단 */}
+      <div className="relative flex justify-between items-start mb-4">
+        <div>
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">커뮤니티</h1>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
+            <p className="text-[14px] text-txtcolor-500 font-light">
+              사료·산책로·자랑·메이트까지, 견주끼리 나누는 이야기
+            </p>
+          </div>
+        </div>
+        {/* 목록 */}
+        <button
+          onClick={() => navigate(backPath)}
+          className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 
+                     rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
+                     shadow-sm transition hover:bg-txtcolor-900"
+        >
+          <img src="/list.png" alt="마이페이지" className="w-[20px] h-[20px] invert brightness-0"/> 
+          목록으로
+        </button>
+      </div>
+      <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]" />
 
       {/* 게시글 카드 */}
       <div className="bg-white rounded-xl border shadow-sm px-6 py-6">
         {/* 카테고리 · 서브태그 */}
         <div className="flex items-center gap-[6px] mb-3">
-          <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-700 text-[12px] font-medium">
+          <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-600 text-[12px] font-medium">
             {typeof post.category === "object" ? post.category.name : post.category}
           </span>
           {post.subTag && (
-            <span className="px-2 py-[2px] rounded-full bg-gray-100 text-gray-500 text-[12px]">
+            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px]">
               #{post.subTag}
             </span>
           )}
         </div>
+        <div className="flex items-start justify-between">
+          {/* 제목 */}
+          <h1 className="text-[24px] font-extrabold text-txtcolor-700">
+            {post.title}
+          </h1>
 
-        {/* 제목 */}
-        <h1 className="text-[24px] font-extrabold text-gray-800 mb-2">{post.title}</h1>
+          {/* 메타 */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-[32px] h-[32px] rounded-full bg-brand-100 text-brand-700
+                        flex items-center justify-center text-sm font-bold shrink-0"
+            >
+              {(post.author ?? "익")[0]}
+            </div>
 
-        {/* 메타 */}
-        <div className="flex items-center gap-3 text-[13px] text-gray-400 mb-5">
-          <span className="text-gray-600 font-medium">{post.author ?? "익명"}</span>
-          <span>{timeAgo(post.createdAt)}</span>
-          <span>👁 {post.viewCount ?? 0}</span>
+            <div className="flex items-center gap-2 text-[13px]">
+              <span className="font-medium text-txtcolor-500">
+                {post.author ?? "익명"}
+              </span>
+
+              <span className="text-txtcolor-300">
+                {guardianLevelIcon[post.authorLevel]}
+              </span>
+
+              <span className="text-txtcolor-200">·</span>
+
+              <span className="text-txtcolor-300">
+                {timeAgo(post.createdAt)}
+              </span>
+
+              <span className="text-txtcolor-200">·</span>
+
+              <MetaCount icon="💬" count={post.commentCount} />
+              <MetaCount icon="❤️" count={post.likeCount} />
+              <MetaCount icon="👁" count={post.viewCount} />
+            </div>
+          </div>
         </div>
+        <div className="mt-6 pt-6 border-t border-txtcolor-100"/>
 
         {/* 본문 */}
-        <p className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">
+        <p className="text-[15px] leading-relaxed text-txtcolor-800 whitespace-pre-wrap">
           {post.content}
         </p>
 
@@ -174,14 +236,14 @@ function CommunityDetail() {
         )}
 
         {/* 좋아요 */}
-        <div className="flex items-center justify-center gap-4 mt-6 pt-5 border-t">
+        <div className="flex items-center justify-center gap-4 mt-6 pt-5 border-t border-txtcolor-100">
           <button
             onClick={handleLike}
             disabled={likeBusy}
             className={`flex items-center gap-2 px-5 py-2 rounded-full border text-[14px] font-medium transition
               ${post.liked
                 ? "bg-rose-50 border-rose-200 text-rose-500"
-                : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                : "bg-white border-txtcolor-100 text-txtcolor-400 hover:bg-gray-50"}`}
           >
             {post.liked ? "❤️" : "🤍"} 좋아요 {post.likeCount ?? 0}
           </button>
@@ -190,7 +252,7 @@ function CommunityDetail() {
 
       {/* 댓글 */}
       <div className="mt-6">
-        <h2 className="text-[16px] font-bold text-sky-800 mb-3">
+        <h2 className="text-[16px] font-bold text-txtcolor-700 mb-3">
           댓글 {post.commentCount ?? roots.length + roots.reduce((n, r) => n + repliesOf(r.commentId).length, 0)}
         </h2>
 
@@ -201,12 +263,14 @@ function CommunityDetail() {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleComment() }}
             placeholder="댓글을 입력하세요"
-            className="flex-1 px-3 py-3 bg-[#f7f7f7] rounded-xl border border-gray-100 text-[14px]
-              focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+            className="flex-1 px-3 py-3 bg-[#f7f7f7] rounded-xl border border-txtcolor-100 text-[14px]
+              focus:outline-brand-500 hover:bg-[#F0F0F0] transition"
           />
           <button
             onClick={handleComment}
-            className="px-4 py-2 rounded-xl bg-sky-700 text-white text-[14px] font-bold shrink-0 hover:bg-sky-800 transition"
+            className="flex items-center gap-2 px-4 py-2 
+                     rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
+                     shadow-sm transition hover:bg-txtcolor-900"
           >
             등록
           </button>
@@ -214,7 +278,7 @@ function CommunityDetail() {
 
         {/* 댓글 목록 */}
         {roots.length === 0 ? (
-          <p className="py-8 text-center text-[14px] text-gray-400">
+          <p className="py-8 text-center text-[14px] text-txtcolor-300">
             첫 댓글을 남겨보세요!
           </p>
         ) : (
