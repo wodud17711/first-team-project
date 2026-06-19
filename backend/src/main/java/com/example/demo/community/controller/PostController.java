@@ -43,8 +43,9 @@ public class PostController {
     public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String subTag,
-            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "latest") String sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
 
@@ -61,8 +62,9 @@ public class PostController {
                         postService.getPosts(
                                 categoryId,
                                 subTag,
-                                page,
                                 sort,
+                                page,
+                                size,
                                 userId
                         )
                 )
