@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from "react"
 import { useAuth } from "./useAuth"
-import { getAccessToken } from "../api/tokenStorage"
-import { markRead, markAllRead } from "../api/notifications"
-import axios from "axios"
+import { getNotifications, markRead, markAllRead } from "../api/notifications"
 
 export function useNotifications() {
   const { isAuthenticated } = useAuth()
@@ -15,17 +13,6 @@ export function useNotifications() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
-  const getAuthHeader = () => {
-    const token = getAccessToken()
-    if (!token) return null
-
-    return {
-      Authorization: token.startsWith("Bearer ")
-        ? token
-        : `Bearer ${token}`
-    }
-  }
 
   const markNotificationRead = async (id) => {
     await markRead(id)
@@ -56,23 +43,24 @@ export function useNotifications() {
 
   const loadMore = useCallback(async () => {
     setLoading(true)
+    setError(null)
 
     try {
-      const res = await axios.get("http://localhost:8081/api/notifications", {
-        params: {
-          page: pageRef.current,
-          size: 20
-        },
-        headers: getAuthHeader()
+      // apiClient 경유 — baseURL·401 자동 갱신 적용. 성공 시 data(payload) 직접 반환.
+      const data = await getNotifications({
+        page: pageRef.current,
+        size: 20,
       })
 
-      const newItems = res.data.data.notifications ?? []
+      const newItems = data?.notifications ?? []
 
       setNotifications(prev => [...prev, ...newItems])
 
       setHasMore(newItems.length === 20)
 
       pageRef.current += 1
+    } catch (e) {
+      setError(e)
     } finally {
       setLoading(false)
     }
@@ -80,26 +68,26 @@ export function useNotifications() {
 
   const initLoad = useCallback(async () => {
     setLoading(true)
+    setError(null)
 
     try {
       pageRef.current = 0
       setNotifications([])
 
-      const res = await axios.get("http://localhost:8081/api/notifications", {
-        params: {
-          page: 0,
-          size: 20
-        },
-        headers: getAuthHeader()
+      const data = await getNotifications({
+        page: 0,
+        size: 20,
       })
 
-      const data = res.data.data
+      const items = data?.notifications ?? []
 
-      setNotifications(data.notifications ?? [])
-      setUnreadCount(data.unreadCount ?? 0)
+      setNotifications(items)
+      setUnreadCount(data?.unreadCount ?? 0)
 
       pageRef.current = 1
-      setHasMore((data.notifications ?? []).length === 20)
+      setHasMore(items.length === 20)
+    } catch (e) {
+      setError(e)
     } finally {
       setLoading(false)
     }
@@ -125,7 +113,7 @@ export function useNotifications() {
 
     markNotificationRead,
     markAllNotificationsRead,
-    
+
     refetch: initLoad,
   }
 }

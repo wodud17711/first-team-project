@@ -45,7 +45,7 @@ function Home() {
   return (
     <div className='relative animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-brand-200 z-6">
+      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-txtcolor-100/55 z-6">
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
         {/* <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
@@ -126,7 +126,7 @@ function Home() {
               {/* 로그아웃 */}
               <div className="mt-auto pt-3">
                 <div className="flex justify-center items-center gap-4 font-medium
-                                rounded-lg p-2 bg-sun-300/80">
+                                rounded-lg p-2 bg-brand-300/80">
                   <div className='flex items-center gap-2'>
                     <img src='/userpanel/logout.png' alt='로그아웃'
                          className='w-[17px] h-[17px]'/>
