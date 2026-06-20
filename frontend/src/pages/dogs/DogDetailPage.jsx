@@ -126,9 +126,9 @@ function DogDetailPage() {
 
   // 프로필 상세 내용
   const renderSection = (title, data) => (
-    <div className="bg-gray-50 rounded-xl border border-gray-100 px-5 py-4">
-      <h3 className="flex items-center text-[18px] font-semibold text-sky-900 mb-4">
-        <span className="w-1 h-4 bg-sky-700 rounded-full mr-2" />
+    <div className="bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 px-5 py-4">
+      <h3 className="flex items-center text-[18px] font-bold text-txtcolor-700 mb-4">
+        <span className="w-1 h-4 bg-brand-500 rounded-full mr-2" />
         {title}
       </h3>
 
@@ -136,13 +136,13 @@ function DogDetailPage() {
       {data.map((info) => (
         <div key={info.label} className="flex items-center text-[14px]">
 
-          <span className="font-semibold shrink-0 text-gray-700">
+          <span className="font-semibold shrink-0 text-txtcolor-600">
             {info.label}
           </span>
 
-          <div className="flex-1 mx-3 border-b border-dashed border-gray-400" />
+          <div className="flex-1 mx-3 border-b border-dashed border-txtcolor-200" />
 
-          <span className="text-gray-600 shrink-0">
+          <span className="text-txtcolor-500 shrink-0">
             {info.value}
           </span>
 
@@ -174,39 +174,30 @@ function DogDetailPage() {
 
   return (
     <div className="p-4 animate-fadeIn">
-
       {/* 상단 */}
-      <div className="flex justify-between items-center mb-4">
-        {/* 제목 */}
+      <div className="relative flex justify-between items-start mb-4">
         <div>
-          <h1 className="text-[32px] font-extrabold text-sky-800">
-            반려견 프로필 상세
-          </h1>
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">반려견 프로필 상세</h1>
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-[4px] h-[20px] rounded-full bg-sky-700"/>
-            <p className="text-[14px] text-gray-500 font-light">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
+            <p className="text-[14px] text-txtcolor-500 font-light">
               등록된 반려견 프로필의 상세 내용을 확인할 수 있어요.
             </p>
           </div>
         </div>
-        
-        {/* 목록버튼 */}
-        <div className="text-center rounded-xl shadow-sm border">
-          <button
-            onClick={() => navigate("/dog-profile-list")}
-            className="
-              px-4 py-2 rounded-xl
-              border border-sky-700
-              text-sky-700 font-semibold
-              hover:bg-sky-700 hover:text-white
-              transition
-            "
-          >
-            ← 목록으로
-          </button>
-        </div>
+        {/* 목록 */}
+        <button
+          onClick={() => navigate("/dog-profile-list")}
+          className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 
+                     rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
+                     shadow-sm transition hover:bg-txtcolor-900"
+        >
+          <img src="/list.png" alt="마이페이지" className="w-[20px] h-[20px] invert brightness-0"/> 
+          목록으로
+        </button>
       </div>
-      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+      <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]" />
+
 
       {/* 강아지 프로필 상세칸 */}
       <div className="flex flex-col items-center space-y-6">        
@@ -222,13 +213,13 @@ function DogDetailPage() {
 
           {/* 강아지 정보 */}
           <div className="flex flex-col w-full">
-            <div className="flex-1 bg-white rounded-xl border shadow-sm px-6 py-4">
+            <div className="flex-1 bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-4">
               <div className="flex items-center mb-3 ml-1 gap-3">
-                <h2 className="text-[36px] font-extrabold text-sky-900">
+                <h2 className="text-[36px] font-extrabold text-txtcolor-700">
                   {dog.name}
                 </h2>
                 {dog.isMain && (
-                  <span className="px-2 py-1 text-[12px] rounded-full bg-sky-200/80 text-sky-900 font-semibold">
+                  <span className="px-2 py-[2px] text-[12px] rounded-full bg-sky-100 text-sky-600 font-semibold">
                     대표
                   </span>
                 )}
@@ -244,7 +235,7 @@ function DogDetailPage() {
               </div>
 
               <div className="flex justify-end mt-2 mr-1">
-                <span className="text-[12px] text-gray-400">
+                <span className="text-[12px] text-txtcolor-300">
                   프로필 등록일 · 2026/01/01
                 </span>
               </div>
@@ -256,17 +247,21 @@ function DogDetailPage() {
       </div>
       
       {/* 수정, 삭제 버튼 */}
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+      <div className="flex justify-end gap-3 mt-[20px] pt-4 border-t">
         <button
           onClick={() => navigate(`/dog-profile-edit/${dog.dogId}`)}
-          className="px-4 py-2 w-[90px] bg-sky-500 text-white text-[14px] font-bold rounded-xl hover:bg-sky-600 transition"
+          className="px-4 py-2 w-[90px] 
+                     rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                     shadow-sm hover:bg-brand-600/80 transition"
         >
           수정
         </button>
 
         <button
           onClick={handleDelete}
-          className="px-4 py-2 w-[90px] bg-red-500 text-white text-[14px] font-bold rounded-xl hover:bg-red-600 transition"
+          className="px-4 py-2 w-[90px]
+                     rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                     shadow-sm hover:bg-txtcolor-200/80 transition"
         >
           삭제
         </button>
