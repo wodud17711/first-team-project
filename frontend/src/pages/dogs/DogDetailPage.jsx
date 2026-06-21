@@ -1,9 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom"
 import { deleteDog, getDog } from "../../api/dogs"
 
-// 강아지 기본(폴백) 사진
-import dogImg1 from '../../assets/dogImg1.jpg'
-
 // 함수 땡겨오기
 import { genderMap, activityMap, walkTimes} from "../../constants/dogConstants"
 import { useEffect, useState } from "react"
@@ -205,10 +202,28 @@ function DogDetailPage() {
           
           {/* 강아지 이미지 */}
           <div className="relative shrink-0">
-            <img
-              src={dog.profileImageUrl || dogImg1}
-              className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
-            />
+            {dog.profileImageUrl ? (
+              <img
+                src={dog.profileImageUrl}
+                className="w-[350px] h-[470px] rounded-xl object-cover "
+                alt={dog.name}
+              />
+            ) : (
+              <div
+                className="
+                  w-[350px] h-[470px]
+                  rounded-xl shadow
+                  bg-txtcolor-100/25
+                  flex flex-col items-center justify-center
+                "
+              >
+                <div className="text-[64px]">🐶</div>
+
+                <p className="mt-2 text-[14px] text-txtcolor-400">
+                  프로필 사진이 등록되지 않았어요
+                </p>
+              </div>
+            )}
           </div>
 
           {/* 강아지 정보 */}

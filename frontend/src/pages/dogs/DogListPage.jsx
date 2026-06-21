@@ -101,10 +101,28 @@ function DogListPage() {
               <div className='relative'>
                 {/* 강아지 이미지 */}
                 <div className="relative shrink-0">
-                  <img
-                    src={dog.profileImageUrl || dogImg1}
-                    className="w-[350px] h-[470px] rounded-xl object-cover"
-                  />
+                  {dog.profileImageUrl ? (
+                    <img
+                      src={dog.profileImageUrl}
+                      className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
+                      alt={dog.name}
+                    />
+                  ) : (
+                    <div
+                      className="
+                        w-[350px] h-[470px]
+                        rounded-xl shadow
+                        bg-txtcolor-100/25
+                        flex flex-col items-center justify-center
+                      "
+                    >
+                      <div className="text-[64px]">🐶</div>
+
+                      <p className="mt-2 text-[14px] text-txtcolor-400">
+                        프로필 사진이 등록되지 않았어요
+                      </p>
+                    </div>
+                  )}
 
                   {/* 이미지 검은색 그라데이션 */}
                   <div className="absolute bottom-0 left-0

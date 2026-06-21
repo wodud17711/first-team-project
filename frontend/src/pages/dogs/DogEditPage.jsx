@@ -4,8 +4,6 @@ import { searchBreeds } from "../../api/breeds";
 import { updateDog } from "../../api/dogs"
 import { getDog } from "../../api/dogs"
 
-// 강아지 기본(폴백) 사진
-import dogImg1 from '../../assets/dogImg1.jpg'
 
 // 함수 땡겨오기 (그대로 유지)
 import { genders, neuteredOptions, activityLevels, walkTimes } from "../../constants/dogConstants"
@@ -315,8 +313,7 @@ function DogEditPage() {
             <div
               className="
                 w-[350px] h-[470px]
-                rounded-xl
-                border-2 border-txtcolor-100
+                rounded-xl shadow
                 bg-txtcolor-100/25
                 flex flex-col items-center justify-center
               "
@@ -374,9 +371,7 @@ function DogEditPage() {
                삭제
             </button>
           </div>
-
         </div>
-
 
         {/* 폼 */}
         <div className="flex-1 flex flex-col gap-4">
