@@ -12,9 +12,9 @@ import { genders, neuteredOptions, activityLevels, walkTimes } from "../../const
 
 function Section({ title, children }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm px-6 py-5">
-      <h3 className="flex items-center text-[20px] font-bold text-sky-900 mb-4">
-        <span className="w-1 h-4 bg-sky-700 rounded-full mr-2" />
+    <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5">
+      <h3 className="flex items-center text-[20px] font-bold text-txtcolor-700 mb-4">
+        <span className="w-1 h-4 bg-brand-500 rounded-full mr-2" />
         {title}
       </h3>
       <div className="flex flex-col gap-3">{children}</div>
@@ -147,8 +147,6 @@ function DogEditPage() {
     setOpenBreed(false)
   }
 
-
-  
 
   // 선호 선택 시간 + 견종 선택 버튼 누르지 않아도 목록 밖 화면 빈 곳 아무대나 눌렀을 때 목록창 꺼지게
   useEffect(() => {
@@ -291,53 +289,81 @@ function DogEditPage() {
       <div className="flex justify-between items-center mb-4">
         {/* 제목 */}
         <div>
-          <h1 className="text-[32px] font-extrabold text-sky-800">
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">
             반려견 프로필 수정
           </h1>
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-[4px] h-[20px] rounded-full bg-sky-700"/>
-            <p className="text-[14px] text-gray-500 font-light">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500"/>
+            <p className="text-[14px] text-txtcolor-500 font-light">
               등록된 반려견 프로필의 정보를 수정할 수 있어요.
             </p>
           </div>
         </div>
       </div>
-      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+      <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]"/>
 
 
       <div className="flex gap-6">
         {/* 이미지 */}
         <div className="relative flex flex-col gap-3">
-          <img
-            src={previewImg || dogImg1}
-            className="w-[340px] h-[420px] rounded-xl object-cover shadow"
-          />
+          {previewImg ? (
+            <img
+              src={previewImg}
+              className="w-[350px] h-[470px] rounded-xl object-cover shadow"
+            />
+          ) : (
+            <div
+              className="
+                w-[350px] h-[470px]
+                rounded-xl
+                border-2 border-txtcolor-100
+                bg-txtcolor-100/25
+                flex flex-col items-center justify-center
+              "
+            >
+              <div className="text-[64px]">🐶</div>
+
+              <p className="mt-2 text-[14px] text-txtcolor-400">
+                프로필 사진을 등록해주세요
+              </p>
+            </div>
+          )}
+
+          {/* 대표 강아지 설정 */}
+          <div className="absolute top-3 right-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setIsMain(!isMain)}
+              className={`px-3 py-1 text-[14px] font-semibold
+                          backdrop-blur rounded-full cursor-pointer ${
+                isMain ? "bg-sky-100 border-sky-400 hover:bg-txtcolor-200/80" : 
+                         "bg-white/80 text-txtcolor-700 hover:bg-txtcolor-50/80"
+              }`}
+            >
+              {isMain ? "⭐ 대표 강아지" : "대표 강아지 설정"}
+            </button>
+          </div>
 
           {/* 변경, 삭제 버튼 */}
-          <div className="absolute top-3 right-3 flex gap-2">
-            <label className="px-3 py-1 text-[12px] font-medium bg-white/80 backdrop-blur rounded-full cursor-pointer">
-              📷 변경
+          <div className="flex gap-2">
+            <label className="flex flex-1 px-4 py-2 items-center justify-center
+                              rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                              shadow-sm hover:bg-brand-600/80 transition cursor-pointer">
+              사진 변경
               <input type="file" hidden onChange={handleImageChange} />
             </label>
 
             <button
               type="button"
               onClick={() => setPreviewImg(null)}
-              className="px-3 py-1 text-[12px] font-medium bg-white/80 backdrop-blur rounded-full text-red-500"
+              className="flex flex-1 px-4 py-2 items-center justify-center
+                         rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                         shadow-sm hover:bg-txtcolor-200/80 transition cursor-pointer"
             >
-              🗑️ 삭제
+               삭제
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsMain(!isMain)}
-            className={`py-2 rounded-xl border ${
-              isMain ? "bg-sky-100 border-sky-400" : "bg-white"
-            }`}
-          >
-            {isMain ? "⭐ 대표 강아지" : "대표 강아지 설정"}
-          </button>
         </div>
 
 
@@ -354,8 +380,8 @@ function DogEditPage() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl border border-gray-100 text-[16px]
-                                    focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+                className="w-full px-3 py-3 pr-12 bg-[#f7f7f7] rounded-xl border border-gray-100 text-[16px]
+                           focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
                 placeholder="반려견의 이름을 입력하세요"
               />
               </div>
@@ -369,7 +395,7 @@ function DogEditPage() {
                   name="birthDate"
                   value={form.birthDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
+                  className="w-full px-3 py-3 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
                                       focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
                   placeholder="생년월일(YYYY-MM-DD)을 입력하세요"
                 />
@@ -417,7 +443,7 @@ function DogEditPage() {
                     placeholder={mixMode
                       ? "부모·이름으로 믹스견 검색 (예: 푸들, 말티푸)"
                       : "순종을 검색하세요 (예: 말티즈)"}
-                    className="w-full px-3 py-4 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
+                    className="w-full px-3 py-3 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
                               focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
                   />
                   {openBreed && (() => {
@@ -460,7 +486,7 @@ function DogEditPage() {
                       type="button"
                       key={g.value}
                       onClick={() => setForm({ ...form, gender: g.value })}
-                      className={`flex-1 px-3 py-2 rounded-xl border border-gray-300 text-[13px] font-medium ${
+                      className={`flex-1 px-3 py-3 rounded-xl border border-gray-300 text-[13px] font-medium ${
                         form.gender === g.value ? "bg-brand-200 border-brand-500" : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
                       }`}
                     >
@@ -626,16 +652,21 @@ function DogEditPage() {
       </div>
 
       {/* 저장, 취소 버튼 */}
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+      <div className="flex justify-end gap-3 mt-[20px] pt-4 
+                      border-t border-txtcolor-100/60">
         <button
           onClick={handleSubmit}
-          className="px-4 py-2 w-[90px] bg-sky-500 text-white rounded-xl"
+          className="px-4 py-2 w-[90px] 
+                     rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                     shadow-sm hover:bg-brand-600/80 transition"
         >
           저장
         </button>
         <button
           onClick={handleGoDetail}
-          className="px-3 py-2 w-[90px] bg-danger text-white text-[14px] font-bold rounded-xl"
+          className="px-4 py-2 w-[90px]
+                     rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                     shadow-sm hover:bg-txtcolor-200/80 transition"
         >
           취소
         </button>
