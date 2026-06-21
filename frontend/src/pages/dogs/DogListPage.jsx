@@ -1,8 +1,5 @@
 
 
-// 강아지 기본(폴백) 사진
-import dogImg1 from '../../assets/dogImg1.jpg'
-
 // 훅 연결 (더미 배열 → 실 API)
 import { useDogs } from "../../hooks/useDogs"
 

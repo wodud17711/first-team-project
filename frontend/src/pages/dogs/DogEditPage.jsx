@@ -613,9 +613,9 @@ function DogEditPage() {
                     type="button"
                     onClick={() => setOpenWalkTime(!openWalkTime)}
                     className={`w-full px-3 py-3 rounded-xl border border-txtcolor-50
-                                bg-txtcolor-50/50 text-left text-[16px] text-txtcolor-700
+                                bg-txtcolor-50/50 text-left text-[16px]
                                 hover:bg-txtcolor-100/40 transition
-                                ${form.favorWalkTime.length > 0 ? "text-txtcolor-700" : "text-txtcolor-400"}
+                                ${form.favorWalkTime.length > 0 ? "text-txtcolor-700" : "text-gray-400"}
                                 ${openWalkTime ? "outline outline-2 outline-brand-500" : ""}`}
                   >
                     {form.favorWalkTime.length > 0
@@ -634,7 +634,7 @@ function DogEditPage() {
                             className={`w-[120px] px-3 py-2 rounded-lg border text-[12px]
                               ${form.favorWalkTime.includes(hour)
                                 ? "bg-brand-200 border-brand-500 text-txtcolor-700" 
-                          : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
+                                : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                               }`}
                           >
                             {time}
@@ -655,7 +655,7 @@ function DogEditPage() {
                   value={form.healthNotes}
                   onChange={handleChange}
                   className="w-full px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 text-[16px] text-txtcolor-700
-                           focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                             focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                   placeholder="건강 특이사항 (선택)"
                 />
               </div>
