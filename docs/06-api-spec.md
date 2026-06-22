@@ -1023,8 +1023,10 @@ GET /api/posts?categoryId=1&subTag=건사료&page=0&size=20
 | categoryId | Long | ❌ | 카테고리 필터 |
 | subTag | String | ❌ | 서브태그 필터 |
 | page | Integer | ❌ | 페이지 번호 (기본 0) |
-| size | Integer | ❌ | 페이지 크기 (기본 20) |
-| sort | String | ❌ | latest / popular |
+| size | Integer | ❌ | 페이지 크기 (기본 10, #123) |
+| sort | String | ❌ | `latest`(기본, 최신순) / `popular`(좋아요순, 동점 시 최신순) |
+
+> **정렬(#123):** `popular` 은 `likeCount DESC` + 동점 시 `createdAt DESC`(2차 키)로 페이지 경계 중복/누락을 방지한다. `sort` 미지정 시 `latest`(하위호환).
 
 **Response 200**
 ```json

@@ -38,18 +38,23 @@ public class PostController {
         );
     }
 
+
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PostSummaryResponse>>> getPosts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String subTag,
+            @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
 
         Long userId = null;
 
         if (userDetails != null) {
-            userId = Long.parseLong(userDetails.getUsername());
+            userId = Long.parseLong(
+                    userDetails.getUsername()
+            );
         }
 
         return ResponseEntity.ok(
@@ -57,12 +62,15 @@ public class PostController {
                         postService.getPosts(
                                 categoryId,
                                 subTag,
+                                sort,
                                 page,
+                                size,
                                 userId
                         )
                 )
         );
     }
+
 
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> getPost(
@@ -73,7 +81,9 @@ public class PostController {
         Long userId = null;
 
         if (userDetails != null) {
-            userId = Long.parseLong(userDetails.getUsername());
+            userId = Long.parseLong(
+                    userDetails.getUsername()
+            );
         }
 
         return ResponseEntity.ok(
@@ -85,6 +95,7 @@ public class PostController {
                 )
         );
     }
+
 
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<Void>> updatePost(
@@ -106,6 +117,7 @@ public class PostController {
         );
     }
 
+
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
@@ -122,6 +134,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+
     private Long resolveUserId(UserDetails userDetails) {
 
         if (userDetails == null) {
@@ -134,7 +147,9 @@ public class PostController {
             return Long.parseLong(
                     userDetails.getUsername()
             );
+
         } catch (NumberFormatException e) {
+
             throw new BusinessException(
                     ErrorCode.UNAUTHORIZED
             );
