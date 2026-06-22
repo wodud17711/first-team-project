@@ -189,11 +189,21 @@ function CommunityDetail() {
 
           {/* 메타 */}
           <div className="flex items-center gap-3">
-            <div
-              className="w-[32px] h-[32px] rounded-full bg-brand-100 text-brand-700
-                        flex items-center justify-center text-sm font-bold shrink-0"
-            >
-              {(post.author ?? "익")[0]}
+            <div className="w-[32px] h-[32px] shrink-0">
+              {post.authorProfileImageUrl ? (
+                <img
+                  src={post.authorProfileImageUrl}
+                  alt={post.author}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-full rounded-full bg-brand-100 text-brand-700
+                            flex items-center justify-center text-sm font-bold"
+                >
+                  {(post.author ?? "익")[0]}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2 text-[13px]">
