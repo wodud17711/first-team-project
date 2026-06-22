@@ -5,6 +5,7 @@ import {
   getPosts,
   getPost,
   createPost,
+  addPostImage,
   getComments,
   createComment,
   toggleLike,
@@ -200,7 +201,17 @@ export async function submitPost(body) {
     const created = createPostMock({ ...body, createdAt: new Date().toISOString() })
     return created.postId
   }
-  const created = await createPost(body)
+  // CreatePostRequest 엔 imageUrls 가 없다 → 게시글 생성 후 별도 엔드포인트로 첨부.
+  const { imageUrls = [], ...rest } = body
+  const created = await createPost(rest)
+  for (const url of imageUrls) {
+    // 이미지 첨부 실패가 글 작성 성공을 가리지 않도록 best-effort.
+    try {
+      await addPostImage(created.postId, url)
+    } catch (e) {
+      console.warn('게시글 이미지 첨부 실패:', url, e)
+    }
+  }
   return created.postId
 }
 

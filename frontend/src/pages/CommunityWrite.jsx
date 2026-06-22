@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useCategories, submitPost } from "../hooks/useCommunity"
+import { uploadImage, validateImageFile } from "../api/uploads"
 
 // DogCreatePage 의 Section 카드 패턴(정선혜 sky 톤)을 그대로 따름.
 function Section({ title, children }) {
@@ -29,8 +30,9 @@ function CommunityWrite() {
   const [subTag, setSubTag] = useState(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [imageUrls, setImageUrls] = useState([]) // mock: objectURL 미리보기
+  const [imageUrls, setImageUrls] = useState([]) // 서버 업로드 후 저장 URL
   const [submitting, setSubmitting] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   // 선택된 카테고리의 서브태그 (카테고리 바꾸면 초기화)
   const subTags = categories.find((c) => c.categoryId === categoryId)?.subTags ?? []
@@ -40,13 +42,35 @@ function CommunityWrite() {
     setSubTag(null)
   }
 
-  // 이미지 추가 (mock — 최대 5개, objectURL 로 미리보기만)
-  const handleImage = (e) => {
+  // 이미지 추가 — 최대 5개, 서버 업로드 후 저장 URL 만 보관
+  const handleImage = async (e) => {
     const files = Array.from(e.target.files ?? [])
-    if (files.length === 0) return
-    const urls = files.map((f) => URL.createObjectURL(f))
-    setImageUrls((prev) => [...prev, ...urls].slice(0, 5))
     e.target.value = "" // 같은 파일 재선택 허용
+    if (files.length === 0) return
+
+    const room = 5 - imageUrls.length
+    if (room <= 0) {
+      alert("사진은 최대 5장까지 첨부할 수 있어요.")
+      return
+    }
+
+    setUploading(true)
+    try {
+      for (const file of files.slice(0, room)) {
+        const invalid = validateImageFile(file)
+        if (invalid) {
+          alert(invalid)
+          continue
+        }
+        const url = await uploadImage(file)
+        setImageUrls((prev) => [...prev, url].slice(0, 5))
+      }
+    } catch (err) {
+      console.error(err)
+      alert(err?.message || "이미지 업로드에 실패했어요.")
+    } finally {
+      setUploading(false)
+    }
   }
 
   const removeImage = (idx) => {
@@ -227,10 +251,10 @@ function CommunityWrite() {
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <button
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || uploading}
           className="px-4 py-2 w-[90px] bg-sky-500 text-white rounded-xl disabled:opacity-60"
         >
-          {submitting ? "등록중" : "등록"}
+          {submitting ? "등록중" : uploading ? "업로드중" : "등록"}
         </button>
         <button
           onClick={handleCancel}
