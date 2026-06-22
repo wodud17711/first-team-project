@@ -24,24 +24,44 @@ function MetaCount({ icon, count }) {
 // 댓글 1건 (대댓글이면 isReply=true → 들여쓰기 + 좌측 선)
 function CommentItem({ comment, isReply, onReply }) {
   return (
-    <div className={isReply ? "ml-8 pl-4 border-l-2 border-sky-100" : ""}>
-      <div className="py-3">
+    <div
+  className={`w-full ${
+    isReply ? "ml-8 pl-4 border-l-2 border-sky-100" : ""
+  }`}
+>
+      <div className="flex flex-col w-full py-3 gap-1">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[14px] font-semibold text-gray-700">
+          <div className="w-8 h-8 shrink-0">
+            {comment.authorProfileImageUrl ? (
+              <img
+                src={comment.authorProfileImageUrl}
+                alt={comment.author}
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-full h-full rounded-full bg-brand-100 text-brand-700
+                          flex items-center justify-center text-[14px] font-bold"
+              >
+                {(comment.author ?? "익")[0]}
+              </div>
+            )}
+          </div>
+          <span className="text-[14px] font-semibold text-txtcolor-700">
             {comment.author ?? "익명"}
           </span>
           {comment.isMine && (
-            <span className="px-[6px] py-[1px] rounded-full bg-sky-100 text-sky-700 text-[11px]">
+            <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-600 text-[12px]">
               내 댓글
             </span>
           )}
-          <span className="text-[12px] text-gray-400">{timeAgo(comment.createdAt)}</span>
+          <span className="text-[12px] text-txtcolor-300">{timeAgo(comment.createdAt)}</span>
         </div>
-        <p className="text-[14px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+        <p className="w-full text-[14px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
         {!isReply && (
           <button
             onClick={() => onReply(comment.commentId)}
-            className="mt-1 text-[12px] text-gray-400 hover:text-sky-700 transition"
+            className="mt-1 text-[12px] text-gray-400 hover:text-brand-700 transition"
           >
             답글
           </button>
@@ -169,9 +189,9 @@ function CommunityDetail() {
       <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]" />
 
       {/* 게시글 카드 */}
-      <div className="bg-white rounded-xl border shadow-sm px-6 py-6">
+      <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-6">
         {/* 카테고리 · 서브태그 */}
-        <div className="flex items-center gap-[6px] mb-3">
+        <div className="flex items-center gap-[6px] mb-4">
           <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-600 text-[12px] font-medium">
             {typeof post.category === "object" ? post.category.name : post.category}
           </span>
@@ -181,55 +201,62 @@ function CommunityDetail() {
             </span>
           )}
         </div>
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-4 items-start justify-between">
           {/* 제목 */}
           <h1 className="text-[24px] font-extrabold text-txtcolor-700">
             {post.title}
           </h1>
-
           {/* 메타 */}
-          <div className="flex items-center gap-3">
-            <div className="w-[32px] h-[32px] shrink-0">
-              {post.authorProfileImageUrl ? (
-                <img
-                  src={post.authorProfileImageUrl}
-                  alt={post.author}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  className="w-full h-full rounded-full bg-brand-100 text-brand-700
-                            flex items-center justify-center text-sm font-bold"
-                >
-                  {(post.author ?? "익")[0]}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 text-[13px]">
-              <span className="font-medium text-txtcolor-500">
+          <div className="flex items-center justify-between w-full mb-3 pt-3 border-t border-dashed border-txtcolor-100">
+            {/* 왼쪽 */}
+            <div className="flex items-center gap-3">
+              <div className="w-[42px] h-[42px] shrink-0">
+                {post.authorProfileImageUrl ? (
+                  <img
+                    src={post.authorProfileImageUrl}
+                    alt={post.author}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full rounded-full bg-brand-100 text-brand-700
+                              flex items-center justify-center text-sm font-bold"
+                  >
+                    {(post.author ?? "익")[0]}
+                  </div>
+                )}
+              </div>
+              
+              <span className="font-semibold text-[14px] text-txtcolor-700">
                 {post.author ?? "익명"}
               </span>
 
-              <span className="text-txtcolor-300">
+              <div className="w-px h-3 bg-txtcolor-200" />
+
+              <span className="text-[14px] text-txtcolor-300">
                 {guardianLevelIcon[post.authorLevel]}
               </span>
+            </div>
 
-              <span className="text-txtcolor-200">·</span>
+            {/* 오른쪽 */}
+            <div className="flex items-center gap-5 text-[14px]">
+              <div className="flex gap-2">
+                <MetaCount icon="💬" count={post.commentCount} />
+                <MetaCount icon="❤️" count={post.likeCount} />
+                <MetaCount icon="👁" count={post.viewCount} />
+              </div>
+
+              <div className="w-px h-3 bg-txtcolor-200" />
 
               <span className="text-txtcolor-300">
                 {timeAgo(post.createdAt)}
               </span>
-
-              <span className="text-txtcolor-200">·</span>
-
-              <MetaCount icon="💬" count={post.commentCount} />
-              <MetaCount icon="❤️" count={post.likeCount} />
-              <MetaCount icon="👁" count={post.viewCount} />
             </div>
           </div>
+
         </div>
-        <div className="mt-6 pt-6 border-t border-txtcolor-100"/>
+
+        <div className="mb-8 border-t border-txtcolor-100" />
 
         {/* 본문 */}
         <p className="text-[15px] leading-relaxed text-txtcolor-800 whitespace-pre-wrap">
@@ -246,13 +273,13 @@ function CommunityDetail() {
         )}
 
         {/* 좋아요 */}
-        <div className="flex items-center justify-center gap-4 mt-6 pt-5 border-t border-txtcolor-100">
+        <div className="flex items-center justify-center gap-4 mt-8 pt-5 border-t border-txtcolor-100">
           <button
             onClick={handleLike}
             disabled={likeBusy}
             className={`flex items-center gap-2 px-5 py-2 rounded-full border text-[14px] font-medium transition
               ${post.liked
-                ? "bg-rose-50 border-rose-200 text-rose-500"
+                ? "bg-rose-50/70 border-rose-200 text-rose-500"
                 : "bg-white border-txtcolor-100 text-txtcolor-400 hover:bg-gray-50"}`}
           >
             {post.liked ? "❤️" : "🤍"} 좋아요 {post.likeCount ?? 0}
@@ -273,8 +300,8 @@ function CommunityDetail() {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleComment() }}
             placeholder="댓글을 입력하세요"
-            className="flex-1 px-3 py-3 bg-[#f7f7f7] rounded-xl border border-txtcolor-100 text-[14px]
-              focus:outline-brand-500 hover:bg-[#F0F0F0] transition"
+            className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[16px] text-txtcolor-700
+              focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
           />
           <button
             onClick={handleComment}
@@ -292,7 +319,7 @@ function CommunityDetail() {
             첫 댓글을 남겨보세요!
           </p>
         ) : (
-          <div className="bg-white rounded-xl border shadow-sm px-5 divide-y">
+          <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-5 divide-y">
             {roots.map((c) => (
               <div key={c.commentId} className="py-1">
                 <CommentItem comment={c} isReply={false} onReply={setReplyTo} />
