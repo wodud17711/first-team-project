@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { searchBreeds } from "../../api/breeds";
 import { createDog } from "../../api/dogs"
+import { uploadImage, validateImageFile } from "../../api/uploads"
 
 // 함수 땡겨오기 (그대로 유지)
 import { genders, neuteredOptions, activityLevels, walkTimes } from "../../constants/dogConstants"
@@ -25,14 +26,26 @@ function DogCreatePage() {
   // 강아지 이미지 주소 저장
   const [previewImg, setPreviewImg] = useState(null)
 
-  // 강아지 이미지 변경 함수
-  const handleImageChange = (e) => {
+  // 강아지 이미지 변경 함수 — 서버 업로드 후 저장 URL 사용(blob 미사용)
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0]
+    e.target.value = "" // 같은 파일 재선택 허용
 
     if (!file) return
 
-    const imageUrl = URL.createObjectURL(file)
-    setPreviewImg(imageUrl)
+    const invalid = validateImageFile(file)
+    if (invalid) {
+      alert(invalid)
+      return
+    }
+
+    try {
+      const url = await uploadImage(file)
+      setPreviewImg(url)
+    } catch (err) {
+      console.error(err)
+      alert(err?.message || "이미지 업로드에 실패했어요.")
+    }
   }
 
   // 대표 강아지 설정 여부
