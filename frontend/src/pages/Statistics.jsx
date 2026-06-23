@@ -225,26 +225,50 @@ function Statistics() {
               {w}
             </div>
           ))}
-          {calendarCells.map((cell, idx) => (
-            <div
-              key={idx}
-              className="aspect-square flex items-center justify-center rounded-md relative"
-            >
-              {cell && (
-                <>
-                  <span className="text-xs text-gray-600 z-10">{cell.day}</span>
-                  {cell.info && cell.info.count > 0 && (
-                    <img
-                      src={activeDog?.profileImageUrl || dogImgFallback}
-                      alt="산책함"
-                      className="absolute inset-0 w-full h-full object-cover rounded-md opacity-70"
-                      title={`${cell.info.count}회 · ${cell.info.minutes}분`}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          ))}
+          {calendarCells.map((cell, idx) => {
+            const count = cell?.info?.count ?? 0
+            const MAX_DOTS = 3 // 그 이상은 +N 으로 축약
+            const dotImg = activeDog?.profileImageUrl || dogImgFallback
+            return (
+              <div
+                key={idx}
+                className={`aspect-square rounded-md relative p-1 flex flex-col ${
+                  count > 0 ? 'bg-brand-100/40' : ''
+                }`}
+              >
+                {cell && (
+                  <>
+                    {/* 날짜: 좌상단 (실제 달력처럼 한 곳으로) */}
+                    <span className="text-[11px] leading-none text-gray-600 self-start">
+                      {cell.day}
+                    </span>
+
+                    {/* 산책 표시: 횟수만큼 작은 동그라미(강아지 사진) */}
+                    {count > 0 && (
+                      <div
+                        className="mt-auto flex flex-wrap items-center justify-center gap-0.5 pb-0.5"
+                        title={`${activeDog?.name ?? ''} ${count}회 · ${cell.info.minutes}분`}
+                      >
+                        {Array.from({ length: Math.min(count, MAX_DOTS) }).map((_, i) => (
+                          <img
+                            key={i}
+                            src={dotImg}
+                            alt=""
+                            className="w-3 h-3 rounded-full object-cover ring-1 ring-white shadow-sm"
+                          />
+                        ))}
+                        {count > MAX_DOTS && (
+                          <span className="text-[9px] font-medium text-gray-500 leading-none">
+                            +{count - MAX_DOTS}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )
+          })}
         </div>
       </section>
     </div>
