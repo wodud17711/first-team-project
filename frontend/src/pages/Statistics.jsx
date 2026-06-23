@@ -59,6 +59,7 @@ function Statistics() {
 
   // 캘린더: 이번 달 기준
   const now = new Date()
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
   const { data: cal } = useWalkCalendar(activeDogId, ym.year, ym.month)
 
@@ -266,12 +267,13 @@ function Statistics() {
             const count = cell?.info?.count ?? 0
             const MAX_DOTS = 3 // 그 이상은 +N 으로 축약
             const dotImg = activeDog?.profileImageUrl || dogImgFallback
+            const isToday = cell?.iso === todayIso
             return (
               <div
                 key={idx}
-                className={`aspect-square p-1.5 flex flex-col ${
-                  count > 0 ? 'bg-brand-100/40 cursor-pointer' : 'bg-white'
-                }`}
+                className={`relative aspect-square bg-white p-1.5 flex flex-col ${
+                  count > 0 ? 'cursor-pointer' : ''
+                } ${isToday ? 'ring-[3px] ring-inset ring-brand-500' : ''}`}
                 onMouseEnter={count > 0 ? (e) => handleCellEnter(cell.iso, e.currentTarget) : undefined}
                 onMouseLeave={count > 0 ? handleCellLeave : undefined}
                 onClick={count > 0 ? (e) => handleCellClick(cell.iso, e.currentTarget) : undefined}
