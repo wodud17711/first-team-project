@@ -219,9 +219,9 @@ function Statistics() {
             <button onClick={() => shiftMonth(1)} className="text-gray-400 hover:text-gray-700">›</button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-1 text-center">
+        <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden text-center">
           {WEEKDAYS.map((w, i) => (
-            <div key={w} className={`text-xs py-1 ${i === 0 ? 'text-danger' : 'text-gray-400'}`}>
+            <div key={w} className={`bg-white text-xs py-2 ${i === 0 ? 'text-danger' : 'text-gray-400'}`}>
               {w}
             </div>
           ))}
@@ -232,21 +232,21 @@ function Statistics() {
             return (
               <div
                 key={idx}
-                className={`aspect-square rounded-md relative p-1 flex flex-col ${
-                  count > 0 ? 'bg-brand-100/40' : ''
+                className={`aspect-square p-1.5 flex flex-col ${
+                  count > 0 ? 'bg-brand-100/40' : 'bg-white'
                 }`}
               >
                 {cell && (
                   <>
                     {/* 날짜: 좌상단 (실제 달력처럼 한 곳으로) */}
-                    <span className="text-[11px] leading-none text-gray-600 self-start">
+                    <span className="text-xs leading-none text-gray-500 self-start">
                       {cell.day}
                     </span>
 
-                    {/* 산책 표시: 횟수만큼 작은 동그라미(강아지 사진) */}
+                    {/* 산책 표시: 횟수만큼 동그라미(강아지 사진) — 셀 가운데 정렬 */}
                     {count > 0 && (
                       <div
-                        className="mt-auto flex flex-wrap items-center justify-center gap-0.5 pb-0.5"
+                        className="flex-1 flex flex-wrap items-center justify-center content-center gap-1"
                         title={`${activeDog?.name ?? ''} ${count}회 · ${cell.info.minutes}분`}
                       >
                         {Array.from({ length: Math.min(count, MAX_DOTS) }).map((_, i) => (
@@ -254,11 +254,11 @@ function Statistics() {
                             key={i}
                             src={dotImg}
                             alt=""
-                            className="w-3 h-3 rounded-full object-cover ring-1 ring-white shadow-sm"
+                            className="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow"
                           />
                         ))}
                         {count > MAX_DOTS && (
-                          <span className="text-[9px] font-medium text-gray-500 leading-none">
+                          <span className="text-[12px] font-semibold text-gray-500 leading-none">
                             +{count - MAX_DOTS}
                           </span>
                         )}
