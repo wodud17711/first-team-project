@@ -65,6 +65,11 @@
 
 
 @layer base {
+  html {
+    /* 스크롤바 자리를 항상 예약 → 긴 페이지(스크롤바 O)와 짧은 페이지(스크롤바 X)
+       사이를 오갈 때 가운데 콘텐츠가 좌우로 들썩이는 레이아웃 시프트 방지. */
+    scrollbar-gutter: stable;
+  }
   html, body, #root {
     height: 100%;
   }

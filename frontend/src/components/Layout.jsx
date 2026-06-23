@@ -6,8 +6,7 @@ import { useNotifications } from '../hooks/usenotifications'
 const navItems = [
   {
     label: '오늘의 산책지수',
-    to: '/mypage', 
-    // 아직 오늘의 산책지수 링크가 없어서 그냥 임시로 걸어둔 링크
+    to: '/walkscore-detail', 
   },
   {
     label: '산책 기록',
