@@ -3,6 +3,7 @@ import { AuthProvider } from './hooks/useAuth'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
+import WalkScoreDetail from './pages/WalkScoreDetail'
 import WalkRecord from './pages/WalkRecord'
 import Statistics from './pages/Statistics'
 import Community from './pages/Community'
@@ -34,6 +35,7 @@ import OptimalTimePreview from './pages/dev/OptimalTimePreview'
 
 
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -56,6 +58,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/walkscore-detail" element={<WalkScoreDetail />} />
               <Route path="/walk" element={<WalkRecord />} />
               <Route path="/statistics" element={<Statistics />} />
               <Route path="/community" element={<Community />} />
