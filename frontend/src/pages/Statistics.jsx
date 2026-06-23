@@ -1,10 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { useDogs } from '../hooks/useDogs'
 import { useWalkStatistics, useWalkCalendar } from '../hooks/useWalkStatistics'
+import { useWalkHistory } from '../hooks/useWalkRecord'
 import dogImgFallback from '../assets/dogImg1.jpg'
 
 // 요일 라벨 (일~토)
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+// ISO datetime → 'HH:mm'
+function hhmm(iso) {
+  return iso ? iso.slice(11, 16) : ''
+}
 
 // 'YYYY-MM-DD' → 로컬 Date (타임존 시프트 방지로 직접 파싱)
 function parseDate(iso) {
@@ -53,6 +59,7 @@ function Statistics() {
 
   // 캘린더: 이번 달 기준
   const now = new Date()
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
   const { data: cal } = useWalkCalendar(activeDogId, ym.year, ym.month)
 
@@ -90,6 +97,37 @@ function Statistics() {
     }
     return cells
   }, [ym, calMap])
+
+  // 산책 이력(날짜별 그룹) — 캘린더 hover/클릭 상세 팝오버용
+  const { walks: history } = useWalkHistory(activeDogId)
+  const histByDate = useMemo(() => {
+    const m = new Map()
+    for (const w of history ?? []) {
+      const iso = w.startTime?.slice(0, 10)
+      if (!iso) continue
+      if (!m.has(iso)) m.set(iso, [])
+      m.get(iso).push(w)
+    }
+    return m
+  }, [history])
+
+  // 팝오버: hover 미리보기 + 클릭 고정(pinned). 위치는 캘린더 섹션 기준 좌표.
+  const calRef = useRef(null)
+  const [popover, setPopover] = useState(null) // { iso, x, y }
+  const [pinned, setPinned] = useState(false)
+
+  const openPopover = (iso, el) => {
+    const s = calRef.current?.getBoundingClientRect()
+    if (!s) return
+    const c = el.getBoundingClientRect()
+    setPopover({ iso, x: c.left - s.left + c.width / 2, y: c.bottom - s.top })
+  }
+  const handleCellEnter = (iso, el) => { if (!pinned) openPopover(iso, el) }
+  const handleCellLeave = () => { if (!pinned) setPopover(null) }
+  const handleCellClick = (iso, el) => {
+    if (pinned && popover?.iso === iso) { setPinned(false); setPopover(null) }
+    else { setPinned(true); openPopover(iso, el) }
+  }
 
   const shiftMonth = (delta) => {
     setYm((prev) => {
@@ -208,7 +246,7 @@ function Statistics() {
       </section>
 
       {/* 산책 캘린더 (강아지 사진 스티커) */}
-      <section className="bg-white rounded-xl p-5 shadow-sm">
+      <section ref={calRef} className="relative bg-white rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">산책 캘린더</h3>
           <div className="flex items-center gap-3 text-sm">
@@ -219,33 +257,113 @@ function Statistics() {
             <button onClick={() => shiftMonth(1)} className="text-gray-400 hover:text-gray-700">›</button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-1 text-center">
+        <div className="grid grid-cols-7 gap-px bg-gray-300 border border-gray-300 rounded-lg overflow-hidden text-center">
           {WEEKDAYS.map((w, i) => (
-            <div key={w} className={`text-xs py-1 ${i === 0 ? 'text-danger' : 'text-gray-400'}`}>
+            <div key={w} className={`bg-white text-xs py-2 ${i === 0 ? 'text-danger' : 'text-gray-400'}`}>
               {w}
             </div>
           ))}
-          {calendarCells.map((cell, idx) => (
+          {calendarCells.map((cell, idx) => {
+            const count = cell?.info?.count ?? 0
+            const MAX_DOTS = 3 // 그 이상은 +N 으로 축약
+            const dotImg = activeDog?.profileImageUrl || dogImgFallback
+            const isToday = cell?.iso === todayIso
+            return (
+              <div
+                key={idx}
+                className={`relative aspect-square bg-white p-1.5 flex flex-col ${
+                  count > 0 ? 'cursor-pointer' : ''
+                } ${isToday ? 'ring-[3px] ring-inset ring-brand-500' : ''}`}
+                onMouseEnter={count > 0 ? (e) => handleCellEnter(cell.iso, e.currentTarget) : undefined}
+                onMouseLeave={count > 0 ? handleCellLeave : undefined}
+                onClick={count > 0 ? (e) => handleCellClick(cell.iso, e.currentTarget) : undefined}
+              >
+                {cell && (
+                  <>
+                    {/* 날짜: 좌상단 (실제 달력처럼 한 곳으로) */}
+                    <span className="text-xs leading-none text-gray-500 self-start">
+                      {cell.day}
+                    </span>
+
+                    {/* 산책 표시: 횟수만큼 동그라미(강아지 사진) — 셀 가운데 정렬 */}
+                    {count > 0 && (
+                      <div
+                        className="flex-1 flex flex-wrap items-center justify-center content-center gap-1"
+                      >
+                        {Array.from({ length: Math.min(count, MAX_DOTS) }).map((_, i) => (
+                          <img
+                            key={i}
+                            src={dotImg}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow"
+                          />
+                        ))}
+                        {count > MAX_DOTS && (
+                          <span className="text-[12px] font-semibold text-gray-500 leading-none">
+                            +{count - MAX_DOTS}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* 산책 상세 팝오버 (hover 미리보기 / 클릭 고정) */}
+        {popover && (() => {
+          const walks = (histByDate.get(popover.iso) ?? [])
+            .slice()
+            .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
+          const [, mm, dd] = popover.iso.split('-')
+          const totalMin = walks.reduce((s, w) => s + (w.durationMinutes ?? 0), 0)
+          const totalKm = walks.reduce((s, w) => s + Number(w.distanceKm ?? 0), 0)
+          return (
             <div
-              key={idx}
-              className="aspect-square flex items-center justify-center rounded-md relative"
+              className="absolute z-30 w-60 -translate-x-1/2 mt-1 rounded-xl border border-gray-200 bg-white p-3 text-left shadow-lg"
+              style={{ left: popover.x, top: popover.y }}
+              onMouseEnter={() => { if (!pinned) setPopover(popover) }}
+              onMouseLeave={handleCellLeave}
             >
-              {cell && (
-                <>
-                  <span className="text-xs text-gray-600 z-10">{cell.day}</span>
-                  {cell.info && cell.info.count > 0 && (
-                    <img
-                      src={activeDog?.profileImageUrl || dogImgFallback}
-                      alt="산책함"
-                      className="absolute inset-0 w-full h-full object-cover rounded-md opacity-70"
-                      title={`${cell.info.count}회 · ${cell.info.minutes}분`}
-                    />
-                  )}
-                </>
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-sm font-bold text-gray-800">
+                  {Number(mm)}/{Number(dd)} {activeDog?.name ?? ''} 산책
+                </p>
+                {pinned && (
+                  <button
+                    onClick={() => { setPinned(false); setPopover(null) }}
+                    className="text-gray-400 hover:text-gray-700 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <p className="mb-2 text-xs text-gray-500">
+                {walks.length}회 · 총 {totalMin}분{totalKm > 0 ? ` · ${totalKm.toFixed(1)}km` : ''}
+              </p>
+              {walks.length > 0 ? (
+                <ul className="flex max-h-48 flex-col gap-1.5 overflow-y-auto">
+                  {walks.map((w) => (
+                    <li key={w.walkId} className="border-t border-gray-100 pt-1.5 text-xs first:border-t-0 first:pt-0">
+                      <div className="font-medium text-gray-700">
+                        {hhmm(w.startTime)}{w.endTime ? `~${hhmm(w.endTime)}` : ''}
+                        <span className="font-normal text-gray-400">
+                          {' · '}{w.durationMinutes != null ? `${w.durationMinutes}분` : '진행 중'}
+                          {w.distanceKm != null ? ` · ${Number(w.distanceKm).toFixed(1)}km` : ''}
+                        </span>
+                      </div>
+                      {w.memo && <p className="mt-0.5 break-words text-gray-500">📝 {w.memo}</p>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-400">상세 기록이 없어요</p>
               )}
             </div>
-          ))}
-        </div>
+          )
+        })()}
       </section>
     </div>
   )
