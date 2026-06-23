@@ -3,17 +3,14 @@ import { useNavigate } from "react-router-dom"
 import { searchBreeds } from "../../api/breeds";
 import { createDog } from "../../api/dogs"
 
-// 강아지 기본(폴백) 사진
-import dogImg1 from '../../assets/dogImg1.jpg'
-
 // 함수 땡겨오기 (그대로 유지)
 import { genders, neuteredOptions, activityLevels, walkTimes } from "../../constants/dogConstants"
 
 function Section({ title, children }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm px-6 py-5">
-      <h3 className="flex items-center text-[20px] font-bold text-sky-900 mb-4">
-        <span className="w-1 h-4 bg-sky-700 rounded-full mr-2" />
+    <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5">
+      <h3 className="flex items-center text-[20px] font-bold text-txtcolor-700 mb-4">
+        <span className="w-1 h-4 bg-brand-500 rounded-full mr-2" />
         {title}
       </h3>
       <div className="flex flex-col gap-3">{children}</div>
@@ -229,53 +226,90 @@ function DogCreatePage() {
       <div className="flex justify-between items-center mb-4">
         {/* 제목 */}
         <div>
-          <h1 className="text-[32px] font-extrabold text-sky-800">
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">
             반려견 프로필 등록
           </h1>
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-[4px] h-[20px] rounded-full bg-sky-700"/>
-            <p className="text-[14px] text-gray-500 font-light">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500"/>
+            <p className="text-[14px] text-txtcolor-500 font-light">
               새로운 반려견 프로필의 정보를 등록할 수 있어요.
             </p>
           </div>
         </div>
       </div>
-      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+      <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]"/>
 
 
       <div className="flex gap-6">
         {/* 이미지 */}
         <div className="relative flex flex-col gap-3">
-          <img
-            src={previewImg || dogImg1}
-            className="w-[340px] h-[420px] rounded-xl object-cover shadow"
-          />
+          {previewImg ? (
+            <img
+              src={previewImg}
+              className="w-[350px] h-[470px] rounded-xl object-cover shadow"
+            />
+          ) : (
+            <div
+              className="
+                w-[350px] h-[470px]
+                rounded-xl shadow
+                bg-txtcolor-100/25
+                flex flex-col items-center justify-center
+              "
+            >
+              <div className="text-[64px]">🐶</div>
+
+              <p className="mt-2 text-[14px] text-txtcolor-400">
+                프로필 사진을 등록해주세요
+              </p>
+            </div>
+          )}
+
+          {/* 대표 강아지 설정 */}
+          <div className="absolute top-3 right-3">
+            <div
+              onClick={() => setIsMain(!isMain)}
+              className="flex items-center gap-2 px-3 py-2
+                         rounded-full bg-white/80 backdrop-blur
+                         shadow-sm cursor-pointer select-none">
+              <span className="text-[13px] font-semibold text-txtcolor-700">
+                ⭐ 대표 강아지
+              </span>
+
+              <div
+                className={`w-10 h-5 rounded-full transition-colors duration-300 ease-in-out relative
+                  ${isMain ? "bg-brand-500" : "bg-gray-300"}
+                `}
+              >
+                <div
+                  className={`absolute top-0.5 w-4 h-4 bg-white rounded-full
+                    transition-all duration-300 ease-in-out
+                    ${isMain ? "left-5" : "left-0.5"}
+                  `}
+                />
+              </div>
+            </div>
+          </div>
 
           {/* 변경, 삭제 버튼 */}
-          <div className="absolute top-3 right-3 flex gap-2">
-            <label className="px-3 py-1 text-[12px] font-medium bg-white/80 backdrop-blur rounded-full cursor-pointer">
-              📷 변경
+          <div className="flex gap-2">
+            <label className="flex flex-1 px-4 py-2 items-center justify-center
+                              rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                              shadow-sm hover:bg-brand-600/80 transition cursor-pointer">
+              사진 변경
               <input type="file" hidden onChange={handleImageChange} />
             </label>
 
             <button
               type="button"
               onClick={() => setPreviewImg(null)}
-              className="px-3 py-1 text-[12px] font-medium bg-white/80 backdrop-blur rounded-full text-red-500"
+              className="flex flex-1 px-4 py-2 items-center justify-center
+                         rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                         shadow-sm hover:bg-txtcolor-200/80 transition cursor-pointer"
             >
-              🗑️ 삭제
+               삭제
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsMain(!isMain)}
-            className={`py-2 rounded-xl border ${
-              isMain ? "bg-sky-100 border-sky-400" : "bg-white"
-            }`}
-          >
-            {isMain ? "⭐ 대표 강아지" : "대표 강아지 설정"}
-          </button>
         </div>
 
 
@@ -284,7 +318,7 @@ function DogCreatePage() {
           <Section title="📋 기본 정보">
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   이름 <span className="text-red-500">*</span>
                 </label>
 
@@ -292,14 +326,15 @@ function DogCreatePage() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl border border-gray-100 text-[16px]
-                                    focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+                className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
+                             text-txtcolor-700 text-[16px]
+                             focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                 placeholder="반려견의 이름을 입력하세요"
               />
               </div>
               
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   생년월일 <span className="text-red-500">*</span>
                 </label>
 
@@ -307,19 +342,20 @@ function DogCreatePage() {
                   name="birthDate"
                   value={form.birthDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
-                                      focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+                  className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
+                             text-txtcolor-700 text-[16px]
+                             focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                   placeholder="생년월일(YYYY-MM-DD)을 입력하세요"
                 />
               </div>
               
 
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   견종 선택 <span className="text-red-500">*</span>
                 </label>
 
-                <p className="text-[12px] text-gray-500 mb-2">
+                <p className="text-[12px] text-txtcolor-400 mb-2">
                   먼저 순종 또는 믹스견을 선택한 후 견종을 검색해주세요.
                 </p>
 
@@ -337,10 +373,10 @@ function DogCreatePage() {
                           setMixMode(opt.mix)
                           if (breedKeyword.trim().length >= 1) setOpenBreed(true)
                         }}
-                        className={`flex-1 px-3 py-2 rounded-xl border border-gray-300 text-[13px] font-medium
+                        className={`flex-1 px-3 py-2 rounded-xl border text-[13px] font-semibold
                           ${mixMode === opt.mix
-                            ? "bg-brand-200 border-brand-500"
-                            : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
+                            ? "bg-brand-200 border-brand-500 text-txtcolor-700"
+                            : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                           }`}
                       >
                         {opt.label}
@@ -355,8 +391,8 @@ function DogCreatePage() {
                     placeholder={mixMode
                       ? "부모·이름으로 믹스견 검색 (예: 푸들, 말티푸)"
                       : "순종을 검색하세요 (예: 말티즈)"}
-                    className="w-full px-3 py-4 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
-                              focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+                    className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 text-[16px] text-txtcolor-700
+                               focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                   />
                   {openBreed && (() => {
                     // 믹스견은 nameKr 에 '×' 포함 → 모드에 맞춰 필터 (토글 시 재검색 없이 즉시 재필터)
@@ -364,20 +400,21 @@ function DogCreatePage() {
                       mixMode ? b.nameKr.includes("×") : !b.nameKr.includes("×")
                     )
                     return (
-                      <div className="absolute top-full mt-2 w-full max-h-[220px] overflow-y-auto bg-white border rounded-xl py-2 shadow z-10">
+                      <div className="absolute top-full mt-2 w-full max-h-[220px] overflow-y-auto 
+                                      bg-white border border-txtcolor-100/50 rounded-xl py-2 shadow z-10">
                         {list.length > 0 ? (
                           list.map((b) => (
                             <button
                               key={b.breedId}
                               type="button"
                               onClick={() => handleSelectBreed(b)}
-                              className="w-full text-left px-4 py-2 text-[14px] hover:bg-brand-100"
+                              className="w-full text-left px-4 py-2 text-[14px] text-txtcolor-700 hover:bg-brand-100/50"
                             >
                               {b.nameKr}
                             </button>
                           ))
                         ) : (
-                          <p className="px-4 py-2 text-[13px] text-gray-400">
+                          <p className="px-4 py-2 text-[13px] text-txtcolor-400">
                             {mixMode ? "믹스견 검색 결과가 없어요" : "순종 검색 결과가 없어요"}
                           </p>
                         )}
@@ -388,7 +425,7 @@ function DogCreatePage() {
               </div>
               
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   성별 <span className="text-red-500">*</span>
                 </label>
 
@@ -398,8 +435,10 @@ function DogCreatePage() {
                       type="button"
                       key={g.value}
                       onClick={() => setForm({ ...form, gender: g.value })}
-                      className={`flex-1 px-3 py-2 rounded-xl border border-gray-300 text-[13px] font-medium ${
-                        form.gender === g.value ? "bg-brand-200 border-brand-500" : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
+                      className={`flex-1 px-3 py-3 rounded-xl border text-[13px] font-semibold ${
+                        form.gender === g.value 
+                        ? "bg-brand-200 border-brand-500 text-txtcolor-700" 
+                        : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                       }`}
                     >
                       {g.label}
@@ -414,7 +453,7 @@ function DogCreatePage() {
           <Section title="🔎 상세 정보">
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   체중 <span className="text-red-500">*</span>
                 </label>
 
@@ -434,12 +473,12 @@ function DogCreatePage() {
                         }))
                       }
                     }}
-                    className="w-full px-3 py-4 pr-12 bg-[#f7f7f7] rounded-xl text-[16px] border border-gray-100
-                                    focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+                    className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 text-[16px] text-txtcolor-700
+                               focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                     placeholder="무게를 입력하세요"
                   />
                   {form.weight && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-gray-400">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-txtcolor-300">
                       kg
                     </span>
                   )}
@@ -447,7 +486,7 @@ function DogCreatePage() {
               </div>
               
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   중성화 여부 <span className="text-red-500">*</span>
                 </label>
 
@@ -462,10 +501,10 @@ function DogCreatePage() {
                           isNeutered: item.value,
                         }))
                       }
-                      className={`flex-1 px-3 py-2 rounded-xl border border-gray-300 text-[13px] font-medium ${
+                      className={`flex-1 px-3 py-2 rounded-xl border text-[13px] font-semibold ${
                         form.isNeutered === item.value
-                          ? "bg-brand-200 border-brand-500"
-                          : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
+                          ? "bg-brand-200 border-brand-500 text-txtcolor-700" 
+                          : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                       }`}
                     >
                       {item.label}
@@ -480,7 +519,7 @@ function DogCreatePage() {
           <Section title="🏡 생활 정보">
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   활동량 <span className="text-red-500">*</span>
                 </label>
 
@@ -492,10 +531,10 @@ function DogCreatePage() {
                       onClick={() =>
                         setForm({ ...form, activityLevel: a.value })
                       }
-                      className={`flex-1 px-3 py-2 rounded-xl border border-gray-300 text-[13px] font-medium ${
+                      className={`flex-1 px-3 py-2 rounded-xl border text-[13px] font-semibold ${
                         form.activityLevel === a.value
-                          ? "bg-brand-200 border-brand-500"
-                          : "bg-white border-gray-200 text-gray-400 hover:bg-[#F0F0F0] transition"
+                          ? "bg-brand-200 border-brand-500 text-txtcolor-700" 
+                          : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                       }`}
                     >
                       {a.label}
@@ -505,7 +544,7 @@ function DogCreatePage() {
               </div>              
 
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
                   선호 산책 시간 <span className="text-red-500">*</span>
                 </label>
 
@@ -513,9 +552,11 @@ function DogCreatePage() {
                   <button
                     type="button"
                     onClick={() => setOpenWalkTime(!openWalkTime)}
-                    className={`w-full px-3 py-4 bg-[#f7f7f7] rounded-xl border border-gray-100 text-left text-[16px] hover:bg-[#F0F0F0] transition
-                                ${form.favorWalkTime.length > 0 ? "text-black" : "text-gray-400"}
-                                ${openWalkTime ? "outline outline-2 outline-brand-300" : ""}`}
+                    className={`w-full px-3 py-3 rounded-xl border border-txtcolor-50
+                                bg-txtcolor-50/50 text-left text-[16px]
+                                hover:bg-txtcolor-100/40 transition
+                                ${form.favorWalkTime.length > 0 ? "text-txtcolor-700" : "text-gray-400"}
+                                ${openWalkTime ? "outline outline-2 outline-brand-500" : ""}`}
                   >
                     {form.favorWalkTime.length > 0
                     ? form.favorWalkTime.map((h) => walkTimes[h]).join(", ")
@@ -523,17 +564,17 @@ function DogCreatePage() {
                   </button>
 
                   {openWalkTime && (
-                    <div className="absolute top-full mt-2 w-full bg-white border rounded-xl px-2 py-4 shadow z-10">
+                    <div className="absolute top-full mt-2 w-full bg-white border border-txtcolor-100/50 rounded-xl px-2 py-4 shadow z-10">
                       <div className="flex flex-wrap justify-center gap-2">
                         {walkTimes.map((time, hour) => (
                           <button
                             key={hour}
                             type="button"
                             onClick={() => handleWalkTime(hour)}
-                            className={`w-[120px] px-3 py-2 rounded border border-gray-300 text-[12px] 
+                            className={`w-[120px] px-3 py-2 rounded-lg border text-[12px] 
                               ${form.favorWalkTime.includes(hour)
-                                ? "bg-brand-200 border-brand-500"
-                                : "bg-white hover:bg-[#F0F0F0] transition"
+                                ? "bg-brand-200 border-brand-500 text-txtcolor-700" 
+                                : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                               }`}
                           >
                             {time}
@@ -546,14 +587,15 @@ function DogCreatePage() {
               </div>
               
               <div>
-                <label className="block mb-1 text-[14px] font-semibold text-gray-700">
-                  건강 특이사항 <span className="text-gray-400">(선택)</span>
+                <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
+                  건강 특이사항 <span className="text-txtcolor-300">(선택)</span>
                 </label>
                 <textarea
                   name="healthNotes"
                   value={form.healthNotes}
                   onChange={handleChange}
-                  className="p-3 w-full bg-gray-100 rounded-xl text-[16px] border border-gray-100 hover:bg-[#F0F0F0] transition"
+                  className="w-full px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 text-[16px] text-txtcolor-700
+                             focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                   placeholder="건강 특이사항 (선택)"
                 />
               </div>
@@ -564,16 +606,21 @@ function DogCreatePage() {
       </div>
 
       {/* 저장, 취소 버튼 */}
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+      <div className="flex justify-end gap-3 mt-[20px] pt-4 
+                      border-t border-txtcolor-100/60">
         <button
           onClick={handleSubmit}
-          className="px-4 py-2 w-[90px] bg-sky-500 text-white rounded-xl"
+          className="px-4 py-2 w-[90px] 
+                     rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                     shadow-sm hover:bg-brand-600/80 transition"
         >
           저장
         </button>
         <button
           onClick={handleGoDetail}
-          className="px-3 py-2 w-[90px] bg-danger text-white text-[14px] font-bold rounded-xl"
+          className="px-4 py-2 w-[90px]
+                     rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                     shadow-sm hover:bg-txtcolor-200/80 transition"
         >
           취소
         </button>

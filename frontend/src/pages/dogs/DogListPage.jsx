@@ -1,8 +1,5 @@
 
 
-// 강아지 기본(폴백) 사진
-import dogImg1 from '../../assets/dogImg1.jpg'
-
 // 훅 연결 (더미 배열 → 실 API)
 import { useDogs } from "../../hooks/useDogs"
 
@@ -65,24 +62,25 @@ function DogListPage() {
       <div className="flex justify-between items-center mb-4">
         {/* 제목 */}
         <div>
-          <h1 className="text-[32px] font-extrabold text-sky-800">
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">
             반려견 프로필 목록
           </h1>
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-[4px] h-[20px] rounded-full bg-sky-700"/>
-            <p className="text-[14px] text-gray-500 font-light">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500"/>
+            <p className="text-[14px] text-txtcolor-500 font-light">
               등록된 반려견 프로필을 확인하고 관리할 수 있어요.
             </p>
           </div>
         </div>
 
         {/* 등록수 */}
-        <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm border">
-          <p className="text-[12px] text-gray-500">등록된 프로필</p>
-          <p className="text-[20px] font-bold text-sky-700">{dogs.length}개</p>
+        <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm 
+                        border border-txtcolor-100/50">
+          <p className="text-[12px] font-semibold text-txtcolor-400">등록된 프로필</p>
+          <p className="text-[20px] font-bold text-brand-700">{dogs.length}개</p>
         </div>
       </div>
-      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+      <div className='w-full h-[1px] bg-txtcolor-400/40 mb-[20px]'/>
 
       {/* 프로필 목록 */}
       <div className='flex flex-col gap-[20px]'>
@@ -100,10 +98,28 @@ function DogListPage() {
               <div className='relative'>
                 {/* 강아지 이미지 */}
                 <div className="relative shrink-0">
-                  <img
-                    src={dog.profileImageUrl || dogImg1}
-                    className="w-[350px] h-[470px] rounded-xl object-cover"
-                  />
+                  {dog.profileImageUrl ? (
+                    <img
+                      src={dog.profileImageUrl}
+                      className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
+                      alt={dog.name}
+                    />
+                  ) : (
+                    <div
+                      className="
+                        w-[350px] h-[470px]
+                        rounded-xl shadow
+                        bg-txtcolor-100/25
+                        flex flex-col items-center justify-center
+                      "
+                    >
+                      <div className="text-[64px]">🐶</div>
+
+                      <p className="mt-2 text-[14px] text-txtcolor-400">
+                        프로필 사진이 등록되지 않았어요
+                      </p>
+                    </div>
+                  )}
 
                   {/* 이미지 검은색 그라데이션 */}
                   <div className="absolute bottom-0 left-0
@@ -117,7 +133,7 @@ function DogListPage() {
                   <p className='absolute top-4 right-4
                       px-3 py-1 rounded-full
                       bg-white/80 backdrop-blur
-                      text-[12px] font-medium'>
+                      text-[12px] font-medium text-txtcolor-800'>
                     프로필 등록일 · {dog.createdAt ? dog.createdAt.slice(0, 10).replaceAll("-", "/") : "—"}
                   </p>
 
@@ -165,11 +181,11 @@ function DogListPage() {
             className="
               flex items-center justify-center
               w-[350px] h-[470px] rounded-xl
-              border-2 border-dashed border-gray-300
-              cursor-pointer transition group hover:bg-[#F0F0F0]
+              border-2 border-dashed border-txtcolor-100
+              cursor-pointer transition group hover:bg-txtcolor-100/25
             "
           >
-            <div className="flex flex-col items-center gap-2 text-gray-400 group-hover:text-gray-600 transition">
+            <div className="flex flex-col items-center gap-2 text-txtcolor-300 group-hover:text-txtcolor-500 transition">
               <div className="text-[52px] font-bold">+</div>
               <p className="text-[16px] font-medium">반려견 프로필 추가</p>
             </div>
@@ -177,8 +193,6 @@ function DogListPage() {
         </div>
       </div>
     </div>
-
-
   )
 }
 
