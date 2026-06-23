@@ -150,17 +150,19 @@ function CommunityDetail() {
   }
 
   if (loading) {
-    return <div className="p-4 text-gray-400">불러오는 중...</div>
+    return <div className="p-4 text-txtcolor-300">불러오는 중...</div>
   }
   if (error || !post) {
     return (
       <div className="p-4 animate-fadeIn">
-        <div className="flex flex-col items-center gap-3 py-16 text-gray-400">
+        <div className="flex flex-col items-center gap-3 py-16 text-txtcolor-300">
           <div className="text-[40px]">🐾</div>
           <p className="text-[14px]">게시글을 찾을 수 없어요.</p>
           <button
             onClick={() => navigate(base)}
-            className="px-4 py-2 rounded-xl bg-sky-700 text-white text-[14px] font-bold"
+            className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 
+                     rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
+                     shadow-sm transition hover:bg-txtcolor-900"
           >
             목록으로
           </button>
