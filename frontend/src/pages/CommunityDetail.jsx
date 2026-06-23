@@ -26,7 +26,8 @@ function CommentItem({ comment, isReply, isLastReply, onReply }) {
   return (
     <div className={`relative w-full ${isReply ? "ml-8 pl-4" : ""}`}>
     {isReply && (
-      <div className={`absolute left-0 w-[2px] bg-brand-200
+      <div
+        className={`absolute left-0 w-[2px] bg-brand-200
           ${isLastReply ? "top-0 bottom-6" : "top-0 bottom-0"}`}
       />
     )}
@@ -62,7 +63,7 @@ function CommentItem({ comment, isReply, isLastReply, onReply }) {
         {!isReply && (
           <button
             onClick={() => onReply(comment.commentId)}
-            className="mt-1 text-[12px] text-gray-400 hover:text-brand-700 transition"
+            className="mt-1 text-[12px] text-txtcolor-300 hover:text-brand-700 transition"
           >
             답글
           </button>
@@ -88,6 +89,16 @@ function CommunityDetail() {
   const [replyTo, setReplyTo] = useState(null) // 대댓글 대상 commentId
   const [replyText, setReplyText] = useState("")
   const [likeBusy, setLikeBusy] = useState(false)
+
+  // 대댓글 더보기
+  const [replyExpandMap, setReplyExpandMap] = useState({})
+  const toggleReplies = (commentId) => {
+    setReplyExpandMap((prev) => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }))
+  }
+  
 
   // 닉네임 옆 보호자 연차 표기
   const guardianLevelIcon = {
@@ -321,44 +332,77 @@ function CommunityDetail() {
           </p>
         ) : (
           <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-5 divide-y">
-            {roots.map((c) => (
-              <div key={c.commentId} className="py-1">
-                <CommentItem comment={c} isReply={false} onReply={setReplyTo} />
+            {roots.map((c) => {
+              const replies = repliesOf(c.commentId)
+              const isExpanded = replyExpandMap[c.commentId]
+              const visibleReplies = isExpanded ? replies : replies.slice(0, 2)
 
-                {/* 대댓글 목록 */}
-                {repliesOf(c.commentId).map((r, idx, arr) => (
-                  <CommentItem
-                    key={r.commentId}
-                    comment={r}
-                    isReply
-                    isLastReply={idx === arr.length - 1}
-                  />
-                ))}
+              return (
+                <div key={c.commentId} className="py-1">
+                  <CommentItem comment={c} isReply={false} onReply={setReplyTo} />
 
-                {/* 대댓글 입력 */}
-                {replyTo === c.commentId && (
-                  <div className="mb-3 flex gap-2">
-                    <input
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleReply(c.commentId) }}
-                      autoFocus
-                      placeholder="답글을 입력하세요"
-                      className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[14px] text-txtcolor-700
-                                 focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                  {/* 대댓글 입력 */}
+                  {replyTo === c.commentId && (
+                    <div className="mb-3 flex gap-2">
+                      <input
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleReply(c.commentId)
+                        }}
+                        autoFocus
+                        placeholder="답글을 입력하세요"
+                        className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[14px] text-txtcolor-700
+                                  focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                      />
+                      <div className="flex gap-[6px]">
+                        <button
+                          onClick={() => handleReply(c.commentId)}
+                          className="flex items-center gap-2 px-4 py-2 
+                                    rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
+                                    shadow-sm transition hover:bg-txtcolor-900"
+                        >
+                          답글
+                        </button>
+                        <button
+                          onClick={() => {
+                            setReplyTo(null)
+                            setReplyText("")
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 
+                                    rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                                    shadow-sm hover:bg-txtcolor-200/80 transition"
+                        >
+                          취소
+                        </button>
+                      </div>
+                      
+                    </div>
+                  )}
+
+                  {/* 대댓글 목록 */}
+                  {visibleReplies.map((r, idx) => (
+                    <CommentItem
+                      key={r.commentId}
+                      comment={r}
+                      isReply
+                      isLastReply={idx === visibleReplies.length - 1}
                     />
+                  ))}
+
+                  {/* 더보기 버튼 */}
+                  {replies.length > 2 && (
                     <button
-                      onClick={() => handleReply(c.commentId)}
-                      className="flex items-center gap-2 px-4 py-2 
-                                rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
-                                shadow-sm transition hover:bg-txtcolor-900"
+                      onClick={() => toggleReplies(c.commentId)}
+                      className="ml-8 pb-3 text-[12px] text-txtcolor-300 hover:text-brand-700"
                     >
-                      답글
+                      {isExpanded ? "답글 접기" : `답글 ${replies.length - 2}개 더보기`}
                     </button>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+
+                  
+                </div>
+              )})}
           </div>
         )}
       </div>
