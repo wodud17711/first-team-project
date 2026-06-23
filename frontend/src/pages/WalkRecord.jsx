@@ -15,6 +15,7 @@ import {
 } from '../hooks/useWalkRecord'
 import WalkPathMap from '../components/WalkPathMap'
 import { subjectName } from '../lib/korean'
+import dogImgFallback from '../assets/dogImg1.jpg'
 
 // 체감 옵션 (docs/11 §1.2: HOT/OK/COLD). 라벨·이모지는 비주얼이라 정선혜가 조정 가능.
 const THERMAL_OPTIONS = [
@@ -27,11 +28,27 @@ const THERMAL_LABEL = { HOT: '더웠어요', OK: '적당했어요', COLD: '추�
 function WalkRecord() {
   const navigate = useNavigate()
   const { dogs, loading: dogsLoading } = useDogs()
-  const dog = dogs[0] // 대표 반려견 (Home 과 동일 규칙)
-  const dogId = dog?.dogId ?? null
+  const [pickedIds, setPickedIds] = useState(null) // 사용자가 고른 산책 대상(복수)
 
-  const { active, elapsedSec, busy, error, start, finish, clearLocal } = useWalkRecord()
-  const { walks, loading: histLoading, refetch } = useWalkHistory(dogId)
+  const { sessions, isActive, activeDogIds, elapsedSec, busy, error, start, finish, clearLocal } =
+    useWalkRecord()
+
+  // 산책 대상(복수): 진행 중이면 산책 중인 강아지들로 잠금, 아니면 고른 것(없으면 대표 1마리).
+  const mainDogId = (dogs.find((d) => d.isMain) ?? dogs[0])?.dogId ?? null
+  const defaultIds = mainDogId != null ? [mainDogId] : []
+  const selectedIds = isActive ? activeDogIds : (pickedIds ?? defaultIds)
+  const selectedDogs = dogs.filter((d) => selectedIds.includes(d.dogId))
+  const dog = dogs.find((d) => d.dogId === selectedIds[0]) ?? dogs[0] // 표시·이력 기준(첫 선택)
+  const namesLabel =
+    selectedDogs.map((d) => subjectName(d.name)).join(', ') || subjectName(dog?.name) || ''
+
+  const toggleDog = (id) =>
+    setPickedIds((prev) => {
+      const base = prev ?? defaultIds
+      return base.includes(id) ? base.filter((x) => x !== id) : [...base, id]
+    })
+
+  const { walks, loading: histLoading, refetch } = useWalkHistory(dog?.dogId ?? null)
 
   // 종료 폼 입력 상태
   const [showEndForm, setShowEndForm] = useState(false)
@@ -41,8 +58,9 @@ function WalkRecord() {
   const [memo, setMemo] = useState('')
 
   const handleStart = async () => {
+    if (selectedIds.length === 0) return
     try {
-      await start(dogId)
+      await start(selectedIds)
     } catch {
       // BE WALK_ALREADY_IN_PROGRESS 등 — error 상태로 표시됨
     }
@@ -87,8 +105,52 @@ function WalkRecord() {
     <div className="p-4 animate-fadeIn">
       <h1 className="text-[28px] font-extrabold text-sky-800 mb-1">🐾 산책 기록</h1>
       <p className="text-[13px] text-gray-500 mb-4">
-        {subjectName(dog.name)}와의 산책을 기록하고 체감을 남겨보세요.
+        {namesLabel}와의 산책을 기록하고 체감을 남겨보세요.
       </p>
+
+      {/* 산책 대상 반려견 선택 (여러 마리일 때만, 동시 산책 = 복수 선택). 진행 중이면 잠금. */}
+      {dogs.length > 1 && (
+        <div className="mb-4">
+          <p className="text-[13px] text-gray-500 mb-1">
+            산책할 반려견 <span className="text-gray-400">(여러 마리 함께 선택 가능)</span>
+          </p>
+          {isActive ? (
+            <div className="flex flex-wrap gap-2">
+              {selectedDogs.map((d) => (
+                <div
+                  key={d.dogId}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-100 border border-sky-300 text-[13px] font-semibold text-sky-800"
+                >
+                  <img src={d.profileImageUrl || dogImgFallback} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  {d.name} · 산책 중
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {dogs.map((d) => {
+                const on = selectedIds.includes(d.dogId)
+                return (
+                  <button
+                    key={d.dogId}
+                    onClick={() => toggleDog(d.dogId)}
+                    aria-pressed={on}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[13px] transition ${
+                      on
+                        ? 'bg-sky-100 border-sky-400 text-sky-800 font-semibold'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    <img src={d.profileImageUrl || dogImgFallback} alt="" className="w-5 h-5 rounded-full object-cover" />
+                    {d.name}
+                    {on && <span className="text-sky-500">✓</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="mb-3 p-3 rounded-lg bg-red-50 text-[13px] text-red-600">
@@ -103,13 +165,13 @@ function WalkRecord() {
 
       {/* ── 산책 세션 카드 ── */}
       <div className="rounded-2xl border bg-white shadow-sm p-6 mb-6 text-center">
-        {!active ? (
+        {!isActive ? (
           // idle: 시작
           <>
-            <p className="text-[14px] text-gray-500 mb-4">지금 {subjectName(dog.name)}와 산책을 시작할까요?</p>
+            <p className="text-[14px] text-gray-500 mb-4">지금 {namesLabel}와 산책을 시작할까요?</p>
             <button
               onClick={handleStart}
-              disabled={busy}
+              disabled={busy || selectedIds.length === 0}
               className="px-8 py-3 rounded-full bg-sky-600 text-white text-[16px] font-bold disabled:opacity-50"
             >
               ▶ 산책 시작
