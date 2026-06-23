@@ -1,13 +1,18 @@
 
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDogs } from '../hooks/useDogs'
+import { useWalkScore } from '../hooks/useWalkScore'
+import WalkScore from '../components/WalkScore/WalkScore'
 
 
 function WalkScoreDetail() {
   const navigate = useNavigate()
   const { dogs, loading: dogsLoading } = useDogs()
   const dog = dogs[0] // 대표 반려견 (Home 과 동일 규칙)
+
+  // 산책지수: 대표 반려견 기준 실 API 조회 (Home 카드와 동일 배선).
+  // dog 없을 때 dogId=undefined → 훅이 미호출. 훅은 early return 위에서 무조건 호출.
+  const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(dog?.dogId)
 
 
   // ── 반려견 없음/로딩 ──
@@ -49,7 +54,18 @@ function WalkScoreDetail() {
       </div>
 
       <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]" />
-      
+
+      {/* 산책지수 카드 (Home 과 동일 컴포넌트·props 재사용) */}
+      <WalkScore
+        score={walk?.score}
+        level={walk?.level}
+        reasons={walk?.topReasons ?? []}
+        loading={walkLoading}
+        notReady={walkNotReady}
+        hasDog={dog?.dogId != null}
+        weather={walk?.weather ?? null}
+      />
+
     </div>
   )
 }
