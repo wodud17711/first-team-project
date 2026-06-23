@@ -15,6 +15,7 @@ import {
 } from '../hooks/useWalkRecord'
 import WalkPathMap from '../components/WalkPathMap'
 import { subjectName } from '../lib/korean'
+import dogImgFallback from '../assets/dogImg1.jpg'
 
 // 체감 옵션 (docs/11 §1.2: HOT/OK/COLD). 라벨·이모지는 비주얼이라 정선혜가 조정 가능.
 const THERMAL_OPTIONS = [
@@ -27,10 +28,15 @@ const THERMAL_LABEL = { HOT: '더웠어요', OK: '적당했어요', COLD: '추�
 function WalkRecord() {
   const navigate = useNavigate()
   const { dogs, loading: dogsLoading } = useDogs()
-  const dog = dogs[0] // 대표 반려견 (Home 과 동일 규칙)
-  const dogId = dog?.dogId ?? null
+  const [pickedDogId, setPickedDogId] = useState(null) // 사용자가 고른 산책 대상
 
   const { active, elapsedSec, busy, error, start, finish, clearLocal } = useWalkRecord()
+
+  // 산책 대상: 진행 중이면 그 산책의 강아지로 잠금, 아니면 고른 강아지 → 대표 → 첫째
+  const mainDogId = (dogs.find((d) => d.isMain) ?? dogs[0])?.dogId ?? null
+  const dogId = active?.dogId ?? pickedDogId ?? mainDogId
+  const dog = dogs.find((d) => d.dogId === dogId) ?? dogs[0]
+
   const { walks, loading: histLoading, refetch } = useWalkHistory(dogId)
 
   // 종료 폼 입력 상태
@@ -89,6 +95,36 @@ function WalkRecord() {
       <p className="text-[13px] text-gray-500 mb-4">
         {subjectName(dog.name)}와의 산책을 기록하고 체감을 남겨보세요.
       </p>
+
+      {/* 산책 대상 반려견 선택 (여러 마리일 때만). 진행 중이면 그 강아지로 잠금. */}
+      {dogs.length > 1 && (
+        <div className="mb-4">
+          <p className="text-[13px] text-gray-500 mb-1">산책할 반려견</p>
+          {active ? (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-100 border border-sky-300 text-[13px] font-semibold text-sky-800">
+              <img src={dog?.profileImageUrl || dogImgFallback} alt="" className="w-5 h-5 rounded-full object-cover" />
+              {dog?.name} · 산책 중
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {dogs.map((d) => (
+                <button
+                  key={d.dogId}
+                  onClick={() => setPickedDogId(d.dogId)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[13px] transition ${
+                    d.dogId === dogId
+                      ? 'bg-sky-100 border-sky-400 text-sky-800 font-semibold'
+                      : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <img src={d.profileImageUrl || dogImgFallback} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  {d.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="mb-3 p-3 rounded-lg bg-red-50 text-[13px] text-red-600">
