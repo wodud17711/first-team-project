@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, Link, useLocation, } from 'react-router-dom'
 
 import { useNotifications } from '../hooks/usenotifications'
@@ -40,6 +40,24 @@ function Layout() {
   // 드롭다운
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  // 호버 인텐트: 트리거(nav)와 드롭다운 사이 헤더 패딩(데드존)을 천천히 지나도
+  // 즉시 닫히지 않게 닫기를 잠깐 지연. 그 사이 드롭다운 진입 시 취소된다.
+  const closeTimer = useRef(null)
+  const openMenu = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+    setIsMenuOpen(true)
+  }
+  const scheduleClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+    closeTimer.current = setTimeout(() => setIsMenuOpen(false), 150)
+  }
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+  }, [])
+
   // 알람 표시
   const { unreadCount, refetch } = useNotifications()
 
@@ -70,8 +88,8 @@ function Layout() {
           </Link>
 
           <div className="flex-1 flex justify-center"
-                onMouseEnter={() => setIsMenuOpen(true)}
-                onMouseLeave={() => setIsMenuOpen(false)}>
+                onMouseEnter={openMenu}
+                onMouseLeave={scheduleClose}>
             <nav className="grid grid-cols-4 w-[600px] mx-auto">
               {navItems.map((item) => (
                 <NavLink
@@ -104,8 +122,8 @@ function Layout() {
 
           {/* 드롭다운 */}
           <div
-            onMouseEnter={() => setIsMenuOpen(true)}
-            onMouseLeave={() => setIsMenuOpen(false)}
+            onMouseEnter={openMenu}
+            onMouseLeave={scheduleClose}
             className={`
               absolute top-full left-0 w-full
               bg-white/60 backdrop-blur
