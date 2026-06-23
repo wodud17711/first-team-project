@@ -52,6 +52,16 @@ export async function createPost(body) {
 }
 
 /**
+ * 게시글 이미지 첨부. POST /api/posts/{postId}/images (인증 필요, 작성자 본인)
+ * 한 번에 1건씩 — 여러 장은 호출 반복. body `{ imageUrl }`(<=500자).
+ * @param {number} postId
+ * @param {string} imageUrl 업로드로 받은 저장 URL
+ */
+export async function addPostImage(postId, imageUrl) {
+  return apiClient.post(`/posts/${postId}/images`, { imageUrl })
+}
+
+/**
  * 댓글 목록. GET /api/posts/{postId}/comments
  * @returns {Promise<Array<{commentId:number, author:string, content:string,
  *   parentCommentId:number|null, isMine:boolean, createdAt:string}>>}
