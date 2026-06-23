@@ -219,7 +219,7 @@ function Statistics() {
             <button onClick={() => shiftMonth(1)} className="text-gray-400 hover:text-gray-700">›</button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden text-center">
+        <div className="grid grid-cols-7 gap-px bg-gray-300 border border-gray-300 rounded-lg overflow-hidden text-center">
           {WEEKDAYS.map((w, i) => (
             <div key={w} className={`bg-white text-xs py-2 ${i === 0 ? 'text-danger' : 'text-gray-400'}`}>
               {w}
