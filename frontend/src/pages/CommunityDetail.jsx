@@ -22,14 +22,15 @@ function MetaCount({ icon, count }) {
 }
 
 // 댓글 1건 (대댓글이면 isReply=true → 들여쓰기 + 좌측 선)
-function CommentItem({ comment, isReply, onReply }) {
+function CommentItem({ comment, isReply, isLastReply, onReply }) {
   return (
-    <div
-  className={`w-full ${
-    isReply ? "ml-8 pl-4 border-l-2 border-sky-100" : ""
-  }`}
->
-      <div className="flex flex-col w-full py-3 gap-1">
+    <div className={`relative w-full ${isReply ? "ml-8 pl-4" : ""}`}>
+    {isReply && (
+      <div className={`absolute left-0 w-[2px] bg-brand-200
+          ${isLastReply ? "top-0 bottom-6" : "top-0 bottom-0"}`}
+      />
+    )}
+      <div className="flex flex-col items-start w-full py-3 gap-1">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-8 h-8 shrink-0">
             {comment.authorProfileImageUrl ? (
@@ -325,25 +326,32 @@ function CommunityDetail() {
                 <CommentItem comment={c} isReply={false} onReply={setReplyTo} />
 
                 {/* 대댓글 목록 */}
-                {repliesOf(c.commentId).map((r) => (
-                  <CommentItem key={r.commentId} comment={r} isReply />
+                {repliesOf(c.commentId).map((r, idx, arr) => (
+                  <CommentItem
+                    key={r.commentId}
+                    comment={r}
+                    isReply
+                    isLastReply={idx === arr.length - 1}
+                  />
                 ))}
 
                 {/* 대댓글 입력 */}
                 {replyTo === c.commentId && (
-                  <div className="ml-8 pl-4 mb-3 flex gap-2">
+                  <div className="mb-3 flex gap-2">
                     <input
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleReply(c.commentId) }}
                       autoFocus
                       placeholder="답글을 입력하세요"
-                      className="flex-1 px-3 py-2 bg-[#f7f7f7] rounded-lg border border-gray-100 text-[13px]
-                        focus:outline-brand-300 transition"
+                      className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[14px] text-txtcolor-700
+                                 focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                     />
                     <button
                       onClick={() => handleReply(c.commentId)}
-                      className="px-3 py-1 rounded-lg bg-sky-600 text-white text-[13px] font-bold shrink-0"
+                      className="flex items-center gap-2 px-4 py-2 
+                                rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
+                                shadow-sm transition hover:bg-txtcolor-900"
                     >
                       답글
                     </button>
