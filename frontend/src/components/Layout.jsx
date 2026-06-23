@@ -7,7 +7,6 @@ const navItems = [
   {
     label: '오늘의 산책지수',
     to: '/walkscore-detail', 
-    // 아직 오늘의 산책지수 링크가 없어서 그냥 임시로 걸어둔 링크
   },
   {
     label: '산책 기록',
