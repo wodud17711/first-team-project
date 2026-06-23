@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -430,5 +433,161 @@ class PostE2ETest {
                 )
                 .get("data")
                 .get("content");
+    }
+
+    @Test
+    @DisplayName("게시글 목록 size 적용 및 페이지 경계 중복·누락 검증")
+    void getPosts_pageBoundary_noDuplicateOrMissing() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "pagination@test.com",
+                        "페이지테스트"
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+
+        // 게시글 5개 생성
+        for (int i = 1; i <= 5; i++) {
+
+            createPost(
+                    token,
+                    categoryId,
+                    "페이지 테스트 게시글 " + i
+            );
+        }
+
+
+
+        // size=2 기준 페이지 조회
+        JsonNode page0 =
+                getPostsWithPage(
+                        categoryId,
+                        "latest",
+                        "2",
+                        "0"
+                );
+
+
+        JsonNode page1 =
+                getPostsWithPage(
+                        categoryId,
+                        "latest",
+                        "2",
+                        "1"
+                );
+
+
+        JsonNode page2 =
+                getPostsWithPage(
+                        categoryId,
+                        "latest",
+                        "2",
+                        "2"
+                );
+
+
+
+        // 페이지별 size 확인
+        assertThat(page0.size())
+                .isEqualTo(2);
+
+
+        assertThat(page1.size())
+                .isEqualTo(2);
+
+
+        assertThat(page2.size())
+                .isEqualTo(1);
+
+
+
+        List<Long> postIds =
+                new ArrayList<>();
+
+
+        collectPostIds(
+                page0,
+                postIds
+        );
+
+
+        collectPostIds(
+                page1,
+                postIds
+        );
+
+
+        collectPostIds(
+                page2,
+                postIds
+        );
+
+
+
+        // 5개 모두 조회됐는지 확인
+        assertThat(postIds)
+                .hasSize(5);
+
+
+
+        // 페이지 사이 중복 확인
+        assertThat(postIds)
+                .doesNotHaveDuplicates();
+    }
+
+    private JsonNode getPostsWithPage(
+            Long categoryId,
+            String sort,
+            String size,
+            String page
+    ) throws Exception {
+
+
+        var request =
+                get("/api/posts")
+                        .param("sort", sort)
+                        .param("size", size)
+                        .param("page", page);
+
+
+        if (categoryId != null) {
+            request.param(
+                    "categoryId",
+                    String.valueOf(categoryId)
+            );
+        }
+
+
+        MvcResult result =
+                mockMvc.perform(request)
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+
+        return objectMapper
+                .readTree(
+                        result.getResponse()
+                                .getContentAsString()
+                )
+                .get("data")
+                .get("content");
+    }
+
+    private void collectPostIds(
+            JsonNode content,
+            List<Long> ids
+    ) {
+
+        content.forEach(
+                post -> ids.add(
+                        post.get("postId")
+                                .asLong()
+                )
+        );
     }
 }
