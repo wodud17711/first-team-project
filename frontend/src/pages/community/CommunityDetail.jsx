@@ -1,6 +1,10 @@
 import { useState } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
-import { usePost, useComments, likePost } from "../hooks/useCommunity"
+import { usePost, useComments, likePost } from "../../hooks/useCommunity"
+
+import { useMe } from "../../hooks/useMe"
+
+import { deletePost } from "../../api/community"
 
 // 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD. Community 목록과 동일 규칙.
 function timeAgo(iso) {
@@ -89,6 +93,10 @@ function CommentItem({ comment, isReply, onReply }) {
 }
 
 function CommunityDetail() {
+  const { me } = useMe()
+
+  const [menuOpen, setMenuOpen] = useState(false)
+
   const { postId } = useParams()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -104,6 +112,11 @@ function CommunityDetail() {
   const [replyTo, setReplyTo] = useState(null) // 대댓글 대상 commentId
   const [replyText, setReplyText] = useState("")
   const [likeBusy, setLikeBusy] = useState(false)
+
+  const isAuthor =
+    me?.nickname &&
+    post?.author &&
+    me.nickname === post.author
 
   // 대댓글 더보기
   const [replyExpandMap, setReplyExpandMap] = useState({})
@@ -132,6 +145,24 @@ function CommunityDetail() {
     : from === "mypageLikes"
     ? "/mypage/likes"
     : base
+
+  // 수정, 삭제
+  const handleEdit = () => {
+    navigate(`/community/${postId}/edit`)
+  }
+
+  const handleDelete = async () => {
+    const ok = window.confirm("게시글을 삭제하시겠습니까?")
+    if (!ok) return
+
+    try {
+      await deletePost(postId)
+      navigate("/community")
+    } catch (e) {
+      console.error(e)
+      alert("삭제에 실패했습니다.")
+    }
+  }
 
   // 좋아요 토글 (낙관적 X — 응답으로 갱신)
   const handleLike = async () => {
@@ -288,6 +319,48 @@ function CommunityDetail() {
               <span className="text-txtcolor-300">
                 {timeAgo(post.createdAt)}
               </span>
+
+              {isAuthor && (
+                <div className="relative">
+                  <button
+                    onClick={() => setMenuOpen((prev) => !prev)}
+                    className="text-[20px] text-txtcolor-400 hover:text-txtcolor-700 px-2"
+                  >
+                    ⋮
+                  </button>
+
+                  {menuOpen && (
+                    <div
+                      className="
+                        absolute right-0 top-8 w-[80px]
+                        bg-white rounded-xl shadow-md
+                        border border-txtcolor-100
+                        overflow-hidden z-50
+                      "
+                    >
+                      <button
+                        onClick={handleEdit}
+                        className="
+                          w-full px-4 py-3 text-center text-[14px]
+                          text-txtcolor-700 hover:bg-txtcolor-50
+                        "
+                      >
+                        수정
+                      </button>
+
+                      <button
+                        onClick={handleDelete}
+                        className="
+                          w-full px-4 py-3 text-center text-[14px]
+                          text-red-500 hover:bg-red-50
+                        "
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

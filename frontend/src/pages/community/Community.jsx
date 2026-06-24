@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
-import { useCategories, usePosts } from "../hooks/useCommunity"
+import { useCategories, usePosts } from "../../hooks/useCommunity"
 
 // 컴포넌트 import
-import PostCard from "../components/PostCard"
+import PostCard from "../../components/PostCard"
 
 // 카테고리 탭 (전체 + 카테고리 목록)
 function CategoryTabs({ categories, selectedId, onSelect }) {

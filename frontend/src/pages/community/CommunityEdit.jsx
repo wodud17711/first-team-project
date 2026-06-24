@@ -1,7 +1,9 @@
-import { useState } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { useCategories, submitPost } from "../hooks/useCommunity"
-import { uploadImage, validateImageFile } from "../api/uploads"
+import { useEffect, useState } from "react"
+import { useNavigate, useLocation, useParams } from "react-router-dom"
+import { useCategories, submitPost } from "../../hooks/useCommunity"
+import { uploadImage, validateImageFile } from "../../api/uploads"
+import { getPost, updatePost } from "../../api/community"
+
 
 function Section({ title, children }) {
   return (
@@ -17,7 +19,7 @@ function Section({ title, children }) {
 
 const TITLE_MAX = 200
 
-function CommunityWrite() {
+function CommunityEdit() {
   const navigate = useNavigate()
   // dev 미리보기에서도 작성 후 /dev 하위 상세로 이동하도록 base 계산
   const { pathname } = useLocation()
@@ -32,6 +34,33 @@ function CommunityWrite() {
   const [imageUrls, setImageUrls] = useState([]) // 서버 업로드 후 저장 URL
   const [submitting, setSubmitting] = useState(false)
   const [uploading, setUploading] = useState(false)
+
+  const [categoryName, setCategoryName] = useState("")
+
+  const { postId } = useParams()
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const post = await getPost(postId)
+
+        setTitle(post.title)
+        setContent(post.content)
+        setSubTag(post.subTag)
+        setImageUrls(post.imageUrls || [])
+        setCategoryId(post.categoryId)
+        setCategoryName(post.categoryName)
+
+        if (typeof post.category === "object") {
+          setCategoryId(post.category.categoryId)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    fetchPost()
+  }, [postId])
 
   // 선택된 카테고리의 서브태그 (카테고리 바꾸면 초기화)
   const subTags = categories.find((c) => c.categoryId === categoryId)?.subTags ?? []
@@ -77,14 +106,7 @@ function CommunityWrite() {
   }
 
   const handleSubmit = async () => {
-    if (!categoryId) {
-      alert("카테고리를 선택해주세요.")
-      return
-    }
-    if (subTags.length > 0 && !subTag) {
-      alert("서브태그를 선택해주세요.")
-      return
-    }
+
     if (!title.trim()) {
       alert("제목을 입력해주세요.")
       return
@@ -95,20 +117,17 @@ function CommunityWrite() {
     }
 
     setSubmitting(true)
-    try {
-      const postId = await submitPost({
-        categoryId,
+     try {
+      await updatePost(postId, {
         subTag,
         title: title.trim(),
         content: content.trim(),
-        imageUrls,
       })
-      alert("게시글이 등록되었습니다.")
+
+      alert("게시글이 수정되었습니다.")
       navigate(`${base}/${postId}`)
     } catch (err) {
-      console.error(err)
-      alert("등록에 실패했습니다.")
-      setSubmitting(false)
+      alert("수정에 실패했습니다.")
     }
   }
 
@@ -129,7 +148,7 @@ function CommunityWrite() {
       {/* 상단 */}
       <div className="relative flex justify-between items-start mb-4">
         <div>
-          <h1 className="text-[32px] font-extrabold text-txtcolor-700">커뮤니티 글작성</h1>
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">커뮤니티 글수정</h1>
           <div className="flex items-center gap-3 mt-2">
             <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
             <p className="text-[14px] text-txtcolor-500 font-light">
@@ -148,11 +167,11 @@ function CommunityWrite() {
               <button
                 key={c.categoryId}
                 type="button"
-                onClick={() => handleCategory(c.categoryId)}
+                disabled
                 className={`${chip} ${
                   categoryId === c.categoryId
                     ? "bg-brand-200 border-brand-500 text-txtcolor-700"
-                    : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
+                    : "bg-white border-txtcolor-100 text-txtcolor-300 opacity-60 cursor-not-allowed"
                 }`}
               >
                 {c.name}
@@ -160,29 +179,32 @@ function CommunityWrite() {
             ))}
           </div>
 
-          {subTags.length > 0 && (
-            <div className="mt-2 pt-3 border-t border-txtcolor-100" >
+          {subTag && (
+            <div className="mt-4 pt-3 border-t border-txtcolor-100">
               <label className="text-[14px] font-semibold text-txtcolor-700">
-                🏷️ 서브태그 <span className="text-red-500">*</span>
+                🏷️ 서브태그
               </label>
+
               <div className="flex flex-wrap gap-2 mt-2">
                 {subTags.map((t) => (
-                  <button
+                  <span
                     key={t}
-                    type="button"
-                    onClick={() => setSubTag(subTag === t ? null : t)}
-                    className={`px-3 py-1 rounded-full text-[12px] transition ${
+                    className={`px-3 py-1 rounded-full text-[12px] ${
                       subTag === t
                         ? "bg-sky-100 text-sky-700 font-medium"
-                        : "bg-txtcolor-100/40 text-txtcolor-400"
+                        : "bg-txtcolor-100/40 text-txtcolor-400 opacity-60"
                     }`}
                   >
                     #{t}
-                  </button>
+                  </span>
                 ))}
               </div>
             </div>
           )}
+
+          <p className="p-3 bg-txtcolor-50/50 rounded-xl text-[12px] text-txtcolor-300 mt-2">
+            카테고리와 서브태그는 수정할 수 없습니다.
+          </p>
         </Section>
 
         {/* 제목 + 내용 */}
@@ -268,7 +290,7 @@ function CommunityWrite() {
                      rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
                      shadow-sm hover:bg-brand-600/80 transition"
         >
-          {submitting ? "등록중" : uploading ? "업로드중" : "등록"}
+          {submitting ? "수정중" : uploading ? "업로드중" : "수정"}
         </button>
         <button
           onClick={handleCancel}
@@ -283,4 +305,4 @@ function CommunityWrite() {
   )
 }
 
-export default CommunityWrite
+export default CommunityEdit
