@@ -1,17 +1,16 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { useCategories, submitPost } from "../hooks/useCommunity"
-import { uploadImage, validateImageFile } from "../api/uploads"
+import { useCategories, submitPost } from "../../hooks/useCommunity"
+import { uploadImage, validateImageFile } from "../../api/uploads"
 
-// DogCreatePage 의 Section 카드 패턴(정선혜 sky 톤)을 그대로 따름.
 function Section({ title, children }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm px-6 py-5">
-      <h3 className="flex items-center text-[20px] font-bold text-sky-900 mb-4">
-        <span className="w-1 h-4 bg-sky-700 rounded-full mr-2" />
+    <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5">
+      <h3 className="flex items-center text-[20px] font-bold text-txtcolor-700 mb-4">
+        <span className="w-1 h-4 bg-brand-500 rounded-full mr-2" />
         {title}
       </h3>
-      <div className="flex flex-col gap-3">{children}</div>
+      <div className="flex flex-col gap-4">{children}</div>
     </div>
   )
 }
@@ -122,27 +121,29 @@ function CommunityWrite() {
   }
 
   const chip =
-    "px-4 py-2 rounded-full text-[13px] font-medium border transition whitespace-nowrap"
+    "px-3 py-2 rounded-full text-[13px] font-semibold border transition whitespace-nowrap"
+    
 
   return (
-    <div className="p-4 animate-fadeIn max-w-[820px]">
-
+    <div className="p-4 animate-fadeIn">
       {/* 상단 */}
-      <div className="mb-4">
-        <h1 className="text-[32px] font-extrabold text-sky-800">글쓰기</h1>
-        <div className="flex items-center gap-3 mt-2">
-          <div className="w-[4px] h-[20px] rounded-full bg-sky-700" />
-          <p className="text-[14px] text-gray-500 font-light">
-            견주끼리 나누고 싶은 이야기를 남겨보세요.
-          </p>
+      <div className="relative flex justify-between items-start mb-4">
+        <div>
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">커뮤니티 글작성</h1>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
+            <p className="text-[14px] text-txtcolor-500 font-light">
+              사료부터 산책, 소소한 일상까지 나누고 싶은 반려생활 이야기를 남겨보세요.
+            </p>
+          </div>
         </div>
       </div>
-      <div className="w-full h-[1px] bg-sky-700/50 mb-[30px]" />
+      <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]" />
 
       <div className="flex flex-col gap-4">
         {/* 카테고리 + 서브태그 */}
         <Section title="📂 카테고리">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-5 gap-3">
             {categories.map((c) => (
               <button
                 key={c.categoryId}
@@ -150,8 +151,8 @@ function CommunityWrite() {
                 onClick={() => handleCategory(c.categoryId)}
                 className={`${chip} ${
                   categoryId === c.categoryId
-                    ? "bg-sky-700 text-white border-sky-700"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    ? "bg-brand-200 border-brand-500 text-txtcolor-700"
+                    : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                 }`}
               >
                 {c.name}
@@ -160,21 +161,26 @@ function CommunityWrite() {
           </div>
 
           {subTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {subTags.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setSubTag(subTag === t ? null : t)}
-                  className={`px-3 py-[6px] rounded-full text-[12px] transition ${
-                    subTag === t
-                      ? "bg-sky-100 text-sky-700 font-medium"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                  }`}
-                >
-                  #{t}
-                </button>
-              ))}
+            <div className="mt-2 pt-3 border-t border-txtcolor-100" >
+              <label className="text-[14px] font-semibold text-txtcolor-700">
+                🏷️ 서브태그 <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {subTags.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setSubTag(subTag === t ? null : t)}
+                    className={`px-3 py-1 rounded-full text-[12px] transition ${
+                      subTag === t
+                        ? "bg-sky-100 text-sky-700 font-medium"
+                        : "bg-txtcolor-100/40 text-txtcolor-400"
+                    }`}
+                  >
+                    #{t}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </Section>
@@ -183,10 +189,10 @@ function CommunityWrite() {
         <Section title="📝 내용">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[14px] font-semibold text-gray-700">
+              <label className="text-[14px] font-semibold text-txtcolor-700">
                 제목 <span className="text-red-500">*</span>
               </label>
-              <span className="text-[12px] text-gray-400">
+              <span className="text-[12px] text-txtcolor-300">
                 {title.length}/{TITLE_MAX}
               </span>
             </div>
@@ -194,22 +200,24 @@ function CommunityWrite() {
               value={title}
               maxLength={TITLE_MAX}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-4 bg-[#f7f7f7] rounded-xl border border-gray-100 text-[16px]
-                focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+              className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
+                        text-txtcolor-700 text-[16px]
+                        focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
               placeholder="제목을 입력하세요"
             />
           </div>
 
           <div>
-            <label className="block mb-1 text-[14px] font-semibold text-gray-700">
+            <label className="block mb-1 text-[14px] font-semibold text-txtcolor-700">
               내용 <span className="text-red-500">*</span>
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={8}
-              className="w-full p-3 bg-[#f7f7f7] rounded-xl border border-gray-100 text-[16px] resize-none
-                focus:outline-brand-300 hover:bg-[#F0F0F0] transition"
+              rows={10}
+              className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
+                        text-txtcolor-700 text-[16px]
+                        focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
               placeholder="내용을 입력하세요"
             />
           </div>
@@ -217,48 +225,56 @@ function CommunityWrite() {
 
         {/* 사진 (선택, mock) */}
         <Section title="📷 사진 (선택)">
+          <p className="text-[12px] text-txtcolor-300 -mt-3">최대 5장까지 첨부할 수 있어요.</p>
           <div className="flex flex-wrap gap-3">
             {imageUrls.map((url, idx) => (
               <div key={url} className="relative">
                 <img
                   src={url}
-                  className="w-[96px] h-[96px] rounded-lg object-cover border"
+                  className="w-[96px] h-[96px] rounded-xl object-cover border"
                 />
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border text-red-500 text-[12px] shadow"
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full hover:bg-txtcolor-50
+                            bg-white border border-txtcolor-100 shadow-sm text-red-500 text-[12px]"
                 >
                   ✕
                 </button>
               </div>
             ))}
+            
 
             {imageUrls.length < 5 && (
-              <label className="w-[96px] h-[96px] rounded-lg border border-dashed border-gray-300 flex flex-col
-                items-center justify-center text-gray-400 text-[12px] cursor-pointer hover:bg-gray-50 transition">
+              <label className="w-[96px] h-[96px] rounded-xl border border-dashed border-txtcolor-200 flex flex-col
+                items-center justify-center text-txtcolor-300 text-[12px] cursor-pointer hover:bg-txtcolor-100/25 transition">
                 <span className="text-[22px] leading-none">＋</span>
                 사진 추가
                 <input type="file" accept="image/*" multiple hidden onChange={handleImage} />
               </label>
             )}
           </div>
-          <p className="text-[12px] text-gray-400 mt-1">최대 5장까지 첨부할 수 있어요.</p>
+          
         </Section>
       </div>
 
       {/* 저장 / 취소 */}
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+      <div className="flex justify-end gap-3 mt-[20px] pt-4 
+                      border-t border-txtcolor-100/60">
         <button
           onClick={handleSubmit}
           disabled={submitting || uploading}
-          className="px-4 py-2 w-[90px] bg-sky-500 text-white rounded-xl disabled:opacity-60"
+          className="px-4 py-2 w-[90px] 
+                     rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                     shadow-sm hover:bg-brand-600/80 transition"
         >
           {submitting ? "등록중" : uploading ? "업로드중" : "등록"}
         </button>
         <button
           onClick={handleCancel}
-          className="px-3 py-2 w-[90px] bg-danger text-white text-[14px] font-bold rounded-xl"
+          className="px-4 py-2 w-[90px]
+                     rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                     shadow-sm hover:bg-txtcolor-200/80 transition"
         >
           취소
         </button>

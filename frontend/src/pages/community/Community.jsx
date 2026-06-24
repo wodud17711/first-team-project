@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
-import { useCategories, usePosts } from "../hooks/useCommunity"
+import { useCategories, usePosts } from "../../hooks/useCommunity"
 
 // 컴포넌트 import
-import PostCard from "../components/PostCard"
+import PostCard from "../../components/PostCard"
 
 // 카테고리 탭 (전체 + 카테고리 목록)
 function CategoryTabs({ categories, selectedId, onSelect }) {
@@ -162,11 +162,11 @@ function Community() {
 
       {/* 목록 */}
       {loading ? (
-        <div className="p-4 text-gray-400">불러오는 중...</div>
+        <div className="p-4 text-txtcolor-300">불러오는 중...</div>
       ) : error ? (
         <div className="p-4 text-danger">목록을 불러오지 못했습니다.</div>
       ) : posts.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-16 text-gray-400">
+        <div className="flex flex-col items-center gap-2 py-16 text-txtcolor-300">
           <div className="text-[40px]">🐾</div>
           <p className="text-[14px]">아직 글이 없어요. 첫 글을 남겨보세요!</p>
         </div>
