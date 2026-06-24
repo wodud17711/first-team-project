@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { usePost, useComments, likePost } from "../../hooks/useCommunity"
 
@@ -96,6 +96,18 @@ function CommunityDetail() {
   const { me } = useMe()
 
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const { postId } = useParams()
   const navigate = useNavigate()
@@ -321,7 +333,7 @@ function CommunityDetail() {
               </span>
 
               {isAuthor && (
-                <div className="relative">
+                <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setMenuOpen((prev) => !prev)}
                     className="text-[20px] text-txtcolor-400 hover:text-txtcolor-700 px-2"
@@ -341,7 +353,7 @@ function CommunityDetail() {
                       <button
                         onClick={handleEdit}
                         className="
-                          w-full px-4 py-3 text-center text-[14px]
+                          w-full px-4 py-3 text-center text-[14px] font-semibold 
                           text-txtcolor-700 hover:bg-txtcolor-50
                         "
                       >
@@ -351,7 +363,7 @@ function CommunityDetail() {
                       <button
                         onClick={handleDelete}
                         className="
-                          w-full px-4 py-3 text-center text-[14px]
+                          w-full px-4 py-3 text-center text-[14px] font-semibold 
                           text-red-500 hover:bg-red-50
                         "
                       >

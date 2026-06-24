@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 
 // 훅 가져오기
 import { useMe } from "../../../hooks/useMe"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { updateMe } from "../../../api/users"
 import { uploadImage, validateImageFile } from "../../../api/uploads"
@@ -19,6 +19,20 @@ function AccountEdit() {
 
     // 프로필 이미지
     const [previewImg, setPreviewImg] = useState("")
+
+    const [menuOpen, setMenuOpen] = useState(false)
+    const menuRef = useRef(null)
+
+    useEffect(() => {
+      const handleClickOutside = (e) => {
+        if (menuRef.current && !menuRef.current.contains(e.target)) {
+          setMenuOpen(false)
+        }
+      }
+
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
 
     // 수정용 state
     const [form, setForm] = useState({
@@ -189,35 +203,51 @@ function AccountEdit() {
         <div className="flex flex-col items-center space-y-6">        
             <div className="flex items-stretch gap-6 w-full">
                 {/* 유저 프로필 + 계정 설정(왼쪽) */}
-                <div className="relative shrink-0 w-[350px] flex flex-col gap-3">
+                <div className="relative shrink-0 w-[350px] flex flex-col mt-[20px]">
                   <div className="flex flex-col items-center justify-center pt-[10px]
-                                  w-[350px] h-[290px]">
+                                  w-[350px] h-[290px]" ref={menuRef}>
                     <img
                         src={previewImg || "/userpanel/humanProfile.png"}
                         alt="프로필"
-                        className="w-[180px] h-[180px] mb-3 rounded-full object-cover shadow-md"
+                        className="w-[180px] h-[180px] rounded-full object-cover shadow-md"
                     />
 
-                    <div className="flex items-center justify-center gap-2 w-full">
-                      {/* 사진 변경 */}
-                      <label className="w-1/3 h-[36px] flex items-center justify-center
-                                      rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
-                                      shadow-sm hover:bg-brand-600/80 transition cursor-pointer">
-                        사진 변경
-                        <input type="file" hidden onChange={handleImageChange} />
-                      </label>
+                    {/* 카메라 버튼 */}
+                    <button onClick={() => setMenuOpen((prev) => !prev)}
+                            className="group absolute bottom-[90px] right-[100px]
+                                      w-10 h-10 rounded-full bg-txtcolor-50 shadow-md
+                                      flex items-center justify-center
+                                      hover:bg-txtcolor-700 transition"
+                    >
+                      <img
+                        src="/userprofile-img.png"
+                        className="w-[25px] h-[25px]
+                                  transition
+                                  group-hover:invert group-hover:brightness-200"
+                      />
+                    </button>
 
-                      {/* 삭제 */}
-                      <button
-                        type="button"
-                        onClick={() => setPreviewImg(null)}
-                        className="w-1/3 h-[36px] flex items-center justify-center
-                                  rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                                  shadow-sm hover:bg-txtcolor-200/80 transition"
-                      >
-                        삭제
-                      </button>
-                    </div>
+                    {/* 드롭다운 */}
+                    {menuOpen && (
+                      <div className="absolute -bottom-[10px] right-[70px]
+                                      w-[100px] bg-white rounded-xl shadow-md
+                                      border border-txtcolor-100 overflow-hidden z-50">
+                        
+                        <label className="flex items-center justify-center w-full px-4 py-3 text-[14px]
+                                          text-txtcolor-700 font-semibold hover:bg-txtcolor-50 cursor-pointer">
+                          사진 변경
+                          <input type="file" hidden onChange={handleImageChange} />
+                        </label>
+
+                        <button
+                          onClick={() => setPreviewImg(null)}
+                          className="flex items-center justify-center w-full px-4 py-3 text-[14px]
+                                    font-semibold text-red-500 hover:bg-red-50"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -285,19 +315,22 @@ function AccountEdit() {
                                         ? "bg-brand-200 border-brand-500 text-txtcolor-700"
                                         : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                                     }`}
-                                    >
-                                        <div className="text-[13px] font-medium">
-                                            {level.label}
-                                        </div>
+                                    >   
+                                    <div className="flex items-center">
+                                      <div className="text-[13px] font-semibold">
+                                          {level.label}
+                                      </div>
 
-                                        <div className={`text-[11px] ${
-                                            form.guardianLevel === level.value
-                                            ? "text-brand-600 text-gray-500"
-                                            : "text-gray-400/80"
-                                        }`}
-                                        >
-                                            {level.desc}
-                                        </div>
+                                      <div className={`text-[11px] ${
+                                          form.guardianLevel === level.value
+                                          ? "text-txtcolor-500"
+                                          : "text-txtcolor-200"
+                                      }`}
+                                      >
+                                          {level.desc}
+                                      </div>
+                                    </div>
+                                        
                                     </button>
                                 ))}
                             </div>
