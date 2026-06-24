@@ -163,7 +163,7 @@ function MyPage() {
 
             {/* 정보(오른쪽) */}
             <div className="flex flex-col w-full gap-4">
-                <div className="bg-white rounded-xl border shadow-sm px-6 py-5">
+                <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5">
                     <h3 className="flex items-center text-[20px] font-bold text-txtcolor-700 mb-4">
                       <span className="w-1 h-4 bg-brand-500 rounded-full mr-2" />
                        👤 기본 정보
@@ -184,7 +184,7 @@ function MyPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl border shadow-sm px-6 py-5">
+                <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5">
                     <h3 className="flex items-center text-[20px] font-bold text-txtcolor-700 mb-4">
                       <span className="w-1 h-4 bg-brand-500 rounded-full mr-2" />
                         📝 활동 정보
