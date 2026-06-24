@@ -4,7 +4,7 @@
 // - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
 
 import { useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 // 훅 가져오기
 import { useMe } from "../../../hooks/useMe"
@@ -48,6 +48,20 @@ function AccountDelete() {
     }, [dogs])
 
     const [selectedReason, setSelectedReason] = useState("")
+    const [openReason, setOpenReason] = useState(false)
+
+    const reasonRef = useRef(null)
+
+    useEffect(() => {
+      const handleClickOutside = (e) => {
+        if (reasonRef.current && !reasonRef.current.contains(e.target)) {
+          setOpenReason(false)
+        }
+      }
+
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
 
     const [password, setPassword] = useState("")
     const [submitting, setSubmitting] = useState(false)
@@ -181,7 +195,7 @@ function AccountDelete() {
                 </h3>
 
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <ul className="text-[14px] text-txtcolor-500 space-y-[17px]">
+                  <ul className="text-[14px] text-txtcolor-500 space-y-[18px]">
                     <li>• 탈퇴 후 계정 복구가 불가능합니다.</li>
                     <li>• 작성한 게시글과 댓글은 삭제됩니다.</li>
                     <div>
@@ -205,21 +219,47 @@ function AccountDelete() {
                     탈퇴 사유
                   </label>
 
-                  <select
-                    value={selectedReason}
-                    onChange={(e) => setSelectedReason(e.target.value)}
-                    className="w-full px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                              text-txtcolor-700 text-[16px]
-                              focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
-                  >
-                    <option value="">탈퇴 사유를 선택해주세요</option>
-
-                    {reasons.map((reason) => (
-                      <option key={reason} value={reason} className="cursor-pointer">
-                        {reason}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={reasonRef}>
+                    {/* 트리거 버튼 */}
+                    <button
+                      type="button"
+                      onClick={() => setOpenReason((prev) => !prev)}
+                      className={`w-full px-3 py-3 rounded-xl border text-left
+                        bg-txtcolor-50/50 border-txtcolor-50 text-[16px]
+                        hover:bg-txtcolor-100/40 transition
+                        ${selectedReason ? "text-txtcolor-700" : "text-txtcolor-300"}
+                        ${openReason ? "outline outline-2 outline-brand-500" : ""}
+                      `}
+                    >
+                      {selectedReason || "탈퇴 사유를 선택해주세요"}
+                    </button>
+                    {openReason && (
+                      <div className="absolute top-full mt-2 w-full bg-white border border-txtcolor-100/50 rounded-xl shadow z-10 p-2">
+                        <div className="flex flex-col gap-1 max-h-[220px] overflow-y-auto">
+                          {reasons.map((reason) => (
+                            <button
+                              key={reason}
+                              type="button"
+                              onClick={() => {
+                                setSelectedReason(reason)
+                                setOpenReason(false)
+                              }}
+                              className={`px-3 py-2 rounded-lg text-left text-[14px]
+                                hover:bg-brand-100/50 transition
+                                ${
+                                  selectedReason === reason
+                                    ? "bg-brand-200 text-txtcolor-700 font-semibold"
+                                    : "text-txtcolor-600"
+                                }
+                              `}
+                            >
+                              {reason}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* 기타 클릭 시, 사유 입력 가능하게 */}
                   {selectedReason === "기타" && (
@@ -231,7 +271,7 @@ function AccountDelete() {
                     <textarea
                       rows={4}
                       placeholder="의견을 자유롭게 작성해주세요."
-                      className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
+                      className="w-full p-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
                                 text-txtcolor-700 text-[16px]
                                 focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                     />
@@ -240,8 +280,8 @@ function AccountDelete() {
 
                   {/* 탈퇴 사유 선택 시, 항목에 맞는 솔루션 제공 */}
                   {selectedReason && solutions[selectedReason] && (
-                  <div className="mt-2 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <p className="text-[14px] text-blue-900">
+                  <div className="mt-2 mb-6 p-3 bg-sky-50 border border-sky-200 rounded-xl">
+                    <p className="text-[14px] text-sky-700">
                       {solutions[selectedReason]}
                     </p>
                   </div>

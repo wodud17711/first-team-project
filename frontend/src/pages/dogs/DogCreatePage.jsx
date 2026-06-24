@@ -408,26 +408,36 @@ function DogCreatePage() {
                                focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
                   />
                   {openBreed && (() => {
-                    // 믹스견은 nameKr 에 '×' 포함 → 모드에 맞춰 필터 (토글 시 재검색 없이 즉시 재필터)
                     const list = breedResults.filter((b) =>
                       mixMode ? b.nameKr.includes("×") : !b.nameKr.includes("×")
                     )
+
                     return (
                       <div className="absolute top-full mt-2 w-full max-h-[220px] overflow-y-auto 
-                                      bg-white border border-txtcolor-100/50 rounded-xl py-2 shadow z-10">
+                                      bg-white border border-txtcolor-100/50 rounded-xl shadow z-10 p-2">
+
                         {list.length > 0 ? (
-                          list.map((b) => (
-                            <button
-                              key={b.breedId}
-                              type="button"
-                              onClick={() => handleSelectBreed(b)}
-                              className="w-full text-left px-4 py-2 text-[14px] text-txtcolor-700 hover:bg-brand-100/50"
-                            >
-                              {b.nameKr}
-                            </button>
-                          ))
+                          <div className="flex flex-col gap-1">
+                            {list.map((b) => (
+                              <button
+                                key={b.breedId}
+                                type="button"
+                                onClick={() => handleSelectBreed(b)}
+                                className={`px-3 py-2 rounded-lg text-left text-[14px]
+                                  hover:bg-brand-100/50 transition
+                                  ${
+                                    breedKeyword === b.nameKr
+                                      ? "bg-brand-200 text-txtcolor-700 font-semibold"
+                                      : "text-txtcolor-600"
+                                  }
+                                `}
+                              >
+                                {b.nameKr}
+                              </button>
+                            ))}
+                          </div>
                         ) : (
-                          <p className="px-4 py-2 text-[13px] text-txtcolor-400">
+                          <p className="px-3 py-2 text-[13px] text-txtcolor-400">
                             {mixMode ? "믹스견 검색 결과가 없어요" : "순종 검색 결과가 없어요"}
                           </p>
                         )}
