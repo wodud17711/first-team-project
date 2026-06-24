@@ -231,7 +231,7 @@ function CommunityDetail() {
           <div className="flex items-center gap-3 mt-2">
             <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
             <p className="text-[14px] text-txtcolor-500 font-light">
-              사료·산책로·자랑·메이트까지, 견주끼리 나누는 이야기
+              사료·산책로·자랑·메이트까지, 보호자끼리 나누는 이야기
             </p>
           </div>
         </div>
