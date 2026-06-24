@@ -38,4 +38,26 @@ public class AiClient {
             );
         }
     }
+
+    /**
+     * FastAPI /health 핑(워밍업 용도). 점수 경로와 달리 실패해도 예외를 던지지 않고
+     * 성공 여부만 boolean 으로 반환한다 — 콜드스타트 중/미기동이면 false.
+     * (Render 무료 인스턴스 슬립 깨우기 트리거. 자세한 한계는 {@code AiWarmupScheduler} 참고)
+     */
+    public boolean pingHealth() {
+
+        try {
+
+            restClient.get()
+                    .uri(aiBaseUrl + "/health")
+                    .retrieve()
+                    .toBodilessEntity();
+
+            return true;
+
+        } catch (RestClientException e) {
+
+            return false;
+        }
+    }
 }
