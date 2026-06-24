@@ -12,6 +12,15 @@ function timeAgo(iso) {
   return iso.slice(0, 10).replaceAll("-", "/")
 }
 
+// 새 글 판별(24시간 기준)
+function isNewPost(createdAt) {
+  if (!createdAt) return false
+
+  const diff = Date.now() - new Date(createdAt).getTime()
+
+  return diff < 24 * 60 * 60 * 1000 // 24시간
+}
+
 function MetaCount({ icon, count }) {
   return (
     <span className="flex items-center gap-1">
@@ -21,14 +30,19 @@ function MetaCount({ icon, count }) {
   )
 }
 
-// 댓글 1건 (대댓글이면 isReply=true → 들여쓰기 + 좌측 선)
-function CommentItem({ comment, isReply, isLastReply, onReply }) {
+// 댓글 1건 (대댓글이면 isReply=true → 들여쓰기 + ㄴ 표시)
+function CommentItem({ comment, isReply, onReply }) {
   return (
-    <div className={`relative w-full ${isReply ? "ml-8 pl-4" : ""}`}>
+    <div className={`relative w-full ${isReply ? "ml-8 pl-6" : ""}`}>
     {isReply && (
       <div
-        className={`absolute left-0 w-[2px] bg-brand-200
-          ${isLastReply ? "top-0 bottom-6" : "top-0 bottom-0"}`}
+        className="
+          absolute left-0 top-5
+          w-[14px] h-[14px]
+          border-l-[2px] border-b-[2px]
+          border-txtcolor-300
+          rounded-bl
+        "
       />
     )}
       <div className="flex flex-col items-start w-full py-3 gap-1">
@@ -63,9 +77,10 @@ function CommentItem({ comment, isReply, isLastReply, onReply }) {
         {!isReply && (
           <button
             onClick={() => onReply(comment.commentId)}
-            className="mt-1 text-[12px] text-txtcolor-300 hover:text-brand-700 transition"
+            className="mt-1 px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 
+                      text-[12px] font-medium hover:bg-txtcolor-700 hover:text-white transition"
           >
-            답글
+            답글쓰기
           </button>
         )}
       </div>
@@ -217,9 +232,17 @@ function CommunityDetail() {
         </div>
         <div className="flex flex-col gap-4 items-start justify-between">
           {/* 제목 */}
-          <h1 className="text-[24px] font-extrabold text-txtcolor-700">
-            {post.title}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[24px] font-extrabold text-txtcolor-700">
+              {post.title}
+            </h1>
+
+            {isNewPost(post.createdAt) && (
+              <span className="px-2 py-[2px] rounded-full bg-red-100 text-red-500 text-[11px] font-bold">
+                NEW
+              </span>
+            )}
+          </div>
           {/* 메타 */}
           <div className="flex items-center justify-between w-full mb-3 pt-3 border-t border-dashed border-txtcolor-100">
             {/* 왼쪽 */}
@@ -361,8 +384,8 @@ function CommunityDetail() {
                         <button
                           onClick={() => handleReply(c.commentId)}
                           className="flex items-center gap-2 px-4 py-2 
-                                    rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
-                                    shadow-sm transition hover:bg-txtcolor-900"
+                                    rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
+                                    shadow-sm hover:bg-brand-600/80 transition"
                         >
                           답글
                         </button>
@@ -383,12 +406,11 @@ function CommunityDetail() {
                   )}
 
                   {/* 대댓글 목록 */}
-                  {visibleReplies.map((r, idx) => (
+                  {visibleReplies.map((r) => (
                     <CommentItem
                       key={r.commentId}
                       comment={r}
                       isReply
-                      isLastReply={idx === visibleReplies.length - 1}
                     />
                   ))}
 
@@ -401,8 +423,6 @@ function CommunityDetail() {
                       {isExpanded ? "답글 접기" : `답글 ${replies.length - 2}개 더보기`}
                     </button>
                   )}
-
-                  
                 </div>
               )})}
           </div>
