@@ -1,7 +1,7 @@
 
 
 
-// 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD. 정선혜 날짜 표기(슬래시) 유지.
+// 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD.
 function timeAgo(iso) {
   if (!iso) return "—"
   const diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -12,6 +12,26 @@ function timeAgo(iso) {
 
   return iso.slice(0, 10).replaceAll("-", "/")
 }
+
+
+// 새 글 판별(24시간 기준)
+function isNewPost(createdAt) {
+  if (!createdAt) return false
+
+  const diff = Date.now() - new Date(createdAt).getTime()
+
+  return diff < 24 * 60 * 60 * 1000 // 24시간
+}
+
+function MetaCount({ icon, count }) {
+  return (
+    <span className="flex items-center gap-1">
+      <span className="text-txtcolor-700">{icon}</span>
+      <span className="text-txtcolor-300">{count ?? 0}</span>
+    </span>
+  )
+}
+
 
 // 게시글 1건 카드 (목록 행)
 function PostCard({ post, onClick }) {
@@ -53,9 +73,17 @@ function PostCard({ post, onClick }) {
           )}
         </div>
 
-        <p className="text-[16px] font-bold text-txtcolor-700 truncate group-hover:text-brand-700">
-          {post.title}
-        </p>
+        {/* 제목 */}
+        <div className="flex items-center gap-1.5">
+          <p className="text-[16px] font-bold text-txtcolor-700 truncate
+                    transition-colors duration-300 ease-out group-hover:text-brand-700">
+            {post.title}
+          </p>
+
+          {isNewPost(post.createdAt) && (
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 -mt-2 shrink-0" />
+          )}
+        </div>
 
         <div className="flex items-center gap-3 text-[12px] text-txtcolor-300">
           <div className="flex gap-1">
@@ -66,12 +94,9 @@ function PostCard({ post, onClick }) {
           <span>{timeAgo(post.createdAt)}</span>
 
           <span className="ml-auto flex items-center gap-3">
-            <span>💬 {post.commentCount ?? 0}</span>
-            <span>❤️ {post.likeCount ?? 0}</span>
-            <span className="flex items-center gap-1">
-              <span className="text-txtcolor-700">👁</span>
-              <span className="text-txtcolor-300">{post.viewCount ?? 0}</span>
-            </span>
+            <MetaCount icon="💬" count={post.commentCount} />
+            <MetaCount icon="❤️" count={post.likeCount} />
+            <MetaCount icon="👁" count={post.viewCount} />
           </span>
         </div>
       </div>

@@ -101,3 +101,13 @@ export async function getMyLikes(params = {}) {
 export async function getMyComments(params = {}) {
   return apiClient.get('/users/me/comments', { params })
 }
+
+// 내가 작성한 게시글 삭제
+export async function deletePost(postId) {
+  return apiClient.delete(`/posts/${postId}`)
+}
+
+// 내가 작성한 게시글 수정
+export async function updatePost(postId, body) {
+  return apiClient.patch(`/posts/${postId}`, body)
+}

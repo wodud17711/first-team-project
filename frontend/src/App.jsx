@@ -6,9 +6,11 @@ import Home from './pages/Home'
 import WalkScoreDetail from './pages/WalkScoreDetail'
 import WalkRecord from './pages/WalkRecord'
 import Statistics from './pages/Statistics'
-import Community from './pages/Community'
-import CommunityWrite from './pages/CommunityWrite'
-import CommunityDetail from './pages/CommunityDetail'
+
+import Community from './pages/community/Community'
+import CommunityWrite from './pages/community/CommunityWrite'
+import CommunityEdit from './pages/community/CommunityEdit'
+import CommunityDetail from './pages/community/CommunityDetail'
 
 import Login from './pages/Login'
 import Join from './pages/Join'
@@ -32,6 +34,7 @@ import NotFound from './pages/NotFound'
 
 // [개발 전용] 최적시간 차트 미리보기 (mock). 실화면 배치 후 제거 가능.
 import OptimalTimePreview from './pages/dev/OptimalTimePreview'
+
 
 
 
@@ -61,7 +64,10 @@ function App() {
               <Route path="/walkscore-detail" element={<WalkScoreDetail />} />
               <Route path="/walk" element={<WalkRecord />} />
               <Route path="/statistics" element={<Statistics />} />
+
+              {/* 커뮤니티 페이지 */}
               <Route path="/community" element={<Community />} />
+              <Route path="/community/:postId/edit" element={<CommunityEdit />} />
               <Route path="/community/write" element={<CommunityWrite />} />
               <Route path="/community/:postId" element={<CommunityDetail />} />
 
