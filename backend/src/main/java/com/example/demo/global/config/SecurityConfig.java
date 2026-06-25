@@ -40,6 +40,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Render health check: status:UP 만 노출(show-details=never 기본). 슬립 깨우기/헬스 판단용
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         // 업로드 이미지 정적 서빙: img 태그가 토큰을 못 싣으므로 GET 은 공개
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/breeds/**").permitAll()
