@@ -77,11 +77,11 @@ function CommentItem({ comment, isReply, onReply }) {
           )}
           <span className="text-[12px] text-txtcolor-300">{timeAgo(comment.createdAt)}</span>
         </div>
-        <p className="w-full text-[14px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+        <p className="w-full px-2 text-[14px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
         {!isReply && (
           <button
             onClick={() => onReply(comment.commentId)}
-            className="mt-1 px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 
+            className="mt-2 px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 
                       text-[12px] font-medium hover:bg-txtcolor-700 hover:text-white transition"
           >
             답글쓰기
@@ -268,7 +268,7 @@ function CommunityDetail() {
             {typeof post.category === "object" ? post.category.name : post.category}
           </span>
           {post.subTag && (
-            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px]">
+            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px] font-medium">
               #{post.subTag}
             </span>
           )}
@@ -491,13 +491,17 @@ function CommunityDetail() {
                   )}
 
                   {/* 대댓글 목록 */}
-                  {visibleReplies.map((r) => (
-                    <CommentItem
-                      key={r.commentId}
-                      comment={r}
-                      isReply
-                    />
-                  ))}
+                  {replies.length > 0 && (
+                    <div className="w-full border-t border-dashed border-txtcolor-100">
+                      {visibleReplies.map((r) => (
+                        <CommentItem
+                          key={r.commentId}
+                          comment={r}
+                          isReply
+                        />
+                      ))}
+                    </div>
+                  )}
 
                   {/* 더보기 버튼 */}
                   {replies.length > 2 && (

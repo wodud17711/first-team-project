@@ -40,30 +40,28 @@ function MypageComments() {
   return (
     <div className="p-4 animate-fadeIn">
       {/* 상단 */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-center mb-4">
         {/* 제목 */}
         <div>
-          <h1 className="text-[32px] font-extrabold text-sky-800">
+          <h1 className="text-[32px] font-extrabold text-txtcolor-700">
             내가 작성한 댓글
           </h1>
-
           <div className="flex items-center gap-3 mt-2">
-            <div className="w-[4px] h-[20px] rounded-full bg-sky-700"/>
-            <p className="text-[14px] text-gray-500 font-light">
+            <div className="w-[4px] h-[20px] rounded-full bg-brand-500"/>
+            <p className="text-[14px] text-txtcolor-500 font-light">
               내가 남긴 댓글을 최신 활동 순으로 확인할 수 있어요.
             </p>
           </div>
         </div>
-
-        {/* 우측 통계 카드 */}
-        <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm border min-w-[120px]">
-          <p className="text-[12px] text-gray-500">작성한 댓글</p>
-          <p className="text-[20px] font-bold text-sky-700">
-            {total ?? 0}개
-          </p>
+        {/* 등록수 */}
+        <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm 
+                        border border-txtcolor-100/50">
+          <p className="text-[12px] font-semibold text-txtcolor-400">작성한 댓글</p>
+          <p className="text-[20px] font-bold text-brand-700">{total ?? 0}개</p>
         </div>
       </div>
-      <div className='w-full h-[1px] bg-sky-700/50 mb-[30px]'/>
+      <div className='w-full h-[1px] bg-txtcolor-400/40 mb-[20px]'/>
+
 
 
       {/* 목록 */}

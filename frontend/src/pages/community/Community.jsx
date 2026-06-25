@@ -188,7 +188,7 @@ function Community() {
         <button
           disabled={page === 0}
           onClick={() => setPage((prev) => prev - 1)}
-          className="px-3 py-1 text-sm rounded-lg border disabled:opacity-30"
+          className="px-3 py-1 text-sm rounded-lg disabled:opacity-30"
         >
           &lt;
         </button>
@@ -200,8 +200,8 @@ function Community() {
             className={`w-8 h-8 rounded-lg text-[12px]
               ${
                 page === i
-                  ? "bg-sky-700 text-white"
-                  : "hover:bg-gray-100"
+                  ? "bg-txtcolor-700 text-white"
+                  : "hover:bg-txtcolor-100/40"
               }`}
           >
             {i + 1}
@@ -211,7 +211,7 @@ function Community() {
         <button
           disabled={page === totalPages - 1}
           onClick={() => setPage((prev) => prev + 1)}
-          className="px-3 py-1 text-sm rounded-lg border disabled:opacity-30"
+          className="px-3 py-1 text-sm rounded-lg disabled:opacity-30"
         >
           &gt;
         </button>
