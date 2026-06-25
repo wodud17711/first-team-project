@@ -590,4 +590,209 @@ class PostE2ETest {
                 )
         );
     }
+
+    @Test
+    @DisplayName("게시글 작성 후 상세 조회")
+    void createAndGetPost_success() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "crud@test.com",
+                        "CRUD테스트"
+                );
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        token,
+                        categoryId,
+                        "CRUD 게시글"
+                );
+
+
+        MvcResult result =
+                mockMvc.perform(
+                                get("/api/posts/" + postId)
+                                        .header(
+                                                "Authorization",
+                                                "Bearer " + token
+                                        )
+                        )
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+
+        JsonNode data =
+                objectMapper.readTree(
+                                result.getResponse()
+                                        .getContentAsString()
+                        )
+                        .get("data");
+
+
+        assertThat(
+                data.get("title").asText()
+        )
+                .isEqualTo("CRUD 게시글");
+    }
+
+    @Test
+    @DisplayName("게시글 작성자는 게시글 수정 가능")
+    void updatePost_success() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "update@test.com",
+                        "수정테스트"
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        token,
+                        categoryId,
+                        "수정 전 제목"
+                );
+
+
+        mockMvc.perform(
+                        patch("/api/posts/" + postId)
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + token
+                                )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                            {
+                              "title": "수정 후 제목",
+                              "content": "수정 내용"
+                            }
+                            """)
+                )
+                .andExpect(status().isOk());
+
+
+        MvcResult result =
+                mockMvc.perform(
+                                get("/api/posts/" + postId)
+                        )
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+
+        JsonNode post =
+                objectMapper.readTree(
+                                result.getResponse()
+                                        .getContentAsString()
+                        )
+                        .get("data");
+
+
+        assertThat(
+                post.get("title").asText()
+        )
+                .isEqualTo("수정 후 제목");
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 후 목록에서 제외")
+    void deletePost_softDelete() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "delete@test.com",
+                        "삭제테스트"
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        token,
+                        categoryId,
+                        "삭제될 게시글"
+                );
+
+
+        mockMvc.perform(
+                        delete("/api/posts/" + postId)
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + token
+                                )
+                )
+                .andExpect(status().isNoContent());
+
+
+        JsonNode content =
+                getPosts(
+                        categoryId,
+                        "latest",
+                        "10"
+                );
+
+
+        assertThat(content)
+                .extracting(JsonNode::toString)
+                .noneMatch(
+                        json -> json.contains("삭제될 게시글")
+                );
+    }
+
+    @Test
+    @DisplayName("다른 사용자는 게시글 수정 불가")
+    void updatePost_fail_when_not_owner() throws Exception {
+
+        String ownerToken =
+                signupAndLogin(
+                        "owner@test.com",
+                        "작성자"
+                );
+
+
+        String otherToken =
+                signupAndLogin(
+                        "other@test.com",
+                        "다른사용자"
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        ownerToken,
+                        categoryId,
+                        "작성자 게시글"
+                );
+
+
+        mockMvc.perform(
+                        patch("/api/posts/" + postId)
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + otherToken
+                                )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                            {
+                              "title": "탈취 수정",
+                              "content": "수정"
+                            }
+                            """)
+                )
+                .andExpect(status().is4xxClientError());
+    }
 }
