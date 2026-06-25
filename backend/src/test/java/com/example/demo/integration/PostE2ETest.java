@@ -11,17 +11,20 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -262,6 +265,20 @@ class PostE2ETest {
 
 
 
+    private String makeUniqueNickname(String nickname) {
+
+        String suffix =
+                UUID.randomUUID()
+                        .toString()
+                        .substring(0, 4);
+
+        String result =
+                nickname + suffix;
+
+        return result.length() > 20
+                ? result.substring(0, 20)
+                : result;
+    }
 
 
     private String signupAndLogin(
@@ -269,41 +286,69 @@ class PostE2ETest {
             String nickname
     ) throws Exception {
 
-
-        mockMvc.perform(
-                        post("/api/auth/signup")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                          "email":"%s",
-                                          "password":"password1234",
-                                          "nickname":"%s"
-                                        }
-                                        """.formatted(email, nickname))
-                )
-                .andExpect(status().isOk());
+        String uniqueEmail =
+                email.replace(
+                        "@",
+                        "-" + System.nanoTime() + "@"
+                );
 
 
+        String uniqueNickname =
+                makeUniqueNickname(nickname);
 
-        MvcResult result =
+
+        MvcResult signupResult =
+                mockMvc.perform(
+                                post("/api/auth/signup")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content("""
+                                {
+                                  "email":"%s",
+                                  "password":"password1234",
+                                  "nickname":"%s"
+                                }
+                                """.formatted(
+                                                uniqueEmail,
+                                                uniqueNickname
+                                        ))
+                        )
+                        .andReturn();
+
+
+        System.out.println("========================");
+        System.out.println("email = " + uniqueEmail);
+        System.out.println("nickname = " + uniqueNickname);
+        System.out.println("signup status = "
+                + signupResult.getResponse().getStatus());
+        System.out.println("signup body = "
+                + signupResult.getResponse().getContentAsString());
+        System.out.println("========================");
+
+
+        assertThat(
+                signupResult.getResponse().getStatus()
+        )
+                .isEqualTo(200);
+
+
+        MvcResult loginResult =
                 mockMvc.perform(
                                 post("/api/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content("""
-                                                {
-                                                  "email":"%s",
-                                                  "password":"password1234"
-                                                }
-                                                """.formatted(email))
+                                {
+                                  "email":"%s",
+                                  "password":"password1234"
+                                }
+                                """.formatted(uniqueEmail))
                         )
                         .andExpect(status().isOk())
                         .andReturn();
 
 
-
         return objectMapper
                 .readTree(
-                        result.getResponse()
+                        loginResult.getResponse()
                                 .getContentAsString()
                 )
                 .get("data")
@@ -755,15 +800,15 @@ class PostE2ETest {
 
         String ownerToken =
                 signupAndLogin(
-                        "owner@test.com",
-                        "작성자"
+                        "owner-" + System.nanoTime() + "@test.com",
+                        "작성자-" + System.nanoTime()
                 );
 
 
         String otherToken =
                 signupAndLogin(
-                        "other@test.com",
-                        "다른사용자"
+                        "other-" + System.nanoTime() + "@test.com",
+                        "다른사용자-" + System.nanoTime()
                 );
 
 
