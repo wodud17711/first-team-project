@@ -12,7 +12,9 @@ import com.example.demo.walk.dto.WalkScoreResponse;
 import com.example.demo.walk.dto.WalkScoreResult;
 import com.example.demo.walk.repository.WalkScoreRepository;
 import com.example.demo.weather.domain.WeatherSnapshot;
+import com.example.demo.weather.facade.WeatherCollectionFacade;
 import com.example.demo.weather.repository.WeatherSnapshotRepository;
+import com.example.demo.weather.service.ForecastCollectorService;
 import com.example.demo.weather.service.WeatherSnapshotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,14 +31,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WalkScoreService {
 
-    // 최신 스냅샷이 이 시간 이상 오래되면 수집이 멈춘 것으로 보고 "폴백(직전 값 재사용)" 으로 로깅.
-    // 수집 스케줄러가 1시간 주기이므로 여유를 둬 6시간으로 잡는다.
-    private static final long STALE_AFTER_HOURS = 6;
+    // 최신 스냅샷이 이 시간 이상 오래되면(수집 스케줄러가 BE 무료 슬립으로 멈춘 경우 등)
+    // 점수 조회 시점에 즉석 재수집(lazy refresh)을 시도한다. 수집 주기가 1시간이라 1시간으로 잡는다.
+    private static final long STALE_AFTER_HOURS = 1;
 
     private final AiClient aiClient;
     private final DogRepository dogRepository;
     private final WeatherSnapshotRepository weatherSnapshotRepository;
     private final WeatherSnapshotService weatherSnapshotService;
+    private final WeatherCollectionFacade weatherCollectionFacade;
+    private final ForecastCollectorService forecastCollectorService;
     private final WalkScoreRepository walkScoreRepository;
 
     public WalkScoreResponse calculateScore(
@@ -117,11 +121,23 @@ public class WalkScoreService {
         if (ageHours >= STALE_AFTER_HOURS) {
 
             log.warn(
-                    "[WalkScore] 최신 날씨 수집 지연(age={}h) → 직전 스냅샷 재사용 폴백 (id={}, baseDateTime={})",
+                    "[WalkScore] 최신 날씨 수집 지연(age={}h) → 즉석 재수집 시도 (id={}, baseDateTime={})",
                     ageHours,
                     snapshot.getId(),
                     snapshot.getBaseDateTime()
             );
+
+            WeatherSnapshot refreshed = tryRefreshWeather();
+            if (refreshed != null) {
+                log.info(
+                        "[WalkScore] 즉석 재수집 성공 (id={}, baseDateTime={})",
+                        refreshed.getId(),
+                        refreshed.getBaseDateTime()
+                );
+                return refreshed;
+            }
+
+            log.warn("[WalkScore] 즉석 재수집 실패/무변화 → 직전 스냅샷 재사용 폴백");
 
         } else {
 
@@ -134,6 +150,24 @@ public class WalkScoreService {
         }
 
         return snapshot;
+    }
+
+    /**
+     * 날씨 수집이 멈췄을 때(BE 무료 슬립으로 스케줄러 정지 등) 점수 조회 시점에
+     * 부산 날씨를 즉석 재수집한다. 외부 API 호출이라 다소 느릴 수 있으나 stale 일 때만 1회 수행.
+     * 실패 시 null 반환 → 호출부가 직전 스냅샷으로 폴백(점수는 항상 나온다).
+     */
+    private WeatherSnapshot tryRefreshWeather() {
+        try {
+            weatherCollectionFacade.collectSafely();
+            forecastCollectorService.collectBusanForecast();
+            return weatherSnapshotRepository
+                    .findTopByOrderByBaseDateTimeDesc()
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("[WalkScore] 즉석 날씨 재수집 실패", e);
+            return null;
+        }
     }
 
     private WalkScoreRequest.DogInfo buildDogInfo(
