@@ -11,17 +11,20 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -262,6 +265,20 @@ class PostE2ETest {
 
 
 
+    private String makeUniqueNickname(String nickname) {
+
+        String suffix =
+                UUID.randomUUID()
+                        .toString()
+                        .substring(0, 4);
+
+        String result =
+                nickname + suffix;
+
+        return result.length() > 20
+                ? result.substring(0, 20)
+                : result;
+    }
 
 
     private String signupAndLogin(
@@ -269,41 +286,69 @@ class PostE2ETest {
             String nickname
     ) throws Exception {
 
-
-        mockMvc.perform(
-                        post("/api/auth/signup")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                          "email":"%s",
-                                          "password":"password1234",
-                                          "nickname":"%s"
-                                        }
-                                        """.formatted(email, nickname))
-                )
-                .andExpect(status().isOk());
+        String uniqueEmail =
+                email.replace(
+                        "@",
+                        "-" + System.nanoTime() + "@"
+                );
 
 
+        String uniqueNickname =
+                makeUniqueNickname(nickname);
 
-        MvcResult result =
+
+        MvcResult signupResult =
+                mockMvc.perform(
+                                post("/api/auth/signup")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content("""
+                                {
+                                  "email":"%s",
+                                  "password":"password1234",
+                                  "nickname":"%s"
+                                }
+                                """.formatted(
+                                                uniqueEmail,
+                                                uniqueNickname
+                                        ))
+                        )
+                        .andReturn();
+
+
+        System.out.println("========================");
+        System.out.println("email = " + uniqueEmail);
+        System.out.println("nickname = " + uniqueNickname);
+        System.out.println("signup status = "
+                + signupResult.getResponse().getStatus());
+        System.out.println("signup body = "
+                + signupResult.getResponse().getContentAsString());
+        System.out.println("========================");
+
+
+        assertThat(
+                signupResult.getResponse().getStatus()
+        )
+                .isEqualTo(200);
+
+
+        MvcResult loginResult =
                 mockMvc.perform(
                                 post("/api/auth/login")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content("""
-                                                {
-                                                  "email":"%s",
-                                                  "password":"password1234"
-                                                }
-                                                """.formatted(email))
+                                {
+                                  "email":"%s",
+                                  "password":"password1234"
+                                }
+                                """.formatted(uniqueEmail))
                         )
                         .andExpect(status().isOk())
                         .andReturn();
 
 
-
         return objectMapper
                 .readTree(
-                        result.getResponse()
+                        loginResult.getResponse()
                                 .getContentAsString()
                 )
                 .get("data")
@@ -589,5 +634,210 @@ class PostE2ETest {
                                 .asLong()
                 )
         );
+    }
+
+    @Test
+    @DisplayName("게시글 작성 후 상세 조회")
+    void createAndGetPost_success() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "crud@test.com",
+                        "CRUD테스트"
+                );
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        token,
+                        categoryId,
+                        "CRUD 게시글"
+                );
+
+
+        MvcResult result =
+                mockMvc.perform(
+                                get("/api/posts/" + postId)
+                                        .header(
+                                                "Authorization",
+                                                "Bearer " + token
+                                        )
+                        )
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+
+        JsonNode data =
+                objectMapper.readTree(
+                                result.getResponse()
+                                        .getContentAsString()
+                        )
+                        .get("data");
+
+
+        assertThat(
+                data.get("title").asText()
+        )
+                .isEqualTo("CRUD 게시글");
+    }
+
+    @Test
+    @DisplayName("게시글 작성자는 게시글 수정 가능")
+    void updatePost_success() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "update@test.com",
+                        "수정테스트"
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        token,
+                        categoryId,
+                        "수정 전 제목"
+                );
+
+
+        mockMvc.perform(
+                        patch("/api/posts/" + postId)
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + token
+                                )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                            {
+                              "title": "수정 후 제목",
+                              "content": "수정 내용"
+                            }
+                            """)
+                )
+                .andExpect(status().isOk());
+
+
+        MvcResult result =
+                mockMvc.perform(
+                                get("/api/posts/" + postId)
+                        )
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+
+        JsonNode post =
+                objectMapper.readTree(
+                                result.getResponse()
+                                        .getContentAsString()
+                        )
+                        .get("data");
+
+
+        assertThat(
+                post.get("title").asText()
+        )
+                .isEqualTo("수정 후 제목");
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 후 목록에서 제외")
+    void deletePost_softDelete() throws Exception {
+
+        String token =
+                signupAndLogin(
+                        "delete@test.com",
+                        "삭제테스트"
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        token,
+                        categoryId,
+                        "삭제될 게시글"
+                );
+
+
+        mockMvc.perform(
+                        delete("/api/posts/" + postId)
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + token
+                                )
+                )
+                .andExpect(status().isNoContent());
+
+
+        JsonNode content =
+                getPosts(
+                        categoryId,
+                        "latest",
+                        "10"
+                );
+
+
+        assertThat(content)
+                .extracting(JsonNode::toString)
+                .noneMatch(
+                        json -> json.contains("삭제될 게시글")
+                );
+    }
+
+    @Test
+    @DisplayName("다른 사용자는 게시글 수정 불가")
+    void updatePost_fail_when_not_owner() throws Exception {
+
+        String ownerToken =
+                signupAndLogin(
+                        "owner-" + System.nanoTime() + "@test.com",
+                        "작성자-" + System.nanoTime()
+                );
+
+
+        String otherToken =
+                signupAndLogin(
+                        "other-" + System.nanoTime() + "@test.com",
+                        "다른사용자-" + System.nanoTime()
+                );
+
+
+        Long categoryId =
+                createCategory();
+
+
+        long postId =
+                createPost(
+                        ownerToken,
+                        categoryId,
+                        "작성자 게시글"
+                );
+
+
+        mockMvc.perform(
+                        patch("/api/posts/" + postId)
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + otherToken
+                                )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                            {
+                              "title": "탈취 수정",
+                              "content": "수정"
+                            }
+                            """)
+                )
+                .andExpect(status().is4xxClientError());
     }
 }
