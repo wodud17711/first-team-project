@@ -91,6 +91,7 @@ function DogCreatePage() {
   }
 
   // 견종 검색: 입력이 멈춘 뒤 300ms 디바운스 + 최신 요청만 반영(race 방지).
+  // (매 키 입력마다 호출되고 느린 응답이 순서 뒤섞여 결과가 깜빡/사라지던 문제 수정)
   useEffect(() => {
     const kw = breedKeyword.trim()
     if (kw.length < 1) {
@@ -98,7 +99,7 @@ function DogCreatePage() {
       setOpenBreed(false)
       return
     }
-    if (form.breedId) return // 이미 선택된 상태면 재검색 안 함
+    if (form.breedId) return // 이미 선택된 상태면 재검색 안 함(선택 시 keyword=견종명)
     let active = true
     const timer = setTimeout(async () => {
       try {
