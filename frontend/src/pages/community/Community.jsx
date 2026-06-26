@@ -14,7 +14,7 @@ function CategoryTabs({ categories, selectedId, onSelect }) {
       <button
         onClick={() => onSelect(null)}
         className={`${base} ${selectedId == null ? 
-                  "bg-brand-400 rounded-xl text-txtcolor-700" :  
+                  "bg-brand-300 rounded-xl text-txtcolor-700" :  
                   "bg-white text-txtcolor-300 rounded-xl hover:bg-txtcolor-50 hover:text-txtcolor-700"}`}
       >
         전체
@@ -24,7 +24,7 @@ function CategoryTabs({ categories, selectedId, onSelect }) {
           key={c.categoryId}
           onClick={() => onSelect(c.categoryId)}
           className={`${base} ${selectedId === c.categoryId ? 
-                    "bg-brand-400 rounded-xl text-txtcolor-700" : 
+                    "bg-brand-300 rounded-xl text-txtcolor-700" : 
                     "bg-white text-txtcolor-300 rounded-xl hover:bg-txtcolor-50 hover:text-txtcolor-700"}`}
         >
           {c.name}
@@ -150,7 +150,7 @@ function Community() {
                   setPage(0)
                 }}
                 className={`px-3 py-1 rounded-full text-[12px] font-semibold transition
-                  ${sort === key ? "bg-brand-400 text-txtcolor-700" : "text-txtcolor-400"}`}
+                  ${sort === key ? "bg-brand-300 text-txtcolor-700" : "text-txtcolor-400"}`}
               >
                 {label}
               </button>

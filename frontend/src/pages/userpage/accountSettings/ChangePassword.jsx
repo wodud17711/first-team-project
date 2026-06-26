@@ -268,8 +268,8 @@ function ChangePassword() {
                                             className={`w-full px-3 py-3 ${
                                               isPassword ? "pr-11" : ""
                                             } "w-full bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                                              text-txtcolor-700 text-[16px]
-                                              focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"`}
+                                              text-txtcolor-700 text-[14px]
+                                              focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"`}
                                           />
 
                                           {isPassword && (
@@ -303,8 +303,8 @@ function ChangePassword() {
                     <div className="flex justify-end gap-3 pt-4 mt-2 mb-1 border-t order-txtcolor-100/60">
                         <button onClick={handleSubmit} disabled={submitting}
                         className="px-4 py-2 w-[140px] 
-                                  rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
-                                  shadow-sm hover:bg-brand-600/80 transition"
+                                  rounded-xl bg-brand-300 text-txtcolor-700 text-[14px] font-bold
+                                  shadow-sm hover:bg-brand-400 transition"
                         >
                         {submitting ? "변경 중..." : "비밀번호 변경"}
                         </button>
@@ -312,7 +312,7 @@ function ChangePassword() {
                         <button onClick={handleGoDetail}
                         className="px-4 py-2 w-[140px]
                                   rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                                  shadow-sm hover:bg-txtcolor-200/80 transition"
+                                  shadow-sm hover:bg-txtcolor-200/60 transition"
                         >
                         나중에 변경하기
                         </button>

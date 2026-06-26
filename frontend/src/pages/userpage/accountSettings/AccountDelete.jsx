@@ -225,10 +225,10 @@ function AccountDelete() {
                       type="button"
                       onClick={() => setOpenReason((prev) => !prev)}
                       className={`w-full px-3 py-3 rounded-xl border text-left
-                        bg-txtcolor-50/50 border-txtcolor-50 text-[16px]
+                        bg-txtcolor-50/50 border-txtcolor-50 text-[14px]
                         hover:bg-txtcolor-100/40 transition
                         ${selectedReason ? "text-txtcolor-700" : "text-txtcolor-300"}
-                        ${openReason ? "outline outline-2 outline-brand-500" : ""}
+                        ${openReason ? "outline outline-2 outline-brand-300" : ""}
                       `}
                     >
                       {selectedReason || "탈퇴 사유를 선택해주세요"}
@@ -248,7 +248,7 @@ function AccountDelete() {
                                 hover:bg-brand-100/50 transition
                                 ${
                                   selectedReason === reason
-                                    ? "bg-brand-200 text-txtcolor-700 font-semibold"
+                                    ? "bg-brand-200/70 text-txtcolor-700 font-semibold"
                                     : "text-txtcolor-600"
                                 }
                               `}
@@ -272,8 +272,8 @@ function AccountDelete() {
                       rows={4}
                       placeholder="의견을 자유롭게 작성해주세요."
                       className="w-full p-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                                text-txtcolor-700 text-[16px]
-                                focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                                text-txtcolor-700 text-[14px]
+                                focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
                     />
                   </div>
                   )}
@@ -300,8 +300,8 @@ function AccountDelete() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                              text-txtcolor-700 text-[16px]
-                              focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                              text-txtcolor-700 text-[14px]
+                              focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
                     placeholder="현재 비밀번호를 입력하세요"
                   />
                 </div>
@@ -324,7 +324,7 @@ function AccountDelete() {
           disabled={submitting}
           className="px-4 py-2 w-[90px]
                     rounded-xl bg-red-500 text-white text-[14px] font-bold
-                    shadow-sm hover:bg-red-700/80 transition">
+                    shadow-sm hover:bg-red-600/90 transition">
           {submitting ? "처리중..." : "회원 탈퇴"}
         </button>
 
@@ -332,7 +332,7 @@ function AccountDelete() {
           onClick={() => navigate("/mypage")}
           className="px-4 py-2 w-[90px]
                     rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                    shadow-sm hover:bg-txtcolor-200/80 transition">
+                    shadow-sm hover:bg-txtcolor-200/60 transition">
           취소
         </button>
       </div>
