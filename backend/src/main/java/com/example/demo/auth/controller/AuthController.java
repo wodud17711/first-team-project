@@ -29,6 +29,16 @@ public class AuthController {
     @Value("${app.cookie.secure:true}")
     private boolean cookieSecure;
 
+    /**
+     * RT 쿠키 SameSite 속성.
+     * - 운영: None (FE=Vercel·BE=Render 가 서로 다른 사이트 → 크로스사이트 요청에 쿠키 전송 필요).
+     *   None 은 Secure 동반 필수(운영 HTTPS 라 충족).
+     * - 로컬 dev: Lax (localhost 동일 사이트). application-local.properties 기본값 사용.
+     * 이 토글이 없으면 운영에서 /api/auth/refresh 에 RT 쿠키가 안 실려 로그인 유지·소셜 콜백이 실패.
+     */
+    @Value("${app.cookie.same-site:Lax}")
+    private String cookieSameSite;
+
     // =========================
     // 회원가입
     // =========================
@@ -132,7 +142,7 @@ public class AuthController {
                 .from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .path("/api/auth")
                 .maxAge(60 * 60 * 24 * 14)
                 .build();
@@ -146,7 +156,7 @@ public class AuthController {
                 .from("refreshToken", "")
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .path("/api/auth")
                 .maxAge(0)
                 .build();
