@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { searchBreeds } from "../../api/breeds";
 import { createDog } from "../../api/dogs"
 import { uploadImage, validateImageFile } from "../../api/uploads"
+import { normalizeBirthDate } from "../../utils/date"
 
 // 함수 땡겨오기 (그대로 유지)
 import { genders, neuteredOptions, activityLevels, walkTimes } from "../../constants/dogConstants"
@@ -166,6 +167,11 @@ function DogCreatePage() {
     alert("생년월일을 입력해주세요.")
     return
   }
+  const normalizedBirthDate = normalizeBirthDate(form.birthDate)
+  if (!normalizedBirthDate) {
+    alert("생년월일을 YYYY-MM-DD 형식으로 입력해주세요. (예: 2021-03-01)")
+    return
+  }
   if (!form.breedId) {
     alert("견종을 선택해주세요.")
     return
@@ -200,7 +206,7 @@ function DogCreatePage() {
       await createDog({
         name: form.name,
         breedId: form.breedId || null,
-        birthDate: form.birthDate,
+        birthDate: normalizedBirthDate,
         weight: Number(form.weight),
         gender: form.gender,
         isNeutered: form.isNeutered,
