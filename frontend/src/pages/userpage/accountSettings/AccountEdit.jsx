@@ -214,7 +214,7 @@ function AccountEdit() {
 
                     {/* 카메라 버튼 */}
                     <button onClick={() => setMenuOpen((prev) => !prev)}
-                            className="group absolute bottom-[90px] right-[100px]
+                            className="group absolute bottom-[85px] right-[100px]
                                       w-10 h-10 rounded-full bg-txtcolor-50 shadow-md
                                       flex items-center justify-center
                                       hover:bg-txtcolor-700 transition"
@@ -229,7 +229,7 @@ function AccountEdit() {
 
                     {/* 드롭다운 */}
                     {menuOpen && (
-                      <div className="absolute -bottom-[10px] right-[70px]
+                      <div className="absolute -bottom-[15px] right-[70px]
                                       w-[100px] bg-white rounded-xl shadow-md
                                       border border-txtcolor-100 overflow-hidden z-50">
                         
@@ -271,7 +271,7 @@ function AccountEdit() {
                           </div>
               
                           <div className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl  
-                                          text-txtcolor-700 text-[16px] border border-txtcolor-50">
+                                          text-txtcolor-700 text-[14px] border border-txtcolor-50">
                               {me?.email}
                           </div>
                         </div>
@@ -287,7 +287,7 @@ function AccountEdit() {
                               value={form.nickname}
                               onChange={handleChange}
                               className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                                        text-txtcolor-700 text-[16px] focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                                        text-txtcolor-700 text-[14px] focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
                               placeholder="닉네임을 입력하세요"
                           />
                         </div>
@@ -346,8 +346,8 @@ function AccountEdit() {
           <button
             onClick={handleSubmit}
             className="px-4 py-2 w-[90px] 
-                      rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
-                      shadow-sm hover:bg-brand-600/80 transition"
+                      rounded-xl bg-brand-300 text-txtcolor-700 text-[14px] font-bold
+                      shadow-sm hover:bg-brand-400 transition"
           >
             저장
           </button>
@@ -355,7 +355,7 @@ function AccountEdit() {
             onClick={handleGoDetail}
             className="px-4 py-2 w-[90px]
                       rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                      shadow-sm hover:bg-txtcolor-200/80 transition"
+                      shadow-sm hover:bg-txtcolor-200/60 transition"
           >
             취소
           </button>
