@@ -94,6 +94,21 @@ function DogProfile() {
     // 등록 완료(3단계) 화면 표시 여부
     const [done, setDone] = useState(false)
 
+    // 검증
+    const [errorMsg, setErrorMsg] = useState("")
+    const validate = () => {
+      if (!form.dogname) return "이름을 입력해주세요"
+      if (!form.dogbirth) return "생년월일을 입력해주세요"
+      if (!form.breedId) return "견종을 선택해주세요"
+      if (!form.gender) return "성별을 선택해주세요"
+      if (!form.weight) return "체중을 입력해주세요"
+      if (!form.isNeutered) return "중성화 여부를 선택해주세요"
+      if (!form.activityLevel) return "활동량을 선택해주세요"
+      if (form.favorWalkTime.length === 0) return "산책 시간을 선택해주세요"
+      return null
+    }
+    
+
 
     // 선호 선택 시간 목록 펼쳐져있는지 여부
     const [openWalkTime, setOpenWalkTime] = useState(false)
@@ -221,6 +236,14 @@ function DogProfile() {
     // 완료 눌렀을 때 
     const handleDone = async (e) => {
       e.preventDefault()
+
+      const msg = validate()
+      if (msg) {
+        setErrorMsg(msg)
+        return
+      }
+
+      setErrorMsg("") // 성공 시 초기화
 
       const dog = await create(toPayload())
       if (!dog) return
@@ -657,9 +680,9 @@ function DogProfile() {
 
               </div>
 
-              {error && (
-                <p className="mb-6 text-[12px] text-danger">
-                  {error}
+              {errorMsg && (
+                <p className="mt-6 text-[12px] text-red-500">
+                  {errorMsg}
                 </p>
               )}
               
