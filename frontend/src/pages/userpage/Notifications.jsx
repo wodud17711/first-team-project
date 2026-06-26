@@ -9,15 +9,9 @@ import { useNavigate } from "react-router-dom"
 import { useNotifications } from "../../hooks/usenotifications"
 import NotificationCard from "../../components/NotificationCard"
 
-// api 연결
-import { markRead } from "../../api/notifications"
-
 
 // 카테고리 탭
 function NotificationTabs({ selected, onSelect }) {
-  const base =
-    "px-4 py-[6px] rounded-full text-[14px] font-bold whitespace-nowrap transition"
-
   const tabs = [
     { key: "all", label: "전체" },
     { key: "like", label: "좋아요" },
@@ -25,16 +19,19 @@ function NotificationTabs({ selected, onSelect }) {
   ]
 
   return (
-    <div className="flex gap-2 overflow-x-auto">
+    <div className="flex gap-1">
       {tabs.map((t) => (
         <button
           key={t.key}
           onClick={() => onSelect(t.key)}
-          className={`${base} ${
-            selected === t.key
-              ? "bg-sky-700 text-white"
-              : "bg-white text-gray-600 border"
-          }`}
+          className={`
+            px-3 py-1 rounded-full text-[12px] font-semibold transition
+            ${
+              selected === t.key
+                ? "bg-brand-400 text-txtcolor-700"
+                : "text-txtcolor-400"
+            }
+          `}
         >
           {t.label}
         </button>
@@ -53,21 +50,8 @@ function Notifications() {
 
   // 카테고리
   const [filter, setFilter] = useState("all")
-  const filteredNotifications = notifications.filter((n) => {
-    const type = (n.type || "").toUpperCase()
 
-    if (filter === "all") return true
 
-    if (filter === "like")
-      return type.includes("LIKE")
-
-    if (filter === "comment")
-      return type.includes("COMMENT")
-
-    return true
-  })
-
-  const list = filteredNotifications
 
   // 페이지 젤 상,하단으로 이동
   const lastScrollY = useRef(0)
@@ -75,32 +59,6 @@ function Notifications() {
   const [showBottom, setShowBottom] = useState(true)
 
   // 좋아요 카드 중복제거(같은 게시글은 하나의 카드로)
-  const mergedNotifications = useMemo(() => {
-    const map = {}
-
-    notifications.forEach((n) => {
-      if (n.type === "LIKE") {
-        const key = `LIKE-${n.post?.id}`
-
-        if (!map[key]) {
-          map[key] = {
-            ...n,
-            actorCount: n.actorCount || 1,
-          }
-        } else {
-          map[key].actorCount = Math.max(map[key].actorCount || 1, n.actorCount || 1)
-          map[key].createdAt = n.createdAt
-          map[key].isRead = map[key].isRead && n.isRead
-        }
-
-      } else {
-        map[`C-${n.notificationId}`] = n
-      }
-    })
-
-    return Object.values(map)
-  }, [notifications])
-
   const merged = useMemo(() => {
     const map = {}
 
@@ -148,7 +106,7 @@ const handleLoadMore = async (e) => {
 
   const prevScroll = window.scrollY
 
-  await loadMore()
+  await loadMore(filter)
 
   requestAnimationFrame(() => {
     window.scrollTo({ top: prevScroll, behavior: "auto" })
@@ -183,6 +141,10 @@ const handleLoadMore = async (e) => {
 
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  useEffect(() => {
+    refetch(filter)
+  }, [filter])
 
   
     // 👉 로딩/빈 데이터 상태 UI
@@ -238,24 +200,25 @@ const handleLoadMore = async (e) => {
 
 
       {/* 카테고리 + 모두읽음 */}
-      <div className="flex items-center gap-2 mb-[20px]">
+      <div className="flex justify-between items-center gap-2 mb-2">
         <NotificationTabs selected={filter} onSelect={setFilter} />
         <button
           onClick={async () => {
             await markAllNotificationsRead()
             window.dispatchEvent(new Event("notifications-updated"))
           }}
-          className="px-4 py-2 rounded-xl bg-txtcolor-700 
-                     text-white text-[14px] font-bold
+          className="px-[23px] py-1 rounded-lg bg-txtcolor-700 
+                     text-white text-[12px] font-bold
                      shadow-sm transition hover:bg-txtcolor-900"
         >
           모두 읽음
         </button>
+        
       </div>
 
       
       {/* empty state */}
-      {list.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 text-txtcolor-300">
           <div className="text-[40px]">🔔</div>
           <p className="text-[14px]">

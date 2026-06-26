@@ -8,7 +8,11 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
 
-  const pageRef = useRef(0)
+  const pageRef = useRef({
+    all: 0,
+    like: 0,
+    comment: 0,
+  })
   const [hasMore, setHasMore] = useState(true)
 
   const [loading, setLoading] = useState(false)
@@ -41,24 +45,28 @@ export function useNotifications() {
     setUnreadCount(0)
   }
 
-  const loadMore = useCallback(async () => {
+  const loadMore = useCallback(async (type = "all") => {
     setLoading(true)
     setError(null)
 
     try {
-      // apiClient 경유 — baseURL·401 자동 갱신 적용. 성공 시 data(payload) 직접 반환.
+      const page = pageRef.current[type]
+
       const data = await getNotifications({
-        page: pageRef.current,
+        page,
         size: 20,
+        type: type === "all" ? null : type.toUpperCase(),
       })
 
       const newItems = data?.notifications ?? []
 
-      setNotifications(prev => [...prev, ...newItems])
+      setNotifications(prev =>
+        page === 0 ? newItems : [...prev, ...newItems]
+      )
 
       setHasMore(newItems.length === 20)
 
-      pageRef.current += 1
+      pageRef.current[type] += 1
     } catch (e) {
       setError(e)
     } finally {
@@ -66,17 +74,18 @@ export function useNotifications() {
     }
   }, [])
 
-  const initLoad = useCallback(async () => {
+  const initLoad = useCallback(async (type = "all") => {
     setLoading(true)
     setError(null)
 
     try {
-      pageRef.current = 0
+      pageRef.current[type] = 0
       setNotifications([])
 
       const data = await getNotifications({
         page: 0,
         size: 20,
+        type: type === "all" ? null : type.toUpperCase(),
       })
 
       const items = data?.notifications ?? []
@@ -84,7 +93,7 @@ export function useNotifications() {
       setNotifications(items)
       setUnreadCount(data?.unreadCount ?? 0)
 
-      pageRef.current = 1
+      pageRef.current[type] = 1
       setHasMore(items.length === 20)
     } catch (e) {
       setError(e)
