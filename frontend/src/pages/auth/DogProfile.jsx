@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useCreateDog } from "../hooks/useCreateDog";
-import { searchBreeds } from "../api/breeds";
+import { useCreateDog } from "../../hooks/useCreateDog";
+import { searchBreeds } from "../../api/breeds";
 
 
 // 온보딩 진행바 (active 단계만 강조, 지난 단계는 체크)

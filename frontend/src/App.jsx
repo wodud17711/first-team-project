@@ -12,9 +12,9 @@ import CommunityWrite from './pages/community/CommunityWrite'
 import CommunityEdit from './pages/community/CommunityEdit'
 import CommunityDetail from './pages/community/CommunityDetail'
 
-import Login from './pages/Login'
-import Join from './pages/Join'
-import DogProfile from './pages/DogProfile'
+import Login from './pages/auth/Login'
+import Join from './pages/auth/Join'
+import DogProfile from './pages/auth/DogProfile'
 import OAuthCallback from './pages/OAuthCallback'
 
 import MyPage from './pages/userpage/MyPage'
