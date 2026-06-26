@@ -15,6 +15,7 @@ import CommunityDetail from './pages/community/CommunityDetail'
 import Login from './pages/Login'
 import Join from './pages/Join'
 import DogProfile from './pages/DogProfile'
+import OAuthCallback from './pages/OAuthCallback'
 
 import MyPage from './pages/userpage/MyPage'
 import AccountEdit from './pages/userpage/accountSettings/AccountEdit'
@@ -48,6 +49,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/join" element={<Join />} />
           <Route path="/dog-profile" element={<DogProfile />} />
+          {/* 소셜 로그인 콜백 랜딩 (BE 리다이렉트 도착 → refresh 로 AT 획득) */}
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
 
           {/* [개발 전용] 최적시간 차트 미리보기 (mock, 로그인 불필요) */}
           <Route path="/dev/optimal-time" element={<OptimalTimePreview />} />

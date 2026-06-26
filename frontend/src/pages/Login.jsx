@@ -11,6 +11,12 @@ function Login() {
     // 비밀번호 표시 여부
     const [showPw, setShowPw] = useState(false)
 
+    // 카카오 소셜 로그인: BE authorize 엔드포인트로 이동 → 카카오 인증 → BE 콜백 → /oauth/callback 랜딩
+    const handleKakaoLogin = () => {
+        const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api"
+        window.location.href = `${base}/auth/oauth/kakao/authorize`
+    }
+
   return (
     <div className="flex flex-col items-center space-y-6">
       
@@ -82,7 +88,9 @@ function Login() {
                 <button>
                     <img src="/loginIcon/naver.png" className="w-[60px] h-[60px]"/>
                 </button>
-                <button className="flex items-center justify-center
+                <button type="button" onClick={handleKakaoLogin}
+                        aria-label="카카오로 로그인"
+                        className="flex items-center justify-center
                                    bg-[#FEE500] w-[60px] h-[60px] rounded-full">
                     <img src="/loginIcon/kakao.png" className="w-[30px] h-[30px] mt-1"/>
                 </button>

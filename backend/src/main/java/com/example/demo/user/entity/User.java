@@ -1,5 +1,6 @@
 package com.example.demo.user.entity;
 
+import com.example.demo.user.type.AuthProvider;
 import com.example.demo.user.type.GuardianLevel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,6 +18,11 @@ import java.time.LocalDateTime;
         name = "users",
         indexes = {
                 @Index(name = "idx_users_email", columnList = "email")
+        },
+        uniqueConstraints = {
+                // 소셜 계정 식별: (provider, provider_id) 유일.
+                // LOCAL 은 provider_id=NULL → MySQL UNIQUE 가 NULL 다중 허용하므로 로컬 가입엔 영향 없음.
+                @UniqueConstraint(name = "uk_users_provider", columnNames = {"provider", "provider_id"})
         }
 )
 // 소프트 삭제: 탈퇴(deleted_at != null) 유저는 모든 find/exists 쿼리에서 자동 제외.
@@ -33,8 +39,8 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    // 비밀번호 (BCrypt 해시)
-    @Column(nullable = false, length = 255)
+    // 비밀번호 (BCrypt 해시). 소셜 로그인 사용자는 비번이 없으므로 NULL 허용.
+    @Column(length = 255)
     private String password;
 
     // 닉네임
@@ -66,6 +72,16 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "guardian_level", length = 20)
     private GuardianLevel guardianLevel;
+
+    // 인증 제공자 (LOCAL / KAKAO / GOOGLE)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    // 소셜 고유 ID (LOCAL=null). (provider, provider_id) 조합으로 소셜 계정 식별.
+    @Column(name = "provider_id", length = 255)
+    private String providerId;
 
     // INSERT 시 자동 실행
     @PrePersist

@@ -1,7 +1,9 @@
 package com.example.demo.auth.service;
 
 import com.example.demo.auth.dto.AuthResponse;
+import com.example.demo.auth.dto.OAuthUserInfo;
 import com.example.demo.auth.security.JwtProvider;
+import com.example.demo.user.type.AuthProvider;
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.user.entity.RefreshToken;
@@ -143,6 +145,57 @@ public class AuthService {
         refreshTokenRepository.deleteByTokenHash(
                 hash(refreshToken)
         );
+    }
+
+    // =========================
+    // 소셜 로그인 (카카오/구글 공통)
+    // =========================
+    // 기존 회원이면 로그인, 없으면 자동 가입 후 동일하게 토큰 발급(기존 RT 플로우 재활용).
+    public AuthResponse loginWithOAuth(AuthProvider provider, OAuthUserInfo info) {
+
+        User user = userRepository
+                .findByProviderAndProviderId(provider, info.providerId())
+                .orElseGet(() -> createOAuthUser(provider, info));
+
+        return issueTokens(user);
+    }
+
+    private User createOAuthUser(AuthProvider provider, OAuthUserInfo info) {
+
+        User user = new User();
+        user.setProvider(provider);
+        user.setProviderId(info.providerId());
+
+        // 소셜은 이메일을 못 받을 수 있어(카카오 비즈앱 제약) 더미 이메일로 NOT NULL/UNIQUE 충족.
+        // provider_id 가 유일하므로 더미 이메일도 자동으로 유일.
+        String key = provider.name().toLowerCase();
+        user.setEmail(key + "_" + info.providerId() + "@" + key + ".local");
+
+        user.setPassword(null); // 소셜은 비번 없음 (password NULL 허용)
+        user.setNickname(resolveOAuthNickname(info.nickname()));
+        user.setProfileImageUrl(info.profileImageUrl());
+        user.setRole("USER");
+
+        return userRepository.save(user);
+    }
+
+    // 소셜 닉네임은 중복 가능 → 충돌 시 뒤에 식별자 붙여 unique 보장.
+    private String resolveOAuthNickname(String base) {
+
+        String nick = normalizeNickname(base);
+        if (nick == null || nick.length() < 2) {
+            nick = "소셜사용자";
+        }
+        if (nick.length() > 16) {
+            nick = nick.substring(0, 16); // 중복 suffix 여유(<=20)
+        }
+
+        String candidate = nick;
+        int i = 0;
+        while (userRepository.existsByNickname(candidate)) {
+            candidate = nick + "_" + (++i);
+        }
+        return candidate;
     }
 
     // =========================

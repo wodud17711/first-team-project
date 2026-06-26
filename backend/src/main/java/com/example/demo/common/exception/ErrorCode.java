@@ -54,7 +54,10 @@ public enum ErrorCode {
     // ===== External API =====
     WEATHER_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "기상청 API 호출에 실패했습니다"),
     AIRQUALITY_API_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "에어코리아 API 호출에 실패했습니다"),
-    AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI 서버 호출에 실패했습니다");
+    AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI 서버 호출에 실패했습니다"),
+
+    // ===== OAuth =====
+    OAUTH_ERROR(HttpStatus.UNAUTHORIZED, "소셜 로그인에 실패했습니다");
 
     private final HttpStatus status;
     private final String message;

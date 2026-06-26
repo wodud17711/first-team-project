@@ -2,9 +2,12 @@ package com.example.demo.auth.controller;
 
 import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.dto.LoginRequest;
+import com.example.demo.auth.dto.OAuthUserInfo;
 import com.example.demo.auth.dto.SignupRequest;
 import com.example.demo.auth.service.AuthService;
+import com.example.demo.auth.service.OAuthService;
 import com.example.demo.common.response.ApiResponse;
+import com.example.demo.user.type.AuthProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +16,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final OAuthService oAuthService;
+
+    /**
+     * 소셜 로그인 성공 후 리다이렉트할 FE 주소.
+     * BE 가 RT 쿠키만 Set-Cookie 한 뒤 여기로 보내고, FE 가 /api/auth/refresh 로 AT 를 받는다.
+     * (AT 를 URL 에 노출하지 않기 위함)
+     */
+    @Value("${app.oauth.success-redirect:http://localhost:5173/oauth/callback}")
+    private String oauthSuccessRedirect;
 
     /**
      * RT 쿠키 Secure 플래그.
@@ -109,6 +123,33 @@ public class AuthController {
                         "Token refreshed"
                 )
         );
+    }
+
+    // =========================
+    // 소셜 로그인 (카카오)
+    // =========================
+    // 1) FE "카카오로 시작" → 여기로 진입 → 카카오 인가 페이지로 302.
+    @GetMapping("/oauth/kakao/authorize")
+    public void kakaoAuthorize(HttpServletResponse response) throws IOException {
+        response.sendRedirect(oAuthService.kakaoAuthorizeUrl());
+    }
+
+    // 2) 카카오가 인가코드(code)와 함께 콜백 → 토큰교환·사용자조회 → RT 쿠키 set → FE 로 302.
+    //    FE 는 랜딩 후 /api/auth/refresh 로 AT 를 받아 로그인 완료(AT 를 URL 에 노출하지 않음).
+    @GetMapping("/oauth/kakao/callback")
+    public void kakaoCallback(
+            @RequestParam("code") String code,
+            HttpServletResponse response
+    ) throws IOException {
+
+        OAuthUserInfo info = oAuthService.kakaoLogin(code);
+
+        AuthResponse tokens =
+                authService.loginWithOAuth(AuthProvider.KAKAO, info);
+
+        setRefreshCookie(response, tokens.refreshToken());
+
+        response.sendRedirect(oauthSuccessRedirect);
     }
 
     // =========================
