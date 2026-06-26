@@ -27,18 +27,19 @@ function CommentCard({ group, onClick }) {
     <div
       onClick={onClick}
       className="
-        group bg-white rounded-xl border shadow-sm px-5 py-4
+        group gap-4 bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-5 py-4
         cursor-pointer transition-all duration-200
         hover:-translate-y-[2px] hover:shadow-md
       "
     >
       {/* 원글 제목 */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[12px] px-2 py-1 rounded-full bg-sky-100 text-sky-700">
-          댓글
+        <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-600 text-[12px] font-medium">
+          게시글
         </span>
 
-        <span className="text-[16px] font-bold text-gray-800 truncate group-hover:text-sky-800">
+        <span className="text-[16px] font-bold text-txtcolor-700 truncate
+                        transition-colors duration-300 ease-out group-hover:text-brand-700">
           {group.postTitle}
         </span>
       </div>
@@ -48,17 +49,17 @@ function CommentCard({ group, onClick }) {
       {commentsToShow.map((comment) => (
         <div
           key={comment.commentId}
-          className="pl-3 border-l-[3px] border-sky-200"
+          className="pl-3 border-l-[3px] border-brand-200"
         >
           <div className="flex items-center gap-2">
             <p
-              className={`text-[14px] text-gray-700 ${
+              className={`text-[14px] text-txtcolor-700 ${
                 expanded ? "line-clamp-3" : "line-clamp-1"
               }`}
             >
               {comment.content}
             </p>
-            <span className="shrink-0 text-[11px] text-gray-400">
+            <span className="shrink-0 text-[12px] text-txtcolor-300">
               {timeAgo(comment.createdAt)}
             </span>
           </div>
@@ -71,7 +72,7 @@ function CommentCard({ group, onClick }) {
             e.stopPropagation()
             setExpanded(!expanded)
           }}
-          className="mt-3 text-[13px] text-sky-700 font-medium"
+          className="mt-3 text-[12px] text-txtcolor-300 hover:text-brand-700 font-medium"
         >
           {expanded
             ? "접기"

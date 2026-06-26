@@ -67,7 +67,7 @@ function PostCard({ post, onClick }) {
           </span>
 
           {post.subTag && (
-            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px]">
+            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px] font-medium">
               #{post.subTag}
             </span>
           )}

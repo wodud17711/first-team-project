@@ -95,7 +95,7 @@ function Community() {
           <div className="flex items-center gap-3 mt-2">
             <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
             <p className="text-[14px] text-txtcolor-500 font-light">
-              사료·산책로·자랑·메이트까지, 견주끼리 나누는 이야기
+              사료·산책로·자랑·메이트까지, 보호자끼리 나누는 이야기
             </p>
           </div>
         </div>
@@ -188,7 +188,7 @@ function Community() {
         <button
           disabled={page === 0}
           onClick={() => setPage((prev) => prev - 1)}
-          className="px-3 py-1 text-sm rounded-lg border disabled:opacity-30"
+          className="px-3 py-1 text-sm rounded-lg disabled:opacity-30"
         >
           &lt;
         </button>
@@ -200,8 +200,8 @@ function Community() {
             className={`w-8 h-8 rounded-lg text-[12px]
               ${
                 page === i
-                  ? "bg-sky-700 text-white"
-                  : "hover:bg-gray-100"
+                  ? "bg-txtcolor-700 text-white"
+                  : "hover:bg-txtcolor-100/40"
               }`}
           >
             {i + 1}
@@ -211,7 +211,7 @@ function Community() {
         <button
           disabled={page === totalPages - 1}
           onClick={() => setPage((prev) => prev + 1)}
-          className="px-3 py-1 text-sm rounded-lg border disabled:opacity-30"
+          className="px-3 py-1 text-sm rounded-lg disabled:opacity-30"
         >
           &gt;
         </button>

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { usePost, useComments, likePost } from "../../hooks/useCommunity"
 
@@ -77,11 +77,11 @@ function CommentItem({ comment, isReply, onReply }) {
           )}
           <span className="text-[12px] text-txtcolor-300">{timeAgo(comment.createdAt)}</span>
         </div>
-        <p className="w-full text-[14px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+        <p className="w-full px-2 text-[14px] text-gray-800 whitespace-pre-wrap">{comment.content}</p>
         {!isReply && (
           <button
             onClick={() => onReply(comment.commentId)}
-            className="mt-1 px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 
+            className="mt-2 px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 
                       text-[12px] font-medium hover:bg-txtcolor-700 hover:text-white transition"
           >
             답글쓰기
@@ -96,6 +96,18 @@ function CommunityDetail() {
   const { me } = useMe()
 
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const { postId } = useParams()
   const navigate = useNavigate()
@@ -231,7 +243,7 @@ function CommunityDetail() {
           <div className="flex items-center gap-3 mt-2">
             <div className="w-[4px] h-[20px] rounded-full bg-brand-500" />
             <p className="text-[14px] text-txtcolor-500 font-light">
-              사료·산책로·자랑·메이트까지, 견주끼리 나누는 이야기
+              사료·산책로·자랑·메이트까지, 보호자끼리 나누는 이야기
             </p>
           </div>
         </div>
@@ -256,7 +268,7 @@ function CommunityDetail() {
             {typeof post.category === "object" ? post.category.name : post.category}
           </span>
           {post.subTag && (
-            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px]">
+            <span className="px-2 py-[2px] rounded-full bg-txtcolor-100/40 text-txtcolor-400 text-[12px] font-medium">
               #{post.subTag}
             </span>
           )}
@@ -321,7 +333,7 @@ function CommunityDetail() {
               </span>
 
               {isAuthor && (
-                <div className="relative">
+                <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setMenuOpen((prev) => !prev)}
                     className="text-[20px] text-txtcolor-400 hover:text-txtcolor-700 px-2"
@@ -341,7 +353,7 @@ function CommunityDetail() {
                       <button
                         onClick={handleEdit}
                         className="
-                          w-full px-4 py-3 text-center text-[14px]
+                          w-full px-4 py-3 text-center text-[14px] font-semibold 
                           text-txtcolor-700 hover:bg-txtcolor-50
                         "
                       >
@@ -351,7 +363,7 @@ function CommunityDetail() {
                       <button
                         onClick={handleDelete}
                         className="
-                          w-full px-4 py-3 text-center text-[14px]
+                          w-full px-4 py-3 text-center text-[14px] font-semibold 
                           text-red-500 hover:bg-red-50
                         "
                       >
@@ -479,13 +491,17 @@ function CommunityDetail() {
                   )}
 
                   {/* 대댓글 목록 */}
-                  {visibleReplies.map((r) => (
-                    <CommentItem
-                      key={r.commentId}
-                      comment={r}
-                      isReply
-                    />
-                  ))}
+                  {replies.length > 0 && (
+                    <div className="w-full border-t border-dashed border-txtcolor-100">
+                      {visibleReplies.map((r) => (
+                        <CommentItem
+                          key={r.commentId}
+                          comment={r}
+                          isReply
+                        />
+                      ))}
+                    </div>
+                  )}
 
                   {/* 더보기 버튼 */}
                   {replies.length > 2 && (
