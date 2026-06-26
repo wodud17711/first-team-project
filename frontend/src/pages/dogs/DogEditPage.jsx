@@ -4,6 +4,7 @@ import { searchBreeds } from "../../api/breeds";
 import { updateDog } from "../../api/dogs"
 import { getDog } from "../../api/dogs"
 import { uploadImage, validateImageFile } from "../../api/uploads"
+import { normalizeBirthDate } from "../../utils/date"
 
 
 // 함수 땡겨오기 (그대로 유지)
@@ -133,23 +134,38 @@ function DogEditPage() {
     })
   }
 
-  // 견종 검색: 입력할 때마다 /api/breeds 호출. 다시 입력하면 이전 선택(breedId) 해제.
-  const handleBreedSearch = async (kw) => {
+  // 견종 입력: 키워드만 갱신(+이전 선택 해제). 실제 검색은 아래 debounce useEffect 가 수행.
+  const handleBreedKeywordChange = (kw) => {
     setBreedKeyword(kw)
     setForm((f) => ({ ...f, breedId: "" }))
-    if (kw.trim().length < 1) {
+  }
+
+  // 견종 검색: 입력이 멈춘 뒤 300ms 디바운스 + 최신 요청만 반영(race 방지).
+  useEffect(() => {
+    const kw = breedKeyword.trim()
+    if (kw.length < 1) {
       setBreedResults([])
       setOpenBreed(false)
       return
     }
-    try {
-      const list = await searchBreeds(kw.trim())
-      setBreedResults(list ?? [])
-      setOpenBreed(true)
-    } catch {
-      setBreedResults([])
+    if (form.breedId) return // 이미 선택된 상태면 재검색 안 함
+    let active = true
+    const timer = setTimeout(async () => {
+      try {
+        const list = await searchBreeds(kw)
+        if (active) {
+          setBreedResults(list ?? [])
+          setOpenBreed(true)
+        }
+      } catch {
+        if (active) setBreedResults([])
+      }
+    }, 300)
+    return () => {
+      active = false
+      clearTimeout(timer)
     }
-  }
+  }, [breedKeyword, form.breedId])
 
   // 견종 선택: 숫자 breedId 저장 + 입력칸에 견종명 표시.
   const handleSelectBreed = (b) => {
@@ -212,6 +228,11 @@ function DogEditPage() {
     alert("생년월일을 입력해주세요.")
     return
   }
+  const normalizedBirthDate = normalizeBirthDate(form.birthDate)
+  if (!normalizedBirthDate) {
+    alert("생년월일을 YYYY-MM-DD 형식으로 입력해주세요. (예: 2021-03-01)")
+    return
+  }
   if (!form.breedId) {
     alert("견종을 선택해주세요.")
     return
@@ -243,6 +264,7 @@ function DogEditPage() {
       try {
         await updateDog(dog.dogId, {
           ...form,
+          birthDate: normalizedBirthDate,
           profileImageUrl: previewImg,
           isMain,
         })
@@ -459,7 +481,7 @@ function DogEditPage() {
                   <input
                     type="text"
                     value={breedKeyword}
-                    onChange={(e) => handleBreedSearch(e.target.value)}
+                    onChange={(e) => handleBreedKeywordChange(e.target.value)}
                     onFocus={() => { if (breedResults.length > 0) setOpenBreed(true) }}
                     placeholder={mixMode
                       ? "부모·이름으로 믹스견 검색 (예: 푸들, 말티푸)"
