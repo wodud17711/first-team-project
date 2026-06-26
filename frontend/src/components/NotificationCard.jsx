@@ -11,9 +11,15 @@ function timeAgo(iso) {
   return iso.slice(0, 10).replaceAll("-", "/")
 }
 
+
 function NotificationCard({ notification, onClick }) {
   // 닉네임 bold 처리
   const parts = notification.content?.split("님이 ")
+
+  const detailClass = notification.isRead
+  ? "bg-txtcolor-50/50 border-txtcolor-50 text-txtcolor-500"
+  : "bg-white border-brand-100 text-txtcolor-500"
+
 
   return (
     <div
@@ -21,49 +27,62 @@ function NotificationCard({ notification, onClick }) {
       className={`px-5 py-4 rounded-xl border shadow-sm 
         cursor-pointer transition-all duration-200
         hover:-translate-y-[2px] hover:shadow-md
-        ${notification.isRead ? "bg-white" : "bg-sky-50 border-sky-200"}
+        ${notification.isRead ? "bg-white border-txtcolor-100/50" : "bg-brand-50 border-brand-200"}
       `}
     >
       {/* 상단: 타입 + 제목 */}
       <div className="flex justify-between items-start">
         <div>
-          {/* 새 댓글(or 좋아요) */}
-          {/* <p className="text-[14px] font-medium text-gray-800">
-            {notification.title}
-          </p> */}
+          {/* 좋아요, 댓글 남긴 유저 프로필 사진 */}
+          <img
+            src={notification.actor?.profileImageUrl || "/userpanel/humanProfile.png"}
+            alt={notification.actor?.nickname}
+            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+          />
 
           {/* @@님이 회원님의 글에 댓글을 남겼습니다(or 글을 좋아합니다) */}
-          <p className="text-[14px] text-gray-600 mt-1">
-            {parts?.length > 1 ? (
-              <>
-                <span className="font-semibold text-gray-900">
-                  {parts[0]}
-                </span>
-                님이 {parts[1]}
-              </>
-            ) : (
-              notification.content
-            )}
+          <p
+            className={`text-[14px] mt-1 ${
+              notification.isRead
+                ? "text-txtcolor-500"
+                : "text-brand-800"
+            }`}
+          >
+            <span
+              className={`font-semibold ${
+                notification.isRead
+                  ? "text-txtcolor-700"
+                  : "text-brand-700"
+              }`}
+            >
+              {notification.actor?.nickname}
+            </span>
+
+            {notification.type === "LIKE"
+              ? notification.actorCount > 1
+                ? `님 외 ${notification.actorCount - 1}명이 회원님의 글을 좋아합니다.`
+                : "님이 회원님의 글을 좋아합니다."
+              : "님이 회원님의 글에 댓글을 남겼습니다."}
           </p>
         </div>
-
-        {/* NEW 뱃지 */}
-        {!notification.isRead && (
-          <span className="text-[10px] text-sky-600 font-bold">
-            NEW
-          </span>
-        )}
       </div>
 
-      {/* 링크 대상 (게시글) */}
-      {notification.linkUrl && (
-        <p className="text-[12px] text-sky-500 mt-2">
-          게시글 보기
+      {/* 댓글 알림 → 댓글 내용 */}
+      {notification.type === "COMMENT" && notification.comment?.content && (
+        <p className={`p-3 rounded-lg border text-[14px] mt-2 truncate ${detailClass}`}>
+          💬 {notification.comment.content}
+        </p>
+      )}
+
+      {/* 좋아요 알림 → 게시글 제목 */}
+      {notification.type === "LIKE" && notification.post?.title && (
+        <p className={`p-3 rounded-lg border text-[14px] mt-2 truncate ${detailClass}`}>
+          📄 {notification.post.title}
         </p>
       )}
 
       {/* 시간 */}
-      <p className="text-[12px] text-gray-400 mt-3">
+      <p className="text-[12px] text-txtcolor-300 mt-3">
         {timeAgo(notification.createdAt)}
       </p>
     </div>
