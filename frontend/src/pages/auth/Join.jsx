@@ -181,8 +181,8 @@ function Join() {
               {/* 반려견 프로필 등록 버튼 */}
               <div className="w-full mt-7 flex flex-col gap-2">
                   <button type="submit" disabled={loading} 
-                          className="py-3 rounded-xl bg-brand-300 text-txtcolor-700 text-[16px] font-bold
-                                    shadow-sm hover:bg-brand-400 transition">
+                          className="py-3 bg-txtcolor-700 text-white text-[16px] font-bold
+                                rounded-xl shadow-sm transition hover:bg-txtcolor-900">
                     {loading ? '가입 중...' : '가입하고 반려견 등록하기'}
                   </button>
               </div>
