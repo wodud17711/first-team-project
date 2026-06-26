@@ -4,6 +4,7 @@ import { searchBreeds } from "../../api/breeds";
 import { updateDog } from "../../api/dogs"
 import { getDog } from "../../api/dogs"
 import { uploadImage, validateImageFile } from "../../api/uploads"
+import { normalizeBirthDate } from "../../utils/date"
 
 
 // 함수 땡겨오기 (그대로 유지)
@@ -212,6 +213,11 @@ function DogEditPage() {
     alert("생년월일을 입력해주세요.")
     return
   }
+  const normalizedBirthDate = normalizeBirthDate(form.birthDate)
+  if (!normalizedBirthDate) {
+    alert("생년월일을 YYYY-MM-DD 형식으로 입력해주세요. (예: 2021-03-01)")
+    return
+  }
   if (!form.breedId) {
     alert("견종을 선택해주세요.")
     return
@@ -243,6 +249,7 @@ function DogEditPage() {
       try {
         await updateDog(dog.dogId, {
           ...form,
+          birthDate: normalizedBirthDate,
           profileImageUrl: previewImg,
           isMain,
         })
