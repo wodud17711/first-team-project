@@ -84,23 +84,39 @@ function DogCreatePage() {
     })
   }
 
-  // 견종 검색: 입력할 때마다 /api/breeds 호출. 다시 입력하면 이전 선택(breedId) 해제.
-  const handleBreedSearch = async (kw) => {
+  // 견종 입력: 키워드만 갱신(+이전 선택 해제). 실제 검색은 아래 debounce useEffect 가 수행.
+  const handleBreedKeywordChange = (kw) => {
     setBreedKeyword(kw)
     setForm((f) => ({ ...f, breedId: "" }))
-    if (kw.trim().length < 1) {
+  }
+
+  // 견종 검색: 입력이 멈춘 뒤 300ms 디바운스 + 최신 요청만 반영(race 방지).
+  // (매 키 입력마다 호출되고 느린 응답이 순서 뒤섞여 결과가 깜빡/사라지던 문제 수정)
+  useEffect(() => {
+    const kw = breedKeyword.trim()
+    if (kw.length < 1) {
       setBreedResults([])
       setOpenBreed(false)
       return
     }
-    try {
-      const list = await searchBreeds(kw.trim())
-      setBreedResults(list ?? [])
-      setOpenBreed(true)
-    } catch {
-      setBreedResults([])
+    if (form.breedId) return // 이미 선택된 상태면 재검색 안 함(선택 시 keyword=견종명)
+    let active = true
+    const timer = setTimeout(async () => {
+      try {
+        const list = await searchBreeds(kw)
+        if (active) {
+          setBreedResults(list ?? [])
+          setOpenBreed(true)
+        }
+      } catch {
+        if (active) setBreedResults([])
+      }
+    }, 300)
+    return () => {
+      active = false
+      clearTimeout(timer)
     }
-  }
+  }, [breedKeyword, form.breedId])
 
   // 견종 선택: 숫자 breedId 저장 + 입력칸에 견종명 표시.
   const handleSelectBreed = (b) => {
@@ -405,7 +421,7 @@ function DogCreatePage() {
                   <input
                     type="text"
                     value={breedKeyword}
-                    onChange={(e) => handleBreedSearch(e.target.value)}
+                    onChange={(e) => handleBreedKeywordChange(e.target.value)}
                     onFocus={() => { if (breedResults.length > 0) setOpenBreed(true) }}
                     placeholder={mixMode
                       ? "부모·이름으로 믹스견 검색 (예: 푸들, 말티푸)"
