@@ -1,8 +1,8 @@
 import { useMemo, useState, useRef } from 'react'
-import { useDogs } from '../hooks/useDogs'
-import { useWalkStatistics, useWalkCalendar } from '../hooks/useWalkStatistics'
-import { useWalkHistory } from '../hooks/useWalkRecord'
-import dogImgFallback from '../assets/dogImg1.jpg'
+import { useDogs } from '../../hooks/useDogs'
+import { useWalkStatistics, useWalkCalendar } from '../../hooks/useWalkStatistics'
+import { useWalkHistory } from '../../hooks/useWalkRecord'
+import dogImgFallback from '../../assets/dogImg1.jpg'
 
 // 요일 라벨 (일~토)
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']

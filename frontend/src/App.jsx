@@ -4,13 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import WalkScoreDetail from './pages/WalkScoreDetail'
-import WalkRecord from './pages/WalkRecord'
-import Statistics from './pages/Statistics'
 
-import Community from './pages/community/Community'
-import CommunityWrite from './pages/community/CommunityWrite'
-import CommunityEdit from './pages/community/CommunityEdit'
-import CommunityDetail from './pages/community/CommunityDetail'
 
 import Login from './pages/auth/Login'
 import Join from './pages/auth/Join'
@@ -25,6 +19,14 @@ import MypagePosts from './pages/userpage/myActivities/MypagePosts'
 import MypageComments from './pages/userpage/myActivities/MypageComments'
 import MypageLikes from './pages/userpage/myActivities/MypageLikes'
 import Notifications from './pages/userpage/Notifications'
+
+import WalkRecord from './pages/walk/WalkRecord'
+import Statistics from './pages/walk/Statistics'
+
+import Community from './pages/community/Community'
+import CommunityWrite from './pages/community/CommunityWrite'
+import CommunityEdit from './pages/community/CommunityEdit'
+import CommunityDetail from './pages/community/CommunityDetail'
 
 import DogListPage from './pages/dogs/DogListPage'
 import DogDetailPage from './pages/dogs/DogDetailPage'

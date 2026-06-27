@@ -114,10 +114,6 @@ function DogListPage() {
                       "
                     >
                       <div className="text-[64px]">🐶</div>
-
-                      <p className="mt-2 text-[14px] text-txtcolor-400">
-                        프로필 사진이 등록되지 않았어요
-                      </p>
                     </div>
                   )}
 
