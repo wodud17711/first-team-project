@@ -21,6 +21,7 @@ function parseDate(iso) {
 
 
 function WalkCalendar() {
+  
   const navigate = useNavigate()
   const { dogs } = useDogs()
   const mainDog = useMemo(() => dogs.find((d) => d.isMain) ?? dogs[0], [dogs])
@@ -151,15 +152,19 @@ function WalkCalendar() {
     return m
   }, [allHistory])
 
-  // 대표강아지가 먼저 오도록
+  // 산책기록에 강아지 필터 드롭다운
+  const [selectedDogId, setSelectedDogId] = useState('ALL')
+
+   // 대표강아지가 먼저 오도록
   const sortedDogs = useMemo(() => {
     return [...dogs].sort((a, b) => (b.isMain === true) - (a.isMain === true))
   }, [dogs])
 
-  // 산책기록에 강아지 필터 드롭다운
-  const [selectedDogId, setSelectedDogId] = useState('ALL')
+  const selectedDogName = useMemo(() => {
+    if (selectedDogId === 'ALL') return '전체'
+    return sortedDogs.find(d => d.dogId === Number(selectedDogId))?.name ?? '전체'
+  }, [selectedDogId, sortedDogs])
 
-  
 
   // 팝오버: hover 미리보기 + 클릭 고정(pinned). 위치는 캘린더 섹션 기준 좌표.
   const calRef = useRef(null)
@@ -312,13 +317,15 @@ function WalkCalendar() {
           </div>
         </section>
 
-        <aside className="w-[320px] min-h-[600px] flex-shrink-0 p-4
+        <aside className="w-[320px] min-h-[600px] flex flex-col flex-shrink-0 p-4
                   bg-white rounded-xl border border-txtcolor-100/50 shadow-sm">
 
           {/* 1) 기본 상태 (날짜 선택 X) */}
           {!popover && (
-            <div>
-              <div className='border-b border-txtcolor-100'>
+            <div className="flex flex-col flex-1">
+              
+              {/* 상단 고정 영역 */}
+              <div className="border-b border-txtcolor-100">
                 <p className="text-[20px] font-bold text-txtcolor-700 flex items-center gap-2">
                   <span className="w-1 h-4 bg-brand-500 rounded-full" />
                   산책 기록
@@ -328,12 +335,13 @@ function WalkCalendar() {
                 </p>
               </div>
 
-              <div className='flex flex-col items-center justify-center'>
-                <p className='text-[40px]'>🔎</p>
-                <p className="text-[16px] text-txtcolor-700 font-semibold text-center">
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <p className="text-[40px]">📆</p>
+                <p className="text-[16px] text-txtcolor-700 font-semibold text-center mt-2">
                   반려견과의 산책 기록을 확인해볼까요?
                 </p>
               </div>
+
             </div>
           )}
 
@@ -365,10 +373,9 @@ function WalkCalendar() {
                   </p>
                 </div>
                 
-
                 <div className="mb-2 flex items-center justify-between mt-2">
                   <div className="text-sm font-semibold">
-                    {Number(mm)}/{Number(dd)} {activeDog?.name}
+                    {Number(mm)}/{Number(dd)} {selectedDogName}
                   </div>
 
                   <select
