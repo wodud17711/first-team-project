@@ -22,6 +22,7 @@ import Notifications from './pages/userpage/Notifications'
 
 import WalkRecord from './pages/walk/WalkRecord'
 import Statistics from './pages/walk/Statistics'
+import WalkCalendar from './pages/walk/WalkCalendar'
 
 import Community from './pages/community/Community'
 import CommunityWrite from './pages/community/CommunityWrite'
@@ -37,6 +38,7 @@ import NotFound from './pages/NotFound'
 
 // [개발 전용] 최적시간 차트 미리보기 (mock). 실화면 배치 후 제거 가능.
 import OptimalTimePreview from './pages/dev/OptimalTimePreview'
+
 
 
 
@@ -67,8 +69,11 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/walkscore-detail" element={<WalkScoreDetail />} />
+
+              {/* 산책기록 관련 페이지 */}
               <Route path="/walk" element={<WalkRecord />} />
               <Route path="/statistics" element={<Statistics />} />
+              <Route path="/walk/calendar" element={<WalkCalendar />} />
 
               {/* 커뮤니티 페이지 */}
               <Route path="/community" element={<Community />} />

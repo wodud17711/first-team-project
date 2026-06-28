@@ -147,7 +147,7 @@ function WalkRecord() {
 
         <div className="flex flex-col items-center gap-3 py-16 text-txtcolor-300">
           <div className="text-[40px]">🐶</div>
-          <p className="text-[14px]">반려견을 먼저 등록하면 산책을 기록할 수 있어요.</p>
+          <p className="text-[14px]">반려견을 등록하면 산책을 기록할 수 있어요.</p>
           <button
             onClick={() => navigate('/dog-profile-create')}
             className="mt-2 px-4 py-2 
