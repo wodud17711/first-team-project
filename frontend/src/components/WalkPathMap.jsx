@@ -63,7 +63,6 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
         mapRef.current = map
         // 출발(현재 위치) 표식 — 기본 핀 대신 위치 중앙에 작은 점(점이라 시작지점을 덜 가림).
         // CustomOverlay 는 clickable:false 라 점 위를 클릭해도 지도 click 이 통과됨.
-        // ⚠️ 색/크기는 비주얼 placeholder(sky 톤) — 정선혜 영역.
         const dotEl = document.createElement('div')
         dotEl.style.cssText =
           'width:14px;height:14px;border-radius:9999px;background:#0284c7;' +
@@ -130,29 +129,33 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
   return (
     <div className="w-full">
       <div className="relative w-full" style={{ height }}>
-        <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden bg-gray-100" />
+        <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden bg-txtcolor-50/50" />
         {status === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-txtcolor-400 text-sm">
             지도를 불러오는 중…
           </div>
         )}
         {status === 'error' && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-txtcolor-400 text-sm">
             지도를 불러오지 못했어요 (거리는 아래에 직접 입력)
           </div>
         )}
       </div>
 
       {/* 컨트롤 — 비주얼 placeholder */}
-      <div className="flex items-center justify-between mt-2">
-        <p className="text-[13px] text-gray-500">
-          지도를 클릭해 걸은 길을 그려보세요 · <b className="text-sky-700">{km} km</b>
+      <div className="flex items-center justify-between">
+        <p className="text-[12px] text-txtcolor-400">
+          지도에 반려견과 함께 걸은 길을 그려보세요. <b className="text-brand-700">({km} km)</b>
         </p>
-        <div className="flex gap-2">
-          <button onClick={undo} className="px-2 py-1 rounded-lg border text-[12px] text-gray-500">
+        <div className="flex gap-2 mt-2">
+          <button onClick={undo} 
+                  className="px-2 py-1 rounded-lg text-[12px] text-white font-medium 
+                                bg-txtcolor-700 shadow-sm transition hover:bg-txtcolor-900">
             되돌리기
           </button>
-          <button onClick={reset} className="px-2 py-1 rounded-lg border text-[12px] text-gray-500">
+          <button onClick={reset} 
+                  className="px-2 py-1 rounded-lg text-[12px] text-white font-medium
+                            bg-txtcolor-700 shadow-sm transition hover:bg-txtcolor-900">
             초기화
           </button>
         </div>

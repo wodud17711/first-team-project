@@ -81,6 +81,20 @@
 }
 /* 배경색 원래 bg-gray-50 이었음 */
 
+/* 인풋 타입 number 화살표 없애기 */
+/* Chrome, Safari, Edge */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* 애니메이션 */
 @keyframes fadeIn {
   from {

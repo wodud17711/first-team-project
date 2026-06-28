@@ -1,29 +1,21 @@
 // 산책 기록 화면 (웹 = GPS 없는 타이머+수동 기록)
 // ─────────────────────────────────────────────────────────────
-// ⚠️ 스캐폴딩: 로직·배선·구조 골격입니다. 색/간격/타이포 등 비주얼은
-//    아래 className 은 기존 sky 톤 placeholder 이니 디자인에 맞게 교체하세요.
 // 흐름: 대표 반려견 → "산책 시작" → 타이머 → "산책 종료"(거리·체감·메모) → 이력.
 // 체감(thermal)은 docs/11 수집 컨벤션으로 저장돼 룰베이스 v2 데이터가 됩니다.
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDogs } from '../../hooks/useDogs'
-import {
-  useWalkRecord,
-  useWalkHistory,
-  formatElapsed,
-  parseThermal,
-} from '../../hooks/useWalkRecord'
+import { useWalkRecord, useWalkHistory, formatElapsed, parseThermal,} from '../../hooks/useWalkRecord'
 import WalkPathMap from '../../components/WalkPathMap'
 import { subjectName } from '../../lib/korean'
-import dogImgFallback from '../../assets/dogImg1.jpg'
 
 // 체감 옵션 (docs/11 §1.2: HOT/OK/COLD).
 const THERMAL_OPTIONS = [
   { code: 'HOT', label: '더웠어요', emoji: '🥵' },
-  { code: 'OK', label: '적당했어요', emoji: '🙂' },
+  { code: 'OK', label: '딱 좋았어요', emoji: '🙂' },
   { code: 'COLD', label: '추웠어요', emoji: '🥶' },
 ]
-const THERMAL_LABEL = { HOT: '더웠어요', OK: '적당했어요', COLD: '추웠어요' }
+const THERMAL_LABEL = { HOT: '🥵 더웠어요', OK: '🙂 딱 좋았어요', COLD: '🥶 추웠어요' }
 
 function WalkRecord() {
   const navigate = useNavigate()
@@ -34,15 +26,13 @@ function WalkRecord() {
     useWalkRecord()
 
   // 산책 대상(복수): 진행 중이면 산책 중인 강아지들로 잠금, 아니면 고른 것(없으면 대표 1마리).
-  const mainDogId = (dogs.find((d) => d.isMain) ?? dogs[0])?.dogId ?? null
-  // const defaultIds = mainDogId != null ? [mainDogId] : []
-  const selectedIds = isActive ? activeDogIds : (pickedIds ?? (dogs.length === 1 ? [dogs[0].dogId] : []))
+  const selectedIds = isActive ? activeDogIds : (pickedIds ?? [])
   const selectedDogs = dogs.filter((d) => selectedIds.includes(d.dogId))
   const dog = dogs.find((d) => d.dogId === selectedIds[0]) ?? dogs[0] // 표시·이력 기준(첫 선택)
   const namesLabel =
     selectedDogs.map((d) => subjectName(d.name)).join(', ') || subjectName(dog?.name) || ''
   
-  const hasMultipleDogs = dogs.length > 1
+  const hasMultipleDogs = dogs.length > 0
   const hasSelection = selectedIds.length > 0
 
   const questionText =
@@ -77,6 +67,23 @@ function WalkRecord() {
     '건강한 하루를 만들고 있어요 🌞',
   ]
 
+  // 최근 7개만 보여주기
+  const visibleWalks = walks.slice(0, 7)
+
+  // 기록 카드 내 거리별 배지
+  const getDistanceBadge = (distanceKm) => {
+    const distance = Number(distanceKm ?? 0)
+
+    if (distance >= 8)
+      return {
+        label: '장거리 산책', emoji: '🥇', className: 'bg-purple-100 text-purple-700'}
+    if (distance >= 3)
+      return {
+        label: '중거리 산책', emoji: '🥈', className: 'bg-brand-100 text-orange-700/90'}
+    return {
+      label: '단거리 산책', emoji: '🥉', className: 'bg-green-100/60 text-green-700'}
+  }
+
   // 종료 폼 입력 상태
   const [showEndForm, setShowEndForm] = useState(false)
   const [frozenSec, setFrozenSec] = useState(0) // '산책 종료' 누른 순간 경과시간 고정(폼에서 타이머 멈춤)
@@ -94,6 +101,16 @@ function WalkRecord() {
   }
 
   const handleFinish = async () => {
+    if (!distanceKm || Number(distanceKm) <= 0) {
+      alert('총 산책 거리를 입력해주세요.')
+      return
+    }
+
+    if (!thermal) {
+      alert('오늘 산책 체감을 선택해주세요.')
+      return
+    }
+
     try {
       await finish({ distanceKm, thermal, memo })
       setShowEndForm(false)
@@ -101,9 +118,7 @@ function WalkRecord() {
       setThermal(null)
       setMemo('')
       refetch()
-    } catch {
-      /* error 상태로 표시 */
-    }
+    } catch {}
   }
 
   // ── 반려견 없음/로딩 ──
@@ -177,9 +192,9 @@ function WalkRecord() {
       )}
 
       {/* ── 산책 세션 카드 ── */}
-      <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5 mb-6">
+      <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-5 mb-[20px]">
       {/* 산책 대상 반려견 선택 (여러 마리일 때만, 동시 산책 = 복수 선택). 진행 중이면 잠금. */}
-        {dogs.length > 1 && (
+        {dogs.length > 0 && (
           <div className="mb-5">
             <div className="mb-4">
               <p className="text-[20px] font-bold text-txtcolor-700 flex items-center gap-2">
@@ -270,7 +285,9 @@ function WalkRecord() {
           <>
             <div className="flex flex-col items-center gap-4 p-6">
               <div className="h-[120px] flex items-center justify-center">
-                {dogs.length === 1 ? (
+                {selectedIds.length === 0 ? (
+                  <div className="text-[105px]">🤔</div>
+                ) : dogs.length === 1 ? (
                   dogs[0].profileImageUrl ? (
                     <img
                       src={dogs[0].profileImageUrl}
@@ -278,18 +295,19 @@ function WalkRecord() {
                       className="w-[110px] h-[110px] rounded-full object-cover shadow"
                     />
                   ) : (
-                    <div className="w-[100px] h-[100px] rounded-full shadow bg-txtcolor-100/25 flex items-center justify-center">
+                    <div className="w-[110px] h-[110px] rounded-full shadow bg-txtcolor-100/25 flex items-center justify-center">
                       <div className="text-[40px]">🐶</div>
                     </div>
                   )
-                ) : selectedIds.length > 0 ? (
+                ) : (
                   <div className="flex gap-2">
                     {orderedSelectedDogs.map((d) =>
                       d.profileImageUrl ? (
-                        <img key={d.dogId}
-                             src={d.profileImageUrl}
-                             alt={d.name}
-                             className="w-[110px] h-[110px] rounded-full object-cover shadow"
+                        <img
+                          key={d.dogId}
+                          src={d.profileImageUrl}
+                          alt={d.name}
+                          className="w-[110px] h-[110px] rounded-full object-cover shadow"
                         />
                       ) : (
                         <div
@@ -301,8 +319,6 @@ function WalkRecord() {
                       )
                     )}
                   </div>
-                ) : (
-                  <div className="text-[105px]">🤔</div>
                 )}
               </div>
 
@@ -391,7 +407,7 @@ function WalkRecord() {
         ) : (
           // 종료 폼: 거리 · 체감 · 메모
           <div className="text-left">
-            <div className="flex flex-col items-center mb-5 gap-2">
+            <div className="flex flex-col items-center mb-8 gap-2">
               <p className="text-[18px] font-bold text-txtcolor-700">
                 산책 종료
               </p>
@@ -405,70 +421,125 @@ function WalkRecord() {
               </div>
             </div>
 
-            {/* 걸은 경로를 지도에 찍으면 거리 자동 계산 → 아래 input 에 반영(수동 보정 가능) */}
-            <label className="block text-[13px] text-gray-500 mb-1">걸은 경로 (지도 좌클릭)</label>
-            <div className="mb-3">
-              <WalkPathMap
-                height={300}
-                onDistanceChange={(km) => setDistanceKm(km ? String(km) : '')}
-              />
-            </div>
+            <div className='flex flex-col gap-4'>
+              {/* 걸은 경로를 지도에 찍으면 거리 자동 계산 → 아래 input 에 반영(수동 보정 가능) */}
+              <div>
+                <div className="mb-1">
+                  <p className="text-[14px] font-semibold text-txtcolor-700 flex items-center gap-2">
+                    산책 경로
+                  </p>
+                  <span className="text-txtcolor-300 text-[12px] font-medium">
+                    지도에 산책한 경로에 맞게 좌클릭하면 자동으로 거리가 계산돼요.
+                  </span>
+                </div>
 
-            <label className="block text-[13px] text-gray-500 mb-1">거리 (km) · 자동계산, 수정 가능</label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              value={distanceKm}
-              onChange={(e) => setDistanceKm(e.target.value)}
-              placeholder="예: 1.5"
-              className="w-full mb-4 px-3 py-2 rounded-lg border text-[14px]"
-            />
+                <div className="">
+                  <WalkPathMap
+                    height={300}
+                    onDistanceChange={(km) => setDistanceKm(km ? String(km) : '')}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <div className="mb-1">
+                  <p className="text-[14px] font-semibold text-txtcolor-700 flex items-center">
+                    총 산책 거리
+                    <span className="ml-1 text-txtcolor-300">(km)</span>
+                    <span className="ml-1 text-red-500">*</span>
+                  </p>
+                </div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={distanceKm}
+                    onChange={(e) => setDistanceKm(e.target.value)}
+                    placeholder="예) 11.5"
+                    className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50
+                              text-txtcolor-700 text-[14px]
+                              focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
+                  />
 
-            <label className="block text-[13px] text-gray-500 mb-1">오늘 산책 어땠나요? (체감)</label>
-            <div className="flex gap-2 mb-4">
-              {THERMAL_OPTIONS.map((opt) => (
-                <button
-                  key={opt.code}
-                  onClick={() => setThermal(opt.code)}
-                  className={`flex-1 py-2 rounded-lg border text-[13px] ${
-                    thermal === opt.code ? 'bg-sky-100 border-sky-400 text-sky-800' : 'text-gray-500'
-                  }`}
-                >
-                  {opt.emoji} {opt.label}
-                </button>
-              ))}
-            </div>
-
-            <label className="block text-[13px] text-gray-500 mb-1">메모 (선택)</label>
-            <input
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              placeholder="오늘 산책 한 줄 메모"
-              className="w-full mb-4 px-3 py-2 rounded-lg border text-[14px]"
-            />
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowEndForm(false)}
-                className="flex-1 py-2 rounded-lg border text-[14px] text-gray-500"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleFinish}
-                disabled={busy}
-                className="flex-1 py-2 rounded-lg bg-sky-600 text-white text-[14px] font-bold disabled:opacity-50"
-              >
-                기록 저장
-              </button>
+                  {distanceKm && (
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-txtcolor-300 pointer-events-none">
+                      km
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <div className="mb-1">
+                  <p className="text-[14px] font-semibold text-txtcolor-700 flex items-center">
+                    오늘 산책 어땠나요?<span className="ml-1 text-red-500">*</span>
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {THERMAL_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.code}
+                      onClick={() => setThermal(opt.code)}
+                      className={`flex-1 py-3 rounded-xl border text-[13px] font-semibold ${
+                        thermal === opt.code 
+                        ? "bg-brand-200 border-brand-500 text-txtcolor-700" 
+                        : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
+                      }`}
+                    >
+                      {opt.emoji} {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <div className="mb-1">
+                  <p className="text-[14px] font-semibold text-txtcolor-700 flex items-center">
+                    메모<span className="ml-1 text-txtcolor-300">(선택)</span>
+                  </p>
+                </div>
+                <input
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="오늘 산책 한 줄 메모"
+                  className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50
+                            text-txtcolor-700 text-[14px]
+                            focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
+                />
+              </div>
             </div>
           </div>
         )}
       </div>
+      {/* 종료폼일 때만 카드 밖에 버튼 표시 */}
+      {showEndForm && (
+        <div className="flex justify-end gap-2 mb-6">
+          <button
+            onClick={handleFinish}
+            disabled={busy}
+            className="px-4 py-2 w-[90px]
+                      rounded-xl bg-brand-300 text-txtcolor-700 text-[14px] font-bold
+                      shadow-sm hover:bg-brand-400 transition"
+          >
+            기록 저장
+          </button>
+          <button
+            onClick={() => setShowEndForm(false)}
+            className="px-4 py-2 w-[90px]
+                      rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
+                      shadow-sm hover:bg-txtcolor-200/60 transition"
+          >
+            취소
+          </button>
+        </div>
+      )}
 
       {/* ── 산책 이력 ── */}
-      <h2 className="text-[18px] font-bold text-txtcolor-700 mb-3">최근 산책</h2>
+      <div className="flex justify-end gap-3 mt-[20px] pt-4 border-t border-txtcolor-100/60"/>
+      <h2 className="flex flex-col text-[16px] font-bold text-txtcolor-700 mb-1">
+        최근 산책<span className="text-txtcolor-300 text-[12px] font-medium">산책 기록은 최신순으로 최대 7개까지 표시돼요.</span>
+      </h2>
       {histLoading ? (
         <div className="p-4 text-txtcolor-300">불러오는 중...</div>
       ) : walks.length === 0 ? (
@@ -477,26 +548,68 @@ function WalkRecord() {
           <p className="text-[14px]">아직 산책 기록이 없어요.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {walks.map((w) => {
+        <div className="flex flex-col gap-3">
+          {visibleWalks.map((w) => {
             const th = parseThermal(w.userFeedback)
+            const badge = getDistanceBadge(w.distanceKm)
+            
             return (
-              <div key={w.walkId} className="rounded-xl border bg-white shadow-sm px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] font-medium text-gray-800">
-                    {w.startTime ? w.startTime.slice(0, 10).replaceAll('-', '/') : '—'}
-                  </span>
-                  {th && (
-                    <span className="text-[12px] px-2 py-[2px] rounded-full bg-sky-100 text-sky-700">
-                      {THERMAL_LABEL[th]}
+              <div key={w.walkId}
+                   className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-5"
+              >
+                {/* 날짜 + 체감 */}
+                <div className="flex items-center mb-2 gap-2">
+
+                    <p className="text-[16px] font-bold text-txtcolor-700">
+                      {w.startTime ? w.startTime.slice(0, 10).replaceAll('-', '.') : '—'}
+                    </p>
+                    <span
+                      className={`px-2 py-1 rounded-full text-[12px] font-semibold ${badge.className}`}
+                    >
+                      {badge.emoji} {badge.label}
                     </span>
-                  )}
+                    
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-[12px] text-gray-400">
-                  <span>⏱ {w.durationMinutes != null ? `${w.durationMinutes}분` : '진행 중'}</span>
-                  {w.distanceKm != null && <span>📏 {w.distanceKm}km</span>}
-                  {w.memo && <span className="truncate">📝 {w.memo}</span>}
+
+                {/* 통계 */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-txtcolor-50/50 rounded-xl px-4 py-3">
+                    <p className="text-[12px] text-txtcolor-300">산책 시간</p>
+                    <p className="text-[16px] font-bold text-txtcolor-700 mt-1">
+                      ⏱ {w.durationMinutes ?? 0}분
+                    </p>
+                  </div>
+                  
+                  <div className="bg-txtcolor-50/50 rounded-xl px-4 py-3">
+                    <p className="text-[12px] text-txtcolor-300">산책 거리</p>
+                    <p className="text-[16px] font-bold text-txtcolor-700 mt-1">
+                      🚶‍➡️ {w.distanceKm ?? 0}km
+                    </p>
+                  </div>
+
+                  <div className="bg-txtcolor-50/50 rounded-xl px-4 py-3">
+                    <p className="text-[12px] text-txtcolor-300">산책 후기</p>
+                    {th && (
+                      <p className="text-[16px] font-bold text-txtcolor-700 mt-1">
+                        {THERMAL_LABEL[th]}
+                      </p>
+                    )}
+                  </div>
                 </div>
+
+                {/* 메모 */}
+                {w.memo && (
+                  <div className="border-t border-txtcolor-100 pt-3 mt-4">
+                    <div className="mb-1">
+                      <p className="text-[14px] font-semibold text-txtcolor-700 flex items-center">
+                        📝 오늘의 산책 메모
+                      </p>
+                    </div>
+                    <p className="text-[13px] text-txtcolor-500 leading-relaxed">
+                      {w.memo}
+                    </p>
+                  </div>
+                )}
               </div>
             )
           })}
