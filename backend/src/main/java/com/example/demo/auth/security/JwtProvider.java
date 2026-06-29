@@ -115,17 +115,13 @@ public class JwtProvider {
 
         Long userId = getUserId(token);
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .builder()
-                .username(String.valueOf(userId))
-                .password("")
-                .authorities(Collections.emptyList())
-                .build();
+        CustomUserPrincipal principal =
+                new CustomUserPrincipal(userId);
 
         return new UsernamePasswordAuthenticationToken(
-                userDetails,
+                principal,
                 "",
-                userDetails.getAuthorities()
+                principal.getAuthorities()
         );
     }
 }
