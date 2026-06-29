@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -63,9 +65,10 @@ public class WeatherCollectorService {
         Integer uvIndex = null;
 
         try {
+            // current()(=발표시각 h0, 06/18시 값)는 항상 ~0 → 실제 현재 시각의 값을 골라야 한다.
             uvIndex =
                     uvIdxClient.fetch(BUSAN_AREA_NO)
-                            .current();
+                            .currentAt(LocalDateTime.now());
         } catch (Exception e) {
             log.warn("UV collect failed", e);
         }
