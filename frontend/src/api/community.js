@@ -10,6 +10,36 @@
 import apiClient from './client'
 
 /**
+ * BE PostResponse 는 이미지를 `images: [{ id, imageUrl }]` 로 내려준다.
+ * 그런데 FE 컴포넌트는 상세에서 `imageUrls: string[]`(CommunityDetail), 목록에서
+ * `thumbnailUrl`(PostCard) 을 읽는다(mock 형태 기준으로 작성됨). 실 BE 전환 후 이 매핑이
+ * 없어서 업로드·첨부는 됐는데도 사진이 안 보이던 문제를 여기서 정규화한다.
+ * (mock 은 이미 imageUrls/thumbnailUrl 을 주므로 `??` 로 보존.)
+ */
+function normalizePost(post) {
+  if (!post || typeof post !== 'object') return post
+  const imageUrls =
+    post.imageUrls ??
+    (Array.isArray(post.images)
+      ? post.images.map((i) => i?.imageUrl).filter(Boolean)
+      : [])
+  return {
+    ...post,
+    imageUrls,
+    thumbnailUrl: post.thumbnailUrl ?? imageUrls[0] ?? null,
+  }
+}
+
+/** 페이지({content:[...]})/배열/단건 어느 형태든 게시글 이미지 필드를 정규화. */
+function normalizePosts(data) {
+  if (Array.isArray(data)) return data.map(normalizePost)
+  if (data && Array.isArray(data.content)) {
+    return { ...data, content: data.content.map(normalizePost) }
+  }
+  return data
+}
+
+/**
  * 카테고리 + 서브태그 목록. GET /api/categories
  * @returns {Promise<Array<{categoryId:number, name:string, subTags:string[]}>>}
  */
@@ -28,7 +58,7 @@ export async function getCategories() {
  *                  commentCount, likeCount, viewCount, thumbnailUrl, createdAt }
  */
 export async function getPosts(params = {}) {
-  return apiClient.get('/posts', { params })
+  return normalizePosts(await apiClient.get('/posts', { params }))
 }
 
 /**
@@ -39,7 +69,7 @@ export async function getPosts(params = {}) {
  *   liked:boolean, isMine:boolean, createdAt:string}>}
  */
 export async function getPost(postId) {
-  return apiClient.get(`/posts/${postId}`)
+  return normalizePost(await apiClient.get(`/posts/${postId}`))
 }
 
 /**
@@ -89,12 +119,12 @@ export async function toggleLike(postId) {
 
 // 내가 작성한 포스트 조회
 export async function getMyPosts(params = {}) {
-  return apiClient.get('/users/me/posts', { params })
+  return normalizePosts(await apiClient.get('/users/me/posts', { params }))
 }
 
 // 내가 좋아요한 포스트 조회
 export async function getMyLikes(params = {}) {
-  return apiClient.get('/users/me/likes', { params })
+  return normalizePosts(await apiClient.get('/users/me/likes', { params }))
 }
 
 // 내가 작성한 댓글 조회
