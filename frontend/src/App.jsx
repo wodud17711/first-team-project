@@ -21,7 +21,7 @@ import MypageLikes from './pages/userpage/myActivities/MypageLikes'
 import Notifications from './pages/userpage/Notifications'
 
 import WalkRecord from './pages/walk/WalkRecord'
-import Statistics from './pages/walk/Statistics'
+import WalkReport from './pages/walk/WalkReport'
 import WalkCalendar from './pages/walk/WalkCalendar'
 
 import Community from './pages/community/Community'
@@ -72,7 +72,7 @@ function App() {
 
               {/* 산책기록 관련 페이지 */}
               <Route path="/walk" element={<WalkRecord />} />
-              <Route path="/statistics" element={<Statistics />} />
+              <Route path="/walk/report" element={<WalkReport />} />
               <Route path="/walk/calendar" element={<WalkCalendar />} />
 
               {/* 커뮤니티 페이지 */}
