@@ -1,3 +1,4 @@
+import { onImgError, HUMAN_FALLBACK } from "../utils/imageFallback"
 
 // 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD. 정선혜 날짜 표기(슬래시) 유지.
 function timeAgo(iso) {
@@ -37,6 +38,7 @@ function NotificationCard({ notification, onClick }) {
           <img
             src={notification.actor?.profileImageUrl || "/userpanel/humanProfile.png"}
             alt={notification.actor?.nickname}
+            onError={onImgError(HUMAN_FALLBACK)}
             className="w-8 h-8 rounded-full object-cover flex-shrink-0"
           />
 

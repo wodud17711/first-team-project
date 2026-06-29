@@ -3,6 +3,7 @@ import { useDogs } from '../hooks/useDogs'
 import { useWalkStatistics, useWalkCalendar } from '../hooks/useWalkStatistics'
 import { useWalkHistory } from '../hooks/useWalkRecord'
 import dogImgFallback from '../assets/dogImg1.jpg'
+import { onImgError } from '../utils/imageFallback'
 
 // 요일 라벨 (일~토)
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -295,6 +296,7 @@ function Statistics() {
                             key={i}
                             src={dotImg}
                             alt=""
+                            onError={onImgError()}
                             className="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow"
                           />
                         ))}

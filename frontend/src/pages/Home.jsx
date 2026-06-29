@@ -13,6 +13,7 @@ import { useWalkScore } from '../hooks/useWalkScore'
 
 // 강아지 기본(폴백) 사진
 import dogImg1 from '../assets/dogImg1.jpg'
+import { onImgError, HUMAN_FALLBACK } from '../utils/imageFallback'
 
 
 // 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
@@ -78,6 +79,7 @@ function Home() {
                   <p className="mb-[5px] text-[14px] font-bold text-center">보호자</p>
                     <div className='h-[70px] flex justify-center flex flex-col items-center justify-center'>
                       <img src={me?.profileImageUrl || "/userpanel/humanProfile.png"} alt='프로필사진'
+                        onError={onImgError(HUMAN_FALLBACK)}
                         className='w-[60px] h-[60px] rounded-[43%] object-cover object-center'/>
                       <p className="mt-[5px] text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
                     </div>
@@ -102,6 +104,7 @@ function Home() {
                           <img
                             src={mainDog.profileImageUrl || dogImg1}
                             alt="강아지사진"
+                            onError={onImgError()}
                             className="w-[60px] h-[60px] shadow rounded-[43%] object-cover object-center"
                           />
                           <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
