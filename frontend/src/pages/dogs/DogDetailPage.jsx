@@ -267,8 +267,8 @@ function DogDetailPage() {
         <button
           onClick={() => navigate(`/dog-profile-edit/${dog.dogId}`)}
           className="px-4 py-2 w-[90px] 
-                     rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
-                     shadow-sm hover:bg-brand-600/80 transition"
+                     rounded-xl bg-brand-300 text-txtcolor-700 text-[14px] font-bold
+                     shadow-sm hover:bg-brand-400 transition"
         >
           수정
         </button>
@@ -277,7 +277,7 @@ function DogDetailPage() {
           onClick={handleDelete}
           className="px-4 py-2 w-[90px]
                      rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                     shadow-sm hover:bg-txtcolor-200/80 transition"
+                     shadow-sm hover:bg-txtcolor-200/60 transition"
         >
           삭제
         </button>

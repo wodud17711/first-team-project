@@ -28,7 +28,7 @@ function NotificationTabs({ selected, onSelect }) {
             px-3 py-1 rounded-full text-[12px] font-semibold transition
             ${
               selected === t.key
-                ? "bg-brand-400 text-txtcolor-700"
+                ? "bg-brand-300 text-txtcolor-700"
                 : "text-txtcolor-400"
             }
           `}

@@ -223,8 +223,8 @@ function CommunityEdit() {
               maxLength={TITLE_MAX}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                        text-txtcolor-700 text-[16px]
-                        focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                        text-txtcolor-700 text-[14px]
+                        focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
               placeholder="제목을 입력하세요"
             />
           </div>
@@ -238,8 +238,8 @@ function CommunityEdit() {
               onChange={(e) => setContent(e.target.value)}
               rows={10}
               className="w-full px-3 py-3 pr-12 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
-                        text-txtcolor-700 text-[16px]
-                        focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                        text-txtcolor-700 text-[14px]
+                        focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
               placeholder="내용을 입력하세요"
             />
           </div>
@@ -287,8 +287,8 @@ function CommunityEdit() {
           onClick={handleSubmit}
           disabled={submitting || uploading}
           className="px-4 py-2 w-[90px] 
-                     rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
-                     shadow-sm hover:bg-brand-600/80 transition"
+                     rounded-xl bg-brand-300 text-txtcolor-700 text-[14px] font-bold
+                     shadow-sm hover:bg-brand-400 transition"
         >
           {submitting ? "수정중" : uploading ? "업로드중" : "수정"}
         </button>
@@ -296,7 +296,7 @@ function CommunityEdit() {
           onClick={handleCancel}
           className="px-4 py-2 w-[90px]
                      rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                     shadow-sm hover:bg-txtcolor-200/80 transition"
+                     shadow-sm hover:bg-txtcolor-200/60 transition"
         >
           취소
         </button>

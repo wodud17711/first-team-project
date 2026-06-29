@@ -422,8 +422,8 @@ function CommunityDetail() {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleComment() }}
             placeholder="댓글을 입력하세요"
-            className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[16px] text-txtcolor-700
-              focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+            className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[14px] text-txtcolor-700
+              focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
           />
           <button
             onClick={handleComment}
@@ -463,14 +463,14 @@ function CommunityDetail() {
                         autoFocus
                         placeholder="답글을 입력하세요"
                         className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-100 text-[14px] text-txtcolor-700
-                                  focus:outline-brand-500 hover:bg-txtcolor-100/40 transition"
+                                  focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
                       />
                       <div className="flex gap-[6px]">
                         <button
                           onClick={() => handleReply(c.commentId)}
                           className="flex items-center gap-2 px-4 py-2 
-                                    rounded-xl bg-brand-500 text-txtcolor-700 text-[14px] font-bold
-                                    shadow-sm hover:bg-brand-600/80 transition"
+                                    rounded-xl bg-brand-300 text-txtcolor-700 text-[14px] font-bold
+                                    shadow-sm hover:bg-brand-400 transition"
                         >
                           답글
                         </button>
@@ -481,7 +481,7 @@ function CommunityDetail() {
                           }}
                           className="flex items-center gap-2 px-4 py-2 
                                     rounded-xl bg-txtcolor-100 text-txtcolor-600 text-[14px] font-bold
-                                    shadow-sm hover:bg-txtcolor-200/80 transition"
+                                    shadow-sm hover:bg-txtcolor-200/60 transition"
                         >
                           취소
                         </button>
