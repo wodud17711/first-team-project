@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from walk_risk import (  # noqa: E402
     DogInfo, WeatherInfo, RiskLevel, calculate_walk_risk, RULES,
+    estimate_asphalt_temp,
 )
 
 # 룰 레지스트리의 모든 코드 + 사유 없음 폴백. reason_codes 유효성 검증용.
@@ -214,6 +215,49 @@ def test_reason_code_완벽한날씨_ALL_CLEAR():
                             wind_speed=1))
     assert r.reason_codes == ["ALL_CLEAR"]
     assert len(r.reasons) == 1
+
+
+# ============================================================
+# 노면 추정 전환 (v1.4 — 발바닥 화상 입력을 측정 맨땅→추정 아스팔트로)
+# ============================================================
+def test_노면추정_docs표_정합():
+    # full-sun(자외선 매우높음) 기준 docs 추정표: 25→35 / 30→50 / 35→65
+    def est(t):
+        return estimate_asphalt_temp(
+            WeatherInfo(temperature=t, uv_index=10, ground_temperature=0))
+    assert est(25) == 35
+    assert est(30) == 50
+    assert est(35) == 65
+
+
+def test_맑은날_측정지면낮아도_추정노면으로_주의():
+    # 실제 운영 케이스: 기온27·UV9 맑음 + 측정 지면 37℃(맨땅이라 낮음)
+    # → 추정 아스팔트 41℃ → GROUND_TEMP_HIGH 발화, 등급 '주의'
+    w = WeatherInfo(temperature=27, feels_like=27, humidity=65,
+                    ground_temperature=37, pm10=20, uv_index=9)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert "GROUND_TEMP_HIGH" in r.reason_codes
+    assert r.level == RiskLevel.CAUTION
+    assert r.score == 65  # -20(지면) -15(자외선 매우높음)
+
+
+def test_흐린날_같은기온_추정노면_미발화():
+    # 같은 기온이라도 자외선 낮으면(흐림) 노면이 안 달궈져 과잉 경보하지 않음
+    w = WeatherInfo(temperature=27, feels_like=27, humidity=65,
+                    ground_temperature=27, pm10=20, uv_index=2)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert "GROUND_TEMP_HIGH" not in r.reason_codes
+    assert "GROUND_TEMP_SEVERE" not in r.reason_codes
+    assert r.score == 100
+
+
+def test_비오는날_추정노면_미발화():
+    # 강수 중에는 노면이 달궈지지 않으므로 지면 룰 미발화
+    w = WeatherInfo(temperature=30, ground_temperature=30,
+                    precipitation_type="비", uv_index=0)
+    r = calculate_walk_risk(GOLDEN, w)
+    assert "GROUND_TEMP_HIGH" not in r.reason_codes
+    assert "GROUND_TEMP_SEVERE" not in r.reason_codes
 
 
 # ============================================================
