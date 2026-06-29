@@ -1,9 +1,10 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { useDogs } from '../../hooks/useDogs'
 import { useWalkStatistics, useWalkCalendar } from '../../hooks/useWalkStatistics'
-import { useWalkHistory } from '../../hooks/useWalkRecord'
+import { parseThermal, } from '../../hooks/useWalkRecord'
 import { useNavigate } from 'react-router-dom'
 import { getWalkHistory } from '../../api/walk'
+
 
 // 요일 라벨 (일~토)
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -18,7 +19,6 @@ function parseDate(iso) {
   const [y, m, d] = iso.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
-
 
 function WalkCalendar() {
   
@@ -38,7 +38,6 @@ function WalkCalendar() {
   const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
   const { data: cal } = useWalkCalendar(activeDogId, ym.year, ym.month)
 
-  const periodLabel = period === 'WEEK' ? '지난주' : '지난달'
 
   // 요일별 산책 횟수 집계 (dailyBreakdown → 일~토)
   const weekdayCounts = useMemo(() => {
@@ -48,10 +47,7 @@ function WalkCalendar() {
     }
     return acc
   }, [stat])
-  const maxWeekdayCount = Math.max(1, ...weekdayCounts)
-  const topWeekday = weekdayCounts.some((c) => c > 0)
-    ? weekdayCounts.indexOf(Math.max(...weekdayCounts))
-    : null
+
 
   // 캘린더 그리드(주 단위) — 산책한 날 표시용 map
   const calMap = useMemo(() => {
@@ -73,36 +69,6 @@ function WalkCalendar() {
     return cells
   }, [ym, calMap])
 
-  
-
-  // 산책 이력(날짜별 그룹) — 캘린더 hover/클릭 상세 팝오버용
-  // const { walks: history } = useWalkHistory(activeDogId)
-  // const histByDate = useMemo(() => {
-  //   const m = new Map()
-  //   for (const w of history ?? []) {
-  //     const iso = w.startTime?.slice(0, 10)
-  //     if (!iso) continue
-  //     if (!m.has(iso)) m.set(iso, [])
-  //     m.get(iso).push(w)
-  //   }
-  //   return m
-  // }, [history])
-
-  // const histByDateAndDog = useMemo(() => {
-  //   const m = new Map()
-
-  //   for (const w of history ?? []) {
-  //     const iso = w.startTime?.slice(0, 10)
-  //     if (!iso || !w.dogId) continue
-
-  //     if (!m.has(iso)) m.set(iso, new Map())
-
-  //     const dogMap = m.get(iso)
-  //     if (!dogMap.has(w.dogId)) dogMap.set(w.dogId, w)
-  //   }
-
-  //   return m
-  // }, [history])
 
   // 캘린더, 산책기록에 산책한 모든 강아지가 뜨도록
   const [allHistory, setAllHistory] = useState([])
@@ -152,6 +118,12 @@ function WalkCalendar() {
     return m
   }, [allHistory])
 
+  // 달력 높이에 따라 산책기록 높이 바뀌게
+  const calendarRows = useMemo(() => {
+    return Math.ceil(calendarCells.length / 7)
+  }, [calendarCells])
+  const listMaxHeight = calendarRows === 6 ? 522 : 420
+
   // 산책기록에 강아지 필터 드롭다운
   const [selectedDogId, setSelectedDogId] = useState('ALL')
 
@@ -165,8 +137,27 @@ function WalkCalendar() {
     return sortedDogs.find(d => d.dogId === Number(selectedDogId))?.name ?? '전체'
   }, [selectedDogId, sortedDogs])
 
+  // 체감 옵션
+  const THERMAL_LABEL = {
+    HOT: '🥵 더움',
+    OK: '🙂 적당',
+    COLD: '🥶 추움',
+  }
 
-  // 팝오버: hover 미리보기 + 클릭 고정(pinned). 위치는 캘린더 섹션 기준 좌표.
+  // 기록 카드 내 거리별 배지
+  const getDistanceBadge = (distanceKm) => {
+    const distance = Number(distanceKm ?? 0)
+    if (distance >= 8)
+      return {
+        label: '장거리 산책', emoji: '🥇', className: 'bg-purple-100 text-purple-700 font-medium'}
+    if (distance >= 3)
+      return {
+        label: '중거리 산책', emoji: '🥈', className: 'bg-brand-100 text-orange-700/90 font-medium'}
+    return {
+      label: '단거리 산책', emoji: '🥉', className: 'bg-green-100/60 text-green-700 font-medium'}
+  }
+
+
   const calRef = useRef(null)
   const [popover, setPopover] = useState(null) // { iso, x, y }
   const [pinned, setPinned] = useState(false)
@@ -177,8 +168,7 @@ function WalkCalendar() {
     const c = el.getBoundingClientRect()
     setPopover({ iso, x: c.left - s.left + c.width / 2, y: c.bottom - s.top })
   }
-  // const handleCellEnter = (iso, el) => { if (!pinned) openPopover(iso, el) }
-  // const handleCellLeave = () => { if (!pinned) setPopover(null) }
+
   const handleCellClick = (iso, el) => {
     if (pinned && popover?.iso === iso) { setPinned(false); setPopover(null) }
     else { setPinned(true); openPopover(iso, el) }
@@ -257,9 +247,10 @@ function WalkCalendar() {
             <button onClick={() => shiftMonth(1)} className="text-txtcolor-300 hover:text-txtcolor-700">›</button>
           </div>
           
-          <div className="grid grid-cols-7 gap-px bg-gray-300 border border-gray-300 rounded-lg overflow-hidden text-center">
+          <div className="grid grid-cols-7 gap-2 rounded-lg overflow-hidden text-center">
             {WEEKDAYS.map((w, i) => (
-              <div key={w} className={`bg-brand-100 text-[13px] font-bold py-2 ${i === 0 ? 'text-danger' : 'text-txtcolor-700'}`}>
+              <div key={w} className={`bg-brand-100 text-[13px] rounded-xl font-bold py-2 
+                                      ${i === 0 ? 'text-danger' : 'text-txtcolor-700'}`}>
                 {w}
               </div>
             ))}
@@ -267,7 +258,7 @@ function WalkCalendar() {
               if (!cell) return <div key={idx} />
               const count = cell?.info?.count ?? 0
               const isToday = cell?.iso === todayIso
-
+            
               const dogMap = histByDateAndDog.get(cell.iso)
               const dogsInDay = (dogMap ? Array.from(dogMap.values()) : [])
                 .map((w) => sortedDogs.find((d) => d.dogId === w.dogId))
@@ -277,9 +268,10 @@ function WalkCalendar() {
               return (
                 <div
                   key={idx}
-                  className={`relative aspect-square bg-white p-1.5 flex flex-col ${
+                  className={`relative aspect-square bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-2 flex flex-col overflow-y-auto ${
                     count > 0 ? 'cursor-pointer' : ''
-                  } ${isToday ? 'ring-[3px] ring-inset ring-brand-500' : ''}`}
+                  } ${isToday ? 'bg-[#FFF6CC]/40 border border-[#FFE066] hover:bg-[#FFF6CC]/80 transition' 
+                              : 'bg-white hover:bg-txtcolor-50/40 transition'}`}
                   // onMouseEnter={count > 0 ? (e) => handleCellEnter(cell.iso, e.currentTarget) : undefined}
                   // onMouseLeave={count > 0 ? handleCellLeave : undefined}
                   onClick={count > 0 ? (e) => handleCellClick(cell.iso, e.currentTarget) : undefined}
@@ -287,19 +279,19 @@ function WalkCalendar() {
                   {cell && (
                     <>
                       {/* 날짜: 좌상단 (실제 달력처럼 한 곳으로) */}
-                      <span className="text-[13px] leading-none text-gray-500 self-start">
+                      <span className="text-[13px] leading-none text-txtcolor-400 font-medium self-start">
                         {cell.day}
                       </span>
 
                       {/* 산책 표시: 강아지 사진(산책 횟수 상관 X, 산책하면 생김) — 셀 가운데 정렬 */}
                       {dogsInDay.length > 0 && (
-                      <div className="flex-1 flex items-center justify-center gap-1 flex-wrap">
+                      <div className="flex-1 flex items-center justify-center gap-[5px] flex-wrap mt-1.5">
                         {dogsInDay.map((dog) => (
                           dog?.profileImageUrl ? (
                             <img
                               key={dog.dogId}
                               src={dog.profileImageUrl}
-                              className="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow"
+                              className="w-7 h-7 rounded-full object-cover shadow"
                             />
                           ) : (
                             <div key={dog.dogId} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
@@ -362,7 +354,7 @@ function WalkCalendar() {
             const totalKm = walks.reduce((s, w) => s + Number(w.distanceKm ?? 0), 0)
 
             return (
-              <div>
+              <div className="flex flex-col h-full">
                 <div className='border-b border-txtcolor-100'>
                   <p className="text-[20px] font-bold text-txtcolor-700 flex items-center gap-2">
                     <span className="w-1 h-4 bg-brand-500 rounded-full" />
@@ -373,15 +365,15 @@ function WalkCalendar() {
                   </p>
                 </div>
                 
-                <div className="mb-2 flex items-center justify-between mt-2">
-                  <div className="text-sm font-semibold">
-                    {Number(mm)}/{Number(dd)} {selectedDogName}
+                <div className="mb-2 flex items-center justify-between mt-3">
+                  <div className="flex items-center gap-4 text-[14px] font-semibold">
+                    <p className='px-3 py-[2px] rounded-full bg-sky-100 text-sky-600'>{Number(mm)}월 {Number(dd)}일</p>
                   </div>
-
+                
                   <select
                     value={selectedDogId}
                     onChange={(e) => setSelectedDogId(e.target.value)}
-                    className="text-xs border rounded px-2 py-1"
+                    className="text-[12px] border border-txtcolor-100 text-txtcolor-700 rounded px-2 py-1"
                   >
                     <option value="ALL">전체</option>
                     {sortedDogs.map((d) => (
@@ -392,34 +384,68 @@ function WalkCalendar() {
                   </select>
                 </div>
 
-                <div className="text-xs text-gray-500 mb-3">
-                  {walks.length}회 · {totalMin}분
-                  {totalKm > 0 ? ` · ${totalKm.toFixed(1)}km` : ''}
+                <div className="flex items-center justify-between p-3 border border-txtcolor-100/50 rounded-xl
+                                text-center text-[12px] text-txtcolor-400 mb-4">
+                  <div className="flex-1">
+                    <p className="font-semibold text-txtcolor-700">{walks.length}회</p>
+                    <p>산책 횟수</p>
+                  </div>
+                  <div className="w-px h-8 bg-txtcolor-100/70" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-txtcolor-700">{totalMin}분</p>
+                    <p>소요시간</p>
+                  </div>
+                  <div className="w-px h-8 bg-txtcolor-100/70" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-txtcolor-700">
+                      {totalKm.toFixed(1)}km
+                    </p>
+                    <p>산책 거리</p>
+                  </div>
                 </div>
 
                 {walks.length > 0 ? (
-                  <ul className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {walks.map((w) => (
-                      <li key={w.walkId} className="text-xs border-b pb-2">
-                        <div className="font-medium text-gray-700">
-                          {hhmm(w.startTime)} ~ {hhmm(w.endTime)}
+                  <ul style={{ maxHeight: listMaxHeight }} className="space-y-2 overflow-y-auto">
+                    {walks.map((w) => {
+                      const badge = getDistanceBadge(w.distanceKm)
+                      const th = parseThermal(w.userFeedback)
+
+                      return (
+                      <li key={w.walkId} className="text-[12px] px-[10px] py-2 bg-txtcolor-50/50 rounded-xl">
+                        <div className="flex justify-between items-center">
+                          <p className="flex items-center gap-2 text-[13px] font-bold text-txtcolor-700">
+                            <span className="block w-1 h-3 bg-txtcolor-200 rounded-full"/>
+                            {hhmm(w.startTime)} ~ {hhmm(w.endTime)}
+                          </p>
+                          <span className={`text-[10px] px-2 py-1 rounded-full ${badge.className}`}>
+                            {badge.emoji} {badge.label}
+                          </span>
                         </div>
-                        <div className="text-gray-500">
-                          {w.durationMinutes}분
-                          {w.distanceKm ? ` · ${w.distanceKm}km` : ''}
+                        <div className='w-full h-px bg-txtcolor-100 mt-1.5'/>
+                        
+                        <div className='mt-2 px-6 flex items-center justify-between text-[12px] text-txtcolor-400'>
+                          {th && (<p>{THERMAL_LABEL[th]}</p>)}
+                          <div className='w-px h-3 bg-txtcolor-100'/>
+                          <p>⏱️ {w.durationMinutes}분</p>
+                          <div className='w-px h-3 bg-txtcolor-100'/>
+                          <p>🚶‍➡️ {w.distanceKm ?? 0}km</p>
                         </div>
+
                         {w.memo && (
-                          <div className="text-gray-400 mt-1">
+                          <div className="mt-2 p-2 bg-white/90 rounded-lg text-txtcolor-500">
                             📝 {w.memo}
                           </div>
                         )}
                       </li>
-                    ))}
+                    )})}
                   </ul>
                 ) : (
-                  <p className="text-xs text-gray-400">
-                    기록이 없습니다
-                  </p>
+                  <div className="flex-1 flex flex-col items-center justify-center">
+                    <p className="text-[40px]">💤</p>
+                    <p className="text-[16px] text-txtcolor-700 font-semibold text-center mt-2">
+                      기록이 없습니다
+                    </p>
+                  </div>
                 )}
               </div>
             )
