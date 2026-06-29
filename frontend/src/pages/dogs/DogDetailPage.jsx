@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom"
 import { deleteDog, getDog } from "../../api/dogs"
+import { onImgError } from "../../utils/imageFallback"
 
 // 함수 땡겨오기
 import { genderMap, activityMap, walkTimes} from "../../constants/dogConstants"
@@ -205,6 +206,7 @@ function DogDetailPage() {
             {dog.profileImageUrl ? (
               <img
                 src={dog.profileImageUrl}
+                onError={onImgError()}
                 className="w-[350px] h-[470px] rounded-xl object-cover "
                 alt={dog.name}
               />
