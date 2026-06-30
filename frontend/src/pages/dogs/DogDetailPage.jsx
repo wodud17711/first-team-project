@@ -199,21 +199,21 @@ function DogDetailPage() {
 
       {/* 강아지 프로필 상세칸 */}
       <div className="flex flex-col items-center space-y-6">        
-        <div className="flex items-stretch gap-6 w-full">
-          
+        <div className="flex flex-col md:flex-row items-stretch gap-6 w-full">
+
           {/* 강아지 이미지 */}
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 w-full md:w-auto">
             {dog.profileImageUrl ? (
               <img
                 src={dog.profileImageUrl}
                 onError={onImgError()}
-                className="w-[350px] h-[470px] rounded-xl object-cover "
+                className="w-full md:w-[350px] h-[470px] rounded-xl object-cover "
                 alt={dog.name}
               />
             ) : (
               <div
                 className="
-                  w-[350px] h-[470px]
+                  w-full md:w-[350px] h-[470px]
                   rounded-xl shadow
                   bg-txtcolor-100/25
                   flex flex-col items-center justify-center
@@ -242,7 +242,7 @@ function DogDetailPage() {
                 )}
               </div>
                 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {renderSection("📋 기본 정보", basicInfo)}
                 {renderSection("🔎 상세 정보", detailInfo)}
 
