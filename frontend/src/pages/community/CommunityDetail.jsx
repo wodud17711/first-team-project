@@ -7,6 +7,7 @@ import { useMe } from "../../hooks/useMe"
 import { deletePost } from "../../api/community"
 import WalkPathMap from "../../components/WalkPathMap"
 import { extractRoute } from "../../lib/routeEmbed"
+import { onImgError, HUMAN_FALLBACK } from "../../utils/imageFallback"
 
 // 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD. Community 목록과 동일 규칙.
 function timeAgo(iso) {
@@ -57,6 +58,7 @@ function CommentItem({ comment, isReply, onReply }) {
             {comment.authorProfileImageUrl ? (
               <img
                 src={comment.authorProfileImageUrl}
+                onError={onImgError(HUMAN_FALLBACK)}
                 alt={comment.author}
                 className="w-full h-full rounded-full object-cover"
               />
@@ -299,6 +301,7 @@ function CommunityDetail() {
                 {post.authorProfileImageUrl ? (
                   <img
                     src={post.authorProfileImageUrl}
+                    onError={onImgError(HUMAN_FALLBACK)}
                     alt={post.author}
                     className="w-full h-full rounded-full object-cover"
                   />
@@ -402,7 +405,7 @@ function CommunityDetail() {
         {post.imageUrls?.length > 0 && (
           <div className="flex flex-col gap-3 mt-4">
             {post.imageUrls.map((url) => (
-              <img key={url} src={url} className="w-full rounded-xl object-cover" />
+              <img key={url} src={url} onError={onImgError()} className="w-full rounded-xl object-cover" />
             ))}
           </div>
         )}
