@@ -140,7 +140,7 @@ function DogDetailPage() {
 
           <div className="flex-1 mx-3 border-b border-dashed border-txtcolor-200" />
 
-          <span className="text-txtcolor-500 shrink-0">
+          <span className="text-txtcolor-500 min-w-0 break-words text-right">
             {info.value}
           </span>
 
