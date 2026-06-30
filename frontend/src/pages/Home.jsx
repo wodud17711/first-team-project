@@ -32,8 +32,6 @@ function Home() {
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
 
-
-
   const handleLogout = async () => {
     await logout()
     navigate('/login')
@@ -43,7 +41,7 @@ function Home() {
     <div className='relative animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
       <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
-        <div className='bg-brand-100 w-screen h-full object-cover'/>
+        <div className='bg-brand-100 w-full h-full object-cover'/>
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
         {/* <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
@@ -163,9 +161,6 @@ function Home() {
         </section>
         
 
-      
-
-
         {/* (코스 추천) + 코스 미리보기 + 산책 시작 + 오늘의 산책 지수 (이거는 2차긴 한데 일딴 보류)*/}
 
         {/* <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
@@ -183,7 +178,7 @@ function Home() {
           </p>
         </section> */}
 
-        <section className="px-4 grid grid-cols-2 gap-3">
+        {/* <section className="px-4 grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <p className="text-xs text-gray-500">최적 산책 시간</p>
             <p className="text-lg font-semibold mt-1">오후 5시 - 7시</p>
@@ -192,7 +187,7 @@ function Home() {
             <p className="text-xs text-gray-500">이번 주 산책</p>
             <p className="text-lg font-semibold mt-1">3회 · 2시간</p>
           </div>
-        </section>
+        </section> */}
 
         {/* <section className="bg-white rounded-xl p-5 shadow-sm">
           <h3 className="font-semibold mb-3">💡 오늘의 팁</h3>
@@ -201,6 +196,38 @@ function Home() {
             물을 충분히 챙겨가세요.
           </p>
         </section> */}
+
+        <div className='px-4'>
+          <button
+            onClick={() => navigate(`/community`)}
+            className="group flex items-center gap-2 mb-3 text-[30px] text-txtcolor-700 font-extrabold"
+          >
+            커뮤니티
+            <span className="text-[20px] font-medium transition-transform duration-200 group-hover:translate-x-1">
+              ›
+            </span>
+          </button>
+          <section className="grid grid-cols-[1fr_3fr] gap-4">
+            <div className='flex flex-col gap-4'>
+              <div onClick={() => navigate(`/walk`)}
+                   className="bg-white rounded-xl p-4 shadow-sm cursor-pointer">
+                <p className="text-[18px] text-txtcolor-700 font-extrabold">산책 기록</p>
+                <p className="text-[13px] text-txtcolor-500 mt-1">반려견과 함께 <br/>오늘의 산책을 시작해볼까요?</p>
+                <img src="/walkicon.png" alt="산책" className="w-[90px] h-[90px] relative z-10"/>
+              </div>
+
+              <div className="bg-white rounded-xl p-4 shadow-sm">
+                <p className="text-[18px] text-txtcolor-700 font-extrabold">산책 캘린더</p>
+                <p className="text-[13px] text-txtcolor-500 mt-1">반려견과 산책한 날들을 돌아볼 수 있어요!</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-gray-500">주간/월간 리포트</p>
+              <p className="text-lg font-semibold mt-1">3회 · 2시간</p>
+            </div>
+          </section>
+        </div>
+
         {/* 커뮤니티 */}
         <HomeCommunity/>
       </div>
