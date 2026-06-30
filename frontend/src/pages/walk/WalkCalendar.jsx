@@ -4,6 +4,7 @@ import { useWalkStatistics, useWalkCalendar } from '../../hooks/useWalkStatistic
 import { parseThermal, } from '../../hooks/useWalkRecord'
 import { useNavigate } from 'react-router-dom'
 import { getWalkHistory } from '../../api/walk'
+import { onImgError } from '../../utils/imageFallback'
 
 
 // 요일 라벨 (일~토)
@@ -291,6 +292,7 @@ function WalkCalendar() {
                             <img
                               key={dog.dogId}
                               src={dog.profileImageUrl}
+                              onError={onImgError()}
                               className="w-7 h-7 rounded-full object-cover shadow"
                             />
                           ) : (

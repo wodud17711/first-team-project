@@ -3,6 +3,7 @@ import { AuthProvider } from './hooks/useAuth'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
+import BreedEncyclopedia from './pages/BreedEncyclopedia'
 import WalkScoreDetail from './pages/WalkScoreDetail'
 
 
@@ -94,6 +95,7 @@ function App() {
 
               {/* 반려견 프로필 페이지 */}
               <Route path="/dog-profile-list" element={<DogListPage/>}/>
+              <Route path="/breeds" element={<BreedEncyclopedia/>}/>
               <Route path="/dog-profile-detail/:dogId" element={<DogDetailPage/>}/>
               <Route path="/dog-profile-create" element={<DogCreatePage/>}/>
               <Route path="/dog-profile-edit/:dogId" element={<DogEditPage/>}/>

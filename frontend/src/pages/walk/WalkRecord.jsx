@@ -8,6 +8,7 @@ import { useDogs } from '../../hooks/useDogs'
 import { useWalkRecord, useWalkHistory, formatElapsed, parseThermal,} from '../../hooks/useWalkRecord'
 import WalkPathMap from '../../components/WalkPathMap'
 import { subjectName } from '../../lib/korean'
+import { onImgError } from '../../utils/imageFallback'
 
 // 체감 옵션 (docs/11 §1.2: HOT/OK/COLD).
 const THERMAL_OPTIONS = [
@@ -226,6 +227,7 @@ function WalkRecord() {
                   {d.profileImageUrl ? (
                       <img
                         src={d.profileImageUrl}
+                        onError={onImgError()}
                         className="w-[32px] h-[32px] rounded-full object-cover shadow"
                         alt={d.name}
                       />
@@ -258,6 +260,7 @@ function WalkRecord() {
                       {d.profileImageUrl ? (
                         <img
                           src={d.profileImageUrl}
+                          onError={onImgError()}
                           className="w-[32px] h-[32px] rounded-full object-cover shadow"
                           alt={d.name}
                         />
@@ -291,6 +294,7 @@ function WalkRecord() {
                   dogs[0].profileImageUrl ? (
                     <img
                       src={dogs[0].profileImageUrl}
+                      onError={onImgError()}
                       alt={dogs[0].name}
                       className="w-[110px] h-[110px] rounded-full object-cover shadow"
                     />
@@ -306,6 +310,7 @@ function WalkRecord() {
                         <img
                           key={d.dogId}
                           src={d.profileImageUrl}
+                          onError={onImgError()}
                           alt={d.name}
                           className="w-[110px] h-[110px] rounded-full object-cover shadow"
                         />
