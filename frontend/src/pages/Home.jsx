@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 // 컴포넌트
 import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore/WalkScore'
 import WalkScoreHeader from '../components/WalkScore/WalkScoreHeader'
+
+import HomeCommunity from '../components/Home/HomeCommunity'
 
 // hooks (실 API 연결)
 import { useMe } from '../hooks/useMe'
@@ -11,18 +13,10 @@ import { useDogs } from '../hooks/useDogs'
 import { useAuth } from '../hooks/useAuth'
 import { useWalkScore } from '../hooks/useWalkScore'
 
-// 강아지 기본(폴백) 사진
-import dogImg1 from '../assets/dogImg1.jpg'
+
 import { onImgError, HUMAN_FALLBACK } from '../utils/imageFallback'
+import { useState } from 'react'
 
-
-// 일단 홈화면 첫 줄부터 만들어 본 다음 로그인, 회원가입 페이지 작성
-// 폰트 적용은 나중에, 일단 배치부터
-// 색상 아직 미정, 일단 초록색 넣어본 것
-// - 한글: **Pretendard** (가독성 최강 추천)
-// - 영문: System UI 또는 Inter
-// - 사이즈: 12 / 14 / 16 / 18 / 20 / 24 / 32 / 48
-// gap-1 > 4px, gap-2 > 8px ...
 
 function Home() {
 
@@ -38,6 +32,8 @@ function Home() {
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
 
+
+
   const handleLogout = async () => {
     await logout()
     navigate('/login')
@@ -47,7 +43,7 @@ function Home() {
     <div className='relative animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
       <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
-        <div className='bg-brand-100 w-[1920px] h-full object-cover'/>
+        <div className='bg-brand-100 w-screen h-full object-cover'/>
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
         {/* <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
@@ -132,8 +128,6 @@ function Home() {
                 </div>
               </div>
 
-              
-
               {/* 로그아웃 */}
               <div className="mt-auto pt-3">
                 <div className="flex justify-center items-center gap-4 font-medium
@@ -207,19 +201,8 @@ function Home() {
             물을 충분히 챙겨가세요.
           </p>
         </section> */}
-
-        <section className="px-4">
-          <h1 className='mb-6 text-center text-[30px] text-txtcolor-700 font-extrabold'>커뮤니티</h1>
-          <div className='bg-txtcolor-100'>
-            <div className='bg-white rounded-xl p-5 shadow-sm'>
-              <h3 className="font-semibold mb-3">💡 오늘의 팁</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                오후 시간대에는 지면 온도가 떨어져 산책하기 좋습니다.
-                물을 충분히 챙겨가세요.
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* 커뮤니티 */}
+        <HomeCommunity/>
       </div>
     </div>
   )
