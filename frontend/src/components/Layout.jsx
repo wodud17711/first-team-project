@@ -32,6 +32,7 @@ const navItems = [
     to: '/dog-profile-list',
     children: [
       { label: '반려견 프로필 등록', to: '/dog-profile-create' },
+      { label: '견종백과', to: '/breeds' },
     ],
   },
 ]
