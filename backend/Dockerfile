@@ -20,4 +20,10 @@ ENV TZ=Asia/Seoul
 COPY --from=build /app/build/libs/*.jar app.jar
 # Render 는 PORT 환경변수를 주입 → application-prod 의 server.port=${PORT:8081} 가 읽음
 EXPOSE 8081
-ENTRYPOINT ["java", "-Duser.timezone=Asia/Seoul", "-jar", "/app/app.jar"]
+# JVM 메모리 제한: Render 무료 512MB 안에서 돌게 한다. 플래그가 없으면 힙·메타스페이스·
+# 스레드스택·네이티브 합이 512MB 를 넘겨 컨테이너가 OOM kill(로그 없이 즉사·재시작 반복)된다.
+#   MaxRAMPercentage=50  : 힙 상한 ~256MB (나머지 ~256MB 는 메타스페이스·스레드·네이티브용)
+#   UseSerialGC          : 작은 인스턴스에서 G1 보다 메모리 오버헤드 적음
+#   MaxMetaspaceSize=128m: 메타스페이스 무한 증가 차단
+#   Xss512k              : 스레드 스택 축소(Tomcat 다수 스레드 누적 방지)
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=50.0", "-XX:+UseSerialGC", "-XX:MaxMetaspaceSize=128m", "-Xss512k", "-Duser.timezone=Asia/Seoul", "-jar", "/app/app.jar"]

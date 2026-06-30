@@ -4,6 +4,7 @@ import com.example.demo.walk.client.AiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
  * <p>{@code app.ai.warmup.enabled=true} 일 때만 활성(운영 prod 에서 on, 로컬 기본 off).
  */
 @Component
+@Lazy(false) // 운영 prod 의 spring.main.lazy-initialization=true 환경에서도 @Scheduled 등록 보장(eager)
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnProperty(name = "app.ai.warmup.enabled", havingValue = "true")

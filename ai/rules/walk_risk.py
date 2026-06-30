@@ -4,6 +4,11 @@
 날씨 + 반려견 특성을 종합해 산책 위험도(0~100)와 등급(안전/주의/위험), 사유를 산출한다.
 
 변경 이력
+- v1.4 (2026-06-29): 지면(발바닥 화상) 룰 입력을 'ASOS 측정 맨땅 온도'에서
+  '기온+일사(자외선 프록시) 기반 아스팔트 추정 온도'로 전환. 측정 지면(TS)은
+  햇볕에 달궈진 아스팔트보다 낮게 읽혀 화상 위험을 과소평가하던 문제 보정
+  (예: 기온27℃·UV9 맑음에 측정 지면 37℃ → 추정 아스팔트 ~41℃ → '주의').
+  임계(40/50℃)는 그대로 두고 입력만 교정. 측정값이 더 높으면 그 값을 사용(보수적).
 - v1.3 (2026-06-04): 치명 요인 등급 강제(override) 추가 — 점수와 무관하게
   지면 화상(≥50℃)·지면 고온(40~50℃)·미세먼지 매우나쁨은 최소 등급을 보장.
   (단일 치명 요인이 감점만으로는 임계(70/40)를 못 넘어 '안전'으로 표기되던 문제 보정)
@@ -57,7 +62,8 @@ class WeatherInfo:
     feels_like: float = 20.0           # 체감온도 ℃ (생활기상지수 or 계산)
     humidity: int = 50                 # 습도 % (REH)
     wind_speed: float = 2.0            # 풍속 m/s (WSD)
-    ground_temperature: float = 25.0   # 지면온도 ℃ (추정)
+    ground_temperature: float = 25.0   # ASOS 측정 지면온도(맨땅 TS) ℃. 발바닥 화상 룰은
+                                        # 이 값이 아니라 estimate_asphalt_temp() 추정 노면온도를 쓴다.
     pm10: int = 30                     # 미세먼지 ㎍/㎥
     pm25: int = 15                     # 초미세먼지 ㎍/㎥
     precipitation_type: str = "없음"   # 없음 / 비 / 비눈 / 눈
@@ -83,6 +89,47 @@ class RiskResult:
 
 
 # ============================================================
+# 노면(아스팔트) 온도 추정 — 발바닥 화상 룰 입력
+# ============================================================
+# 발바닥 화상은 개가 실제로 밟는 '햇볕에 달궈진 아스팔트' 온도가 좌우한다.
+# 그런데 외부에서 들어오는 ground_temperature 는 ASOS 측정 '맨땅(TS)' 온도라
+# 아스팔트보다 낮게 읽혀(잔디·흙 표면) 화상 위험을 과소평가한다.
+# 그래서 기온 + 일사량(자외선 프록시)으로 아스팔트 노면온도를 추정해 룰 입력으로 쓴다.
+#
+# 보정 기준: docs/08-risk-rules.md 지면온도 추정표(맑음/햇볕 노출 시)
+#   기온 25℃ → 약 37℃ / 30℃ → 약 50℃ / 35℃ → 약 65℃
+# 위 표는 full-sun(자외선 매우높음) 가정. 흐림·강수·야간은 일사계수로 축소한다.
+
+def _sun_factor(weather: "WeatherInfo") -> float:
+    """일사량 계수 0~1 (1=쨍쨍한 맑음). 자외선지수를 일사 프록시로 사용하고,
+    강수 중에는 노면이 거의 달궈지지 않으므로 강하게 낮춘다."""
+    if weather.precipitation_type != "없음":
+        return 0.1
+    uv = weather.uv_index
+    if uv >= 8:
+        return 1.0
+    if uv >= 6:
+        return 0.85
+    if uv >= 3:
+        return 0.6
+    if uv >= 1:
+        return 0.3
+    return 0.15
+
+
+def estimate_asphalt_temp(weather: "WeatherInfo") -> float:
+    """햇볕에 달궈진 아스팔트 노면온도 추정(℃).
+
+    estimated = 기온 + 일사계수 × 2.0 × max(0, 기온−20)
+    → full-sun 기준 기온 25→35 / 30→50 / 35→65 로 docs 추정표와 정합.
+    측정 지면값(ground_temperature)이 추정보다 높으면 그 값을 쓴다(보수적, 과소경보 방지).
+    """
+    gain = 2.0 * max(0.0, weather.temperature - 20.0)
+    estimated = weather.temperature + _sun_factor(weather) * gain
+    return max(estimated, weather.ground_temperature)
+
+
+# ============================================================
 # 룰 정의
 # ============================================================
 @dataclass
@@ -98,12 +145,12 @@ RULES: list[Rule] = [
     # ── 지면온도 (발바닥 화상) ──
     Rule(
         "GROUND_TEMP_SEVERE", 40,
-        lambda d, w: w.ground_temperature >= 50,
+        lambda d, w: estimate_asphalt_temp(w) >= 50,
         lambda d, w: "지면이 매우 뜨거워 발바닥 화상 위험이 큽니다",
     ),
     Rule(
         "GROUND_TEMP_HIGH", 20,
-        lambda d, w: 40 <= w.ground_temperature < 50,
+        lambda d, w: 40 <= estimate_asphalt_temp(w) < 50,
         lambda d, w: "지면이 뜨거워요. 짧은 산책을 권장합니다",
     ),
 
@@ -241,15 +288,15 @@ class LevelOverride:
 
 # 임계값은 대응 감점 룰과 동일하게 맞춘다(일관성).
 LEVEL_OVERRIDES: list[LevelOverride] = [
-    # 발바닥 화상(지면 ≥50℃) — 즉각적 부상 위험 → 최소 '위험'
+    # 발바닥 화상(추정 노면 ≥50℃) — 즉각적 부상 위험 → 최소 '위험'
     LevelOverride(
         "GROUND_BURN_DANGER", RiskLevel.DANGER,
-        lambda d, w: w.ground_temperature >= 50,
+        lambda d, w: estimate_asphalt_temp(w) >= 50,
     ),
-    # 지면 고온(40~50℃, 짧은 산책 권장) → 최소 '주의'
+    # 지면 고온(추정 노면 40~50℃, 짧은 산책 권장) → 최소 '주의'
     LevelOverride(
         "GROUND_HOT_CAUTION", RiskLevel.CAUTION,
-        lambda d, w: 40 <= w.ground_temperature < 50,
+        lambda d, w: 40 <= estimate_asphalt_temp(w) < 50,
     ),
     # 미세먼지 매우나쁨(pm10 ≥151 또는 pm25 ≥76) → 최소 '주의'
     LevelOverride(

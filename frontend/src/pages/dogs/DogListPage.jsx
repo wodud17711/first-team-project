@@ -2,6 +2,7 @@
 
 // 훅 연결 (더미 배열 → 실 API)
 import { useDogs } from "../../hooks/useDogs"
+import { onImgError } from "../../utils/imageFallback"
 
 // 함수 땡겨오기 (genderMap·getWalkType 은 현재 카드에서 미사용 → 제외)
 import { activityMap } from "../../constants/dogConstants"
@@ -101,6 +102,7 @@ function DogListPage() {
                   {dog.profileImageUrl ? (
                     <img
                       src={dog.profileImageUrl}
+                      onError={onImgError()}
                       className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
                       alt={dog.name}
                     />
