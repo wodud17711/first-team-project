@@ -145,7 +145,7 @@ function Home() {
         <section className="flex flex-col lg:flex-row gap-4 mt-10 md:mt-[72px]">
           <div className="lg:w-[180px] shrink-0">
             <p className='font-bold text-[24px]'>오늘의 산책지수</p>
-            <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
+            <button onClick={() => navigate('/walkscore-detail')} className='text-[14px] text-txtcolor-400 hover:text-brand-700 transition'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
           </div>
           <WalkScore
             score={walk?.score}
