@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { usePost, useComments, likePost } from "../../hooks/useCommunity"
 
 import { useMe } from "../../hooks/useMe"
 
 import { deletePost } from "../../api/community"
+import WalkPathMap from "../../components/WalkPathMap"
+import { extractRoute } from "../../lib/routeEmbed"
 
 // 상대 시간(방금/N분 전/N시간 전) → 그 이상은 YYYY/MM/DD. Community 목록과 동일 규칙.
 function timeAgo(iso) {
@@ -116,6 +118,9 @@ function CommunityDetail() {
 
   const { post, loading, error, setPost } = usePost(postId)
   const { comments, submit } = useComments(postId)
+
+  // 본문에 임베드된 산책로 경로를 분리 (마커 제거 텍스트 + 좌표). content 없으면 빈 경로.
+  const route = useMemo(() => extractRoute(post?.content), [post?.content])
 
   const location = useLocation()
   const from = location.state?.from
@@ -382,8 +387,16 @@ function CommunityDetail() {
 
         {/* 본문 */}
         <p className="text-[15px] leading-relaxed text-txtcolor-800 whitespace-pre-wrap">
-          {post.content}
+          {route.text}
         </p>
+
+        {/* 산책로 경로 (본문에 임베드된 좌표가 있으면 읽기전용 지도로 표시) */}
+        {route.points.length >= 2 && (
+          <div className="mt-4">
+            <p className="text-[13px] font-semibold text-txtcolor-600 mb-2">🗺️ 추천 산책로</p>
+            <WalkPathMap readOnly initialPath={route.points} />
+          </div>
+        )}
 
         {/* 이미지 */}
         {post.imageUrls?.length > 0 && (
