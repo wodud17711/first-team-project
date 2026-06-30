@@ -46,7 +46,8 @@ function Home() {
   return (
     <div className='relative animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-txtcolor-100/55 z-6">
+      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
+        <div className='bg-brand-100 w-[1920px] h-full object-cover'/>
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
         {/* <img src='/testimg2.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
       </div>
@@ -98,16 +99,23 @@ function Home() {
                         <br />
                         반려견이 없어요
                       </p>
-                    ) : (
-                      <div key={mainDog.dogId} className="flex items-center gap-3">    
-                        <div className='flex flex-col items-center justify-center'>
-                          <img
-                            src={mainDog.profileImageUrl || dogImg1}
-                            alt="강아지사진"
-                            onError={onImgError()}
-                            className="w-[60px] h-[60px] shadow rounded-[43%] object-cover object-center"
-                          />
-                          <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
+                        ) : (
+                          <div key={mainDog.dogId} className="flex items-center gap-3">    
+                            <div className='flex flex-col items-center justify-center'>
+                              {mainDog.profileImageUrl ? (
+                        <img
+                          src={mainDog.profileImageUrl}
+                          onError={onImgError()}
+                          className="w-[60px] h-[60px] shadow rounded-[43%] object-cover object-center"
+                          alt={mainDog.name}
+                        />
+                      ) : (
+                        <div
+                          className="flex items-center justify-center w-[60px] h-[60px] bg-white shadow rounded-[43%] object-cover object-center">
+                          <div className="text-[30px]">🐶</div>
+                        </div>
+                      )}
+                        <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
                         </div>
                       </div>
                     )}
@@ -142,7 +150,7 @@ function Home() {
         </section>
 
         {/* 산책지수 + 시간별 날씨 */}
-        <section className="flex gap-4 mt-[72px]">
+        <section className="flex px-4 gap-4 mt-[72px]">
           <div>
             <p className='font-bold text-[24px]'>오늘의 산책지수</p>
             <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
@@ -181,7 +189,7 @@ function Home() {
           </p>
         </section> */}
 
-        <section className="grid grid-cols-2 gap-3">
+        <section className="px-4 grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <p className="text-xs text-gray-500">최적 산책 시간</p>
             <p className="text-lg font-semibold mt-1">오후 5시 - 7시</p>
@@ -192,12 +200,25 @@ function Home() {
           </div>
         </section>
 
-        <section className="bg-white rounded-xl p-5 shadow-sm">
+        {/* <section className="bg-white rounded-xl p-5 shadow-sm">
           <h3 className="font-semibold mb-3">💡 오늘의 팁</h3>
           <p className="text-sm text-gray-700 leading-relaxed">
             오후 시간대에는 지면 온도가 떨어져 산책하기 좋습니다.
             물을 충분히 챙겨가세요.
           </p>
+        </section> */}
+
+        <section className="px-4">
+          <h1 className='mb-6 text-center text-[30px] text-txtcolor-700 font-extrabold'>커뮤니티</h1>
+          <div className='bg-txtcolor-100'>
+            <div className='bg-white rounded-xl p-5 shadow-sm'>
+              <h3 className="font-semibold mb-3">💡 오늘의 팁</h3>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                오후 시간대에는 지면 온도가 떨어져 산책하기 좋습니다.
+                물을 충분히 챙겨가세요.
+              </p>
+            </div>
+          </div>
         </section>
       </div>
     </div>
