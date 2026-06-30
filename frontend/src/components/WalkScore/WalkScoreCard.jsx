@@ -15,10 +15,10 @@ function WalkScoreCard({
         오늘의 산책지수
       </span>
 
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
 
         {/* 점수 */}
-        <div className="flex flex-col items-center w-[125px] text-center">
+        <div className="flex flex-col items-center w-full sm:w-[125px] text-center">
           <div className="flex items-end gap-1">
             <span className="text-[48px] font-bold">
               {scoreText}
@@ -34,7 +34,7 @@ function WalkScoreCard({
         </div>
 
         {/* 게이지 + 날씨 */}
-        <div className="flex-1">
+        <div className="w-full sm:flex-1 min-w-0">
 
           {/* 게이지 */}
           <div className="h-[14px] bg-gray-200 rounded-full overflow-hidden">
@@ -45,12 +45,12 @@ function WalkScoreCard({
           </div>
 
           {/* 날씨 */}
-            <div className="flex items-center mt-4">
+            <div className="flex items-center mt-4 overflow-x-auto">
             {weatherItems.map((item, index) => (
-                <div key={index} className="flex items-center">
+                <div key={index} className="flex items-center shrink-0">
 
                   {/* 여기에서 바로 렌더링 */}
-                  <div className="flex flex-col items-center px-[28px]">
+                  <div className="flex flex-col items-center px-4 sm:px-[28px]">
 
                       <p className="text-[12px] text-gray-400">
                       {item.label}

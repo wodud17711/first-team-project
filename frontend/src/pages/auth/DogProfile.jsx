@@ -304,7 +304,7 @@ function DogProfile() {
           />
         </Link>
         
-        <section className="w-[400px] bg-white rounded-xl border border-txtcolor-100/50 
+        <section className="w-full max-w-[400px] bg-white rounded-xl border border-txtcolor-100/50
                             px-8 py-12 shadow-sm">
 
           {done ? (

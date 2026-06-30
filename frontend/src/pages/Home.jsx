@@ -44,7 +44,7 @@ function Home() {
   }
 
   return (
-    <div className='relative animate-fadeIn'>
+    <div className='relative animate-fadeIn overflow-x-hidden'>
       {/* 상단 배경(산책지수 배경) */}
       <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-txtcolor-100/55 z-6">
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
@@ -53,7 +53,7 @@ function Home() {
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
         {/* 헤더 + 유저패널 */}
-        <section className="relative flex justify-between mt-6">
+        <section className="relative flex flex-col md:flex-row md:justify-between gap-6 mt-6">
           {/* 헤더 */}
           <div>
             <WalkScoreHeader
@@ -63,7 +63,7 @@ function Home() {
           </div>
 
           {/* 유저 패널 */}
-          <div className="w-[300px] mt-[94px]">
+          <div className="w-full max-w-[320px] md:w-[300px] mt-2 md:mt-[94px] shrink-0">
             <div className="flex flex-col bg-black/20 backdrop-blur rounded-xl shadow p-4 overflow-hidden">
               <div className="mb-3">
                 <p className="text-[14px] uppercase tracking-wider text-white font-thin">
@@ -142,8 +142,8 @@ function Home() {
         </section>
 
         {/* 산책지수 + 시간별 날씨 */}
-        <section className="flex gap-4 mt-[72px]">
-          <div>
+        <section className="flex flex-col lg:flex-row gap-4 mt-10 md:mt-[72px]">
+          <div className="lg:w-[180px] shrink-0">
             <p className='font-bold text-[24px]'>오늘의 산책지수</p>
             <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
           </div>
