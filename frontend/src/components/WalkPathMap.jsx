@@ -163,14 +163,14 @@ export default function WalkPathMap({
   return (
     <div className="w-full">
       <div className="relative w-full" style={{ height }}>
-        <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden bg-gray-100" />
+        <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden bg-txtcolor-50/50" />
         {status === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-txtcolor-400 text-sm">
             지도를 불러오는 중…
           </div>
         )}
         {status === 'error' && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-txtcolor-400 text-sm">
             지도를 불러오지 못했어요 (거리는 아래에 직접 입력)
           </div>
         )}
@@ -178,19 +178,21 @@ export default function WalkPathMap({
 
       {/* 컨트롤 — 비주얼 placeholder. readOnly(저장 경로 표시)면 거리만 보여주고 편집 버튼 숨김. */}
       <div className="flex items-center justify-between mt-2">
-        <p className="text-[13px] text-gray-500">
+        <p className="text-[12px] text-txtcolor-400">
           {readOnly ? (
-            <>총 거리 <b className="text-sky-700">{km} km</b></>
+            <>총 거리 <b className="text-brand-700">{km} km</b></>
           ) : (
-            <>지도를 클릭해 걸은 길을 그려보세요 · <b className="text-sky-700">{km} km</b></>
+            <>지도에 반려견과 함께 걸은 길을 그려보세요. <b className="text-brand-700">({km} km)</b></>
           )}
         </p>
         {!readOnly && (
-          <div className="flex gap-2">
-            <button onClick={undo} className="px-2 py-1 rounded-lg border text-[12px] text-gray-500">
+          <div className="flex gap-2 mt-2">
+            <button onClick={undo}
+                    className="px-2 py-1 rounded-lg text-[12px] text-white font-medium bg-txtcolor-700 shadow-sm transition hover:bg-txtcolor-900">
               되돌리기
             </button>
-            <button onClick={reset} className="px-2 py-1 rounded-lg border text-[12px] text-gray-500">
+            <button onClick={reset}
+                    className="px-2 py-1 rounded-lg text-[12px] text-white font-medium bg-txtcolor-700 shadow-sm transition hover:bg-txtcolor-900">
               초기화
             </button>
           </div>

@@ -137,7 +137,7 @@ function Community() {
                   #{t}
                 </button>
               ))}
-              <div className="w-px h-4 bg-gray-400 mx-3" />
+              <div className="w-px h-4 bg-txtcolor-400/40 mx-3" />
             </div>
           )}
 

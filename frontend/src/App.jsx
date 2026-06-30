@@ -4,13 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import WalkScoreDetail from './pages/WalkScoreDetail'
-import WalkRecord from './pages/WalkRecord'
-import Statistics from './pages/Statistics'
 
-import Community from './pages/community/Community'
-import CommunityWrite from './pages/community/CommunityWrite'
-import CommunityEdit from './pages/community/CommunityEdit'
-import CommunityDetail from './pages/community/CommunityDetail'
 
 import Login from './pages/auth/Login'
 import Join from './pages/auth/Join'
@@ -26,6 +20,15 @@ import MypageComments from './pages/userpage/myActivities/MypageComments'
 import MypageLikes from './pages/userpage/myActivities/MypageLikes'
 import Notifications from './pages/userpage/Notifications'
 
+import WalkRecord from './pages/walk/WalkRecord'
+import WalkReport from './pages/walk/WalkReport'
+import WalkCalendar from './pages/walk/WalkCalendar'
+
+import Community from './pages/community/Community'
+import CommunityWrite from './pages/community/CommunityWrite'
+import CommunityEdit from './pages/community/CommunityEdit'
+import CommunityDetail from './pages/community/CommunityDetail'
+
 import DogListPage from './pages/dogs/DogListPage'
 import DogDetailPage from './pages/dogs/DogDetailPage'
 import DogCreatePage from './pages/dogs/DogCreatePage'
@@ -35,6 +38,7 @@ import NotFound from './pages/NotFound'
 
 // [개발 전용] 최적시간 차트 미리보기 (mock). 실화면 배치 후 제거 가능.
 import OptimalTimePreview from './pages/dev/OptimalTimePreview'
+
 
 
 
@@ -65,8 +69,11 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/walkscore-detail" element={<WalkScoreDetail />} />
+
+              {/* 산책기록 관련 페이지 */}
               <Route path="/walk" element={<WalkRecord />} />
-              <Route path="/statistics" element={<Statistics />} />
+              <Route path="/walk/report" element={<WalkReport />} />
+              <Route path="/walk/calendar" element={<WalkCalendar />} />
 
               {/* 커뮤니티 페이지 */}
               <Route path="/community" element={<Community />} />
