@@ -30,8 +30,17 @@ function getCurrentCenter() {
  * @param {object}   props
  * @param {number}  [props.height=240]
  * @param {(km:number)=>void} [props.onDistanceChange]  경로 변경 시 누적 거리(km) 콜백
+ * @param {(points:{lat:number,lng:number}[])=>void} [props.onPathChange]  경로 점 변경 콜백(저장용)
+ * @param {{lat:number,lng:number}[]} [props.initialPath]  초기 경로(상세 표시/수정 진입 시 미리 그림)
+ * @param {boolean} [props.readOnly=false]  true 면 클릭 편집·컨트롤 비활성(저장 경로 표시 전용)
  */
-export default function WalkPathMap({ height = 240, onDistanceChange }) {
+export default function WalkPathMap({
+  height = 240,
+  onDistanceChange,
+  onPathChange,
+  initialPath,
+  readOnly = false,
+}) {
   const containerRef = useRef(null)
   const kakaoRef = useRef(null)
   const mapRef = useRef(null)
@@ -45,6 +54,7 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
     const dist = pathDistanceKm(pointsRef.current)
     setKm(dist)
     onDistanceChange?.(dist)
+    onPathChange?.(pointsRef.current.map((p) => ({ lat: p.lat, lng: p.lng })))
   }
 
   useEffect(() => {
@@ -61,21 +71,26 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
         const position = new kakao.maps.LatLng(center.lat, center.lng)
         const map = new kakao.maps.Map(containerRef.current, { center: position, level: 4 })
         mapRef.current = map
-        // 출발(현재 위치) 표식 — 기본 핀 대신 위치 중앙에 작은 점(점이라 시작지점을 덜 가림).
+
+        const hasInitial = Array.isArray(initialPath) && initialPath.length > 0
+
+        // 출발(현재 위치) 표식 — 새로 그릴 때만. 저장 경로 표시(readOnly/초기경로)에선 무의미.
         // CustomOverlay 는 clickable:false 라 점 위를 클릭해도 지도 click 이 통과됨.
         // ⚠️ 색/크기는 비주얼 placeholder(sky 톤) — 정선혜 영역.
-        const dotEl = document.createElement('div')
-        dotEl.style.cssText =
-          'width:14px;height:14px;border-radius:9999px;background:#0284c7;' +
-          'border:2px solid #fff;box-shadow:0 0 0 3px rgba(2,132,199,0.30);'
-        new kakao.maps.CustomOverlay({
-          map,
-          position,
-          content: dotEl,
-          xAnchor: 0.5,
-          yAnchor: 0.5,
-          clickable: false,
-        })
+        if (!readOnly && !hasInitial) {
+          const dotEl = document.createElement('div')
+          dotEl.style.cssText =
+            'width:14px;height:14px;border-radius:9999px;background:#0284c7;' +
+            'border:2px solid #fff;box-shadow:0 0 0 3px rgba(2,132,199,0.30);'
+          new kakao.maps.CustomOverlay({
+            map,
+            position,
+            content: dotEl,
+            xAnchor: 0.5,
+            yAnchor: 0.5,
+            clickable: false,
+          })
+        }
 
         const polyline = new kakao.maps.Polyline({
           map,
@@ -86,14 +101,32 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
         })
         polylineRef.current = polyline
 
-        // 지도 클릭 → 경로 점 추가
-        kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
-          const ll = mouseEvent.latLng
-          pointsRef.current.push({ lat: ll.getLat(), lng: ll.getLng() })
-          polyline.setPath(pointsRef.current.map((p) => new kakao.maps.LatLng(p.lat, p.lng)))
-          markersRef.current.push(new kakao.maps.Marker({ map, position: ll, clickable: false }))
+        // 초기 경로(상세 표시/수정 진입)를 그려두고 지도를 경로 범위에 맞춘다.
+        if (hasInitial) {
+          pointsRef.current = initialPath.map((p) => ({ lat: p.lat, lng: p.lng }))
+          const lls = pointsRef.current.map((p) => new kakao.maps.LatLng(p.lat, p.lng))
+          polyline.setPath(lls)
+          if (!readOnly) {
+            lls.forEach((ll) =>
+              markersRef.current.push(new kakao.maps.Marker({ map, position: ll, clickable: false })),
+            )
+          }
+          const bounds = new kakao.maps.LatLngBounds()
+          lls.forEach((ll) => bounds.extend(ll))
+          map.setBounds(bounds)
           recompute()
-        })
+        }
+
+        // 지도 클릭 → 경로 점 추가 (편집 모드만)
+        if (!readOnly) {
+          kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
+            const ll = mouseEvent.latLng
+            pointsRef.current.push({ lat: ll.getLat(), lng: ll.getLng() })
+            polyline.setPath(pointsRef.current.map((p) => new kakao.maps.LatLng(p.lat, p.lng)))
+            markersRef.current.push(new kakao.maps.Marker({ map, position: ll, clickable: false }))
+            recompute()
+          })
+        }
 
         setStatus('ready')
       } catch (e) {
@@ -130,32 +163,40 @@ export default function WalkPathMap({ height = 240, onDistanceChange }) {
   return (
     <div className="w-full">
       <div className="relative w-full" style={{ height }}>
-        <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden bg-gray-100" />
+        <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden bg-txtcolor-50/50" />
         {status === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-txtcolor-400 text-sm">
             지도를 불러오는 중…
           </div>
         )}
         {status === 'error' && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-txtcolor-400 text-sm">
             지도를 불러오지 못했어요 (거리는 아래에 직접 입력)
           </div>
         )}
       </div>
 
-      {/* 컨트롤 — 비주얼 placeholder */}
+      {/* 컨트롤 — 비주얼 placeholder. readOnly(저장 경로 표시)면 거리만 보여주고 편집 버튼 숨김. */}
       <div className="flex items-center justify-between mt-2">
-        <p className="text-[13px] text-gray-500">
-          지도를 클릭해 걸은 길을 그려보세요 · <b className="text-sky-700">{km} km</b>
+        <p className="text-[12px] text-txtcolor-400">
+          {readOnly ? (
+            <>총 거리 <b className="text-brand-700">{km} km</b></>
+          ) : (
+            <>지도에 반려견과 함께 걸은 길을 그려보세요. <b className="text-brand-700">({km} km)</b></>
+          )}
         </p>
-        <div className="flex gap-2">
-          <button onClick={undo} className="px-2 py-1 rounded-lg border text-[12px] text-gray-500">
-            되돌리기
-          </button>
-          <button onClick={reset} className="px-2 py-1 rounded-lg border text-[12px] text-gray-500">
-            초기화
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex gap-2 mt-2">
+            <button onClick={undo}
+                    className="px-2 py-1 rounded-lg text-[12px] text-white font-medium bg-txtcolor-700 shadow-sm transition hover:bg-txtcolor-900">
+              되돌리기
+            </button>
+            <button onClick={reset}
+                    className="px-2 py-1 rounded-lg text-[12px] text-white font-medium bg-txtcolor-700 shadow-sm transition hover:bg-txtcolor-900">
+              초기화
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

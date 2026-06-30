@@ -2,6 +2,8 @@ import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useCategories, submitPost } from "../../hooks/useCommunity"
 import { uploadImage, validateImageFile } from "../../api/uploads"
+import WalkPathMap from "../../components/WalkPathMap"
+import { encodeRoute } from "../../lib/routeEmbed"
 
 function Section({ title, children }) {
   return (
@@ -30,11 +32,16 @@ function CommunityWrite() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [imageUrls, setImageUrls] = useState([]) // 서버 업로드 후 저장 URL
+  const [routePoints, setRoutePoints] = useState([]) // 산책로 경로 좌표(산책로 카테고리)
   const [submitting, setSubmitting] = useState(false)
   const [uploading, setUploading] = useState(false)
 
+  // 선택된 카테고리
+  const selectedCategory = categories.find((c) => c.categoryId === categoryId)
   // 선택된 카테고리의 서브태그 (카테고리 바꾸면 초기화)
-  const subTags = categories.find((c) => c.categoryId === categoryId)?.subTags ?? []
+  const subTags = selectedCategory?.subTags ?? []
+  // "산책로 추천" 카테고리에서만 경로 그리기 지도를 노출(이름 기반 — categoryId 는 환경별로 다를 수 있음)
+  const isRouteCategory = (selectedCategory?.name ?? "").includes("산책로")
 
   const handleCategory = (id) => {
     setCategoryId(id)
@@ -100,7 +107,8 @@ function CommunityWrite() {
         categoryId,
         subTag,
         title: title.trim(),
-        content: content.trim(),
+        // 산책로 카테고리면 그린 경로 좌표를 본문에 임베드(점 2개 미만이면 원본 그대로).
+        content: encodeRoute(content.trim(), isRouteCategory ? routePoints : []),
         imageUrls,
       })
       alert("게시글이 등록되었습니다.")
@@ -222,6 +230,16 @@ function CommunityWrite() {
             />
           </div>
         </Section>
+
+        {/* 산책로 (산책로 추천 카테고리 전용) */}
+        {isRouteCategory && (
+          <Section title="🗺️ 산책로 (선택)">
+            <p className="text-[12px] text-txtcolor-300 -mt-3">
+              지도를 클릭해 추천 산책로를 그려주세요. 점 2개 이상이면 글과 함께 저장돼요.
+            </p>
+            <WalkPathMap onPathChange={setRoutePoints} />
+          </Section>
+        )}
 
         {/* 사진 (선택, mock) */}
         <Section title="📷 사진 (선택)">
