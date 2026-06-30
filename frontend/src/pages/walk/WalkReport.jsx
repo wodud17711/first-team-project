@@ -3,6 +3,7 @@ import { useDogs } from '../../hooks/useDogs'
 import { useWalkStatistics } from '../../hooks/useWalkStatistics'
 import { getWalkHistory } from '../../api/walk'
 import { useNavigate } from 'react-router-dom'
+import { onImgError } from '../../utils/imageFallback'
 
 // 요일 라벨 (일~토)
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -451,6 +452,7 @@ function WalkReport() {
           {activeDog?.profileImageUrl ? (
             <img
               src={activeDog.profileImageUrl}
+              onError={onImgError()}
               className="w-11 h-11 rounded-full object-cover shadow"
             />
           ) : (
