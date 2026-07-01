@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDogs } from '../../hooks/useDogs'
 import { useWalkRecord, useWalkHistory, formatElapsed, parseThermal,} from '../../hooks/useWalkRecord'
+import { deleteWalk } from '../../api/walk'
 import WalkPathMap from '../../components/WalkPathMap'
 import { subjectName } from '../../lib/korean'
 import { onImgError } from '../../utils/imageFallback'
@@ -58,6 +59,21 @@ function WalkRecord() {
     })
 
   const { walks, loading: histLoading, refetch } = useWalkHistory(dog?.dogId ?? null)
+
+  // 산책 기록 삭제 (소유자만, 되돌릴 수 없음 → 확인 후)
+  const [deletingId, setDeletingId] = useState(null)
+  const handleDeleteWalk = async (walkId) => {
+    if (!window.confirm('이 산책 기록을 삭제할까요? 되돌릴 수 없어요.')) return
+    try {
+      setDeletingId(walkId)
+      await deleteWalk(walkId)
+      await refetch()
+    } catch {
+      alert('삭제에 실패했어요. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   // 타이머 아래 멘트
   const walkMessages = [
@@ -562,7 +578,7 @@ function WalkRecord() {
               <div key={w.walkId}
                    className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-5"
               >
-                {/* 날짜 + 체감 */}
+                {/* 날짜 + 체감 + 삭제 */}
                 <div className="flex items-center mb-2 gap-2">
 
                     <p className="text-[16px] font-bold text-txtcolor-700">
@@ -573,7 +589,17 @@ function WalkRecord() {
                     >
                       {badge.emoji} {badge.label}
                     </span>
-                    
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteWalk(w.walkId)}
+                      disabled={deletingId === w.walkId}
+                      aria-label="산책 기록 삭제"
+                      className="ml-auto text-[13px] text-txtcolor-300 hover:text-red-500 transition disabled:opacity-40"
+                    >
+                      {deletingId === w.walkId ? '삭제 중…' : '삭제'}
+                    </button>
+
                 </div>
 
                 {/* 통계 */}

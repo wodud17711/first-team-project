@@ -2,14 +2,15 @@
 import locationIcon from '../../assets/locationIcon.png'
 
 
-function WalkScoreHeader({ title, desc }) {
+// location 은 현재 데모 고정(부산). 추후 사용자 위치/날씨 지역 배선 시 prop 으로 주입.
+function WalkScoreHeader({ title, desc, location = '부산광역시' }) {
   return (
     <div className="flex flex-col items-start justify-between mb-6">
-      
+
       <div className='flex items-center gap-2'>
         <img src={locationIcon} className='w-4 h-4' />
         <span className="text-[14px] text-txtcolor-500 font-bold">
-          무슨시 무슨구
+          {location}
         </span>
       </div>
 

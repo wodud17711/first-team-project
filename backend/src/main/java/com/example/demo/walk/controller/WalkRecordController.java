@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,6 +71,17 @@ public class WalkRecordController {
     ) {
         Long userId = resolveUserId(userDetails);
         return ResponseEntity.ok(ApiResponse.success(walkService.history(userId, dogId)));
+    }
+
+    /** 산책 기록 삭제. 소유자만 가능(위반 403 / 없으면 404). */
+    @DeleteMapping("/{walkId}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long walkId
+    ) {
+        Long userId = resolveUserId(userDetails);
+        walkService.delete(userId, walkId);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     /** 반려견의 기간별 산책 통계. {@code period} 는 DAY/WEEK/MONTH (캘린더 정렬). */

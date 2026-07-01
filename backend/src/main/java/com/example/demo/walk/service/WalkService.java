@@ -80,6 +80,17 @@ public class WalkService {
                 .toList();
     }
 
+    /**
+     * 산책 기록 삭제. 소유자만 가능(위반 시 403, 없으면 404).
+     *
+     * <p>연결된 walk_scores·walk_locations 는 스키마 FK {@code ON DELETE CASCADE} 로 함께 정리된다.
+     */
+    @Transactional
+    public void delete(Long userId, Long walkId) {
+        Walk walk = getMyWalk(userId, walkId);
+        walkRepository.delete(walk);
+    }
+
     private Dog getMyDog(Long userId, Long dogId) {
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DOG_NOT_FOUND));
