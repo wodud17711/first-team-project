@@ -19,7 +19,7 @@ from schemas import ScoreRequest, ScoreResponse
 def _top_matched(dog: DogInfo, weather: WeatherInfo, n: int = 3) -> list[tuple[str, str]]:
     """매칭된 룰을 감점 큰 순으로 정렬해 상위 n개 (code, reason) 쌍을 반환 (FE 카드용)."""
     matched = [
-        (r.code, r.reason(dog, weather), r.penalty)
+        (r.code_for(dog, weather), r.reason(dog, weather), r.penalty_for(dog, weather))
         for r in RULES
         if r.predicate(dog, weather)
     ]
