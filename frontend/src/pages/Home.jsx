@@ -41,11 +41,11 @@ function Home() {
   return (
     <div className='relative px-4 animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
-      <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
+      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
         {/* <div className='bg-brand-100 mx-auto w-[1920px] h-full object-cover'/> */}
         <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/>
         {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
-      </div>
+      </section>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
         {/* 헤더 + 유저패널 */}
@@ -57,9 +57,30 @@ function Home() {
               desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
             />
           </div>
+        </section>
+
+        
+
+  
+
+        {/* 산책지수 + 시간별 날씨 */}
+        <section className="flex px-4 gap-4 mt-[72px]">
+          <div>
+            <p className='font-bold text-[24px]'>오늘의 산책지수</p>
+            <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
+          </div>
+          <WalkScore
+            score={walk?.score}
+            level={walk?.level}
+            reasons={walk?.topReasons ?? []}
+            loading={walkLoading}
+            notReady={walkNotReady}
+            hasDog={firstDogId != null}
+            weather={walk?.weather}
+          />
 
           {/* 유저 패널 */}
-          <div className="w-[300px] mt-[94px]">
+          <div className="w-[300px]">
             <div className="flex flex-col bg-black/20 backdrop-blur rounded-xl shadow p-4 overflow-hidden">
               <div className="mb-3">
                 <p className="text-[14px] uppercase tracking-wider text-white font-thin">
@@ -140,23 +161,6 @@ function Home() {
               </div>
             </div>
           </div>
-        </section>
-
-        {/* 산책지수 + 시간별 날씨 */}
-        <section className="flex px-4 gap-4 mt-[72px]">
-          <div>
-            <p className='font-bold text-[24px]'>오늘의 산책지수</p>
-            <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
-          </div>
-          <WalkScore
-            score={walk?.score}
-            level={walk?.level}
-            reasons={walk?.topReasons ?? []}
-            loading={walkLoading}
-            notReady={walkNotReady}
-            hasDog={firstDogId != null}
-            weather={walk?.weather}
-          />
         </section>
         
 
