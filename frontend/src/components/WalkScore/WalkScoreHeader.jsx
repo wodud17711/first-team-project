@@ -15,7 +15,7 @@ function WalkScoreHeader({ title, desc, location = '부산광역시' }) {
       </div>
 
       <div className='mt-2'>
-        <h2 className="text-[32px] font-bold">
+        <h2 className="text-[36px] font-extrabold">
           {title}
         </h2>
         <p className="text-[14px] text-txtcolor-500 mt-1">
