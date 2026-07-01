@@ -19,7 +19,8 @@ from walk_risk import (  # noqa: E402
 )
 
 # 룰 레지스트리의 모든 코드 + 사유 없음 폴백. reason_codes 유효성 검증용.
-VALID_CODES = {r.code for r in RULES} | {"ALL_CLEAR"}
+# (동적 code 룰은 all_codes() 로 낼 수 있는 코드 전체를 노출한다 — v1.5)
+VALID_CODES = {c for r in RULES for c in r.all_codes()} | {"ALL_CLEAR"}
 
 
 # --- 견종 프리셋 ---
@@ -238,7 +239,8 @@ def test_맑은날_측정지면낮아도_추정노면으로_주의():
     r = calculate_walk_risk(GOLDEN, w)
     assert "GROUND_TEMP_HIGH" in r.reason_codes
     assert r.level == RiskLevel.CAUTION
-    assert r.score == 65  # -20(지면) -15(자외선 매우높음)
+    # v1.5 연속 램프: 추정 노면 41℃ → 지면 감점 -22(=20+(41-40)/10*20), 자외선 매우높음 -15
+    assert r.score == 63
 
 
 def test_흐린날_같은기온_추정노면_미발화():
@@ -258,6 +260,75 @@ def test_비오는날_추정노면_미발화():
     r = calculate_walk_risk(GOLDEN, w)
     assert "GROUND_TEMP_HIGH" not in r.reason_codes
     assert "GROUND_TEMP_SEVERE" not in r.reason_codes
+
+
+# ============================================================
+# v1.5 — 하드 임계 절벽 완화 (지면·체감·미세먼지 연속화)
+# ============================================================
+def _ground_only(asphalt):
+    """temp18·uv0 이면 추정 노면이 낮아 asphalt=측정 지면값 → 지면 감점만 격리."""
+    return WeatherInfo(temperature=18, feels_like=18, humidity=50,
+                       ground_temperature=asphalt, pm10=30, pm25=15, uv_index=0)
+
+
+def test_v15_지면_앵커_보존():
+    # 40℃→-20, 50℃→-40 (기존 튜닝값 유지)
+    assert calculate_walk_risk(GOLDEN, _ground_only(40)).score == 80
+    assert calculate_walk_risk(GOLDEN, _ground_only(50)).score == 60
+
+
+def test_v15_지면_임계40_절벽제거():
+    lo = calculate_walk_risk(GOLDEN, _ground_only(39.9)).score
+    hi = calculate_walk_risk(GOLDEN, _ground_only(40.1)).score
+    assert abs(lo - hi) <= 2  # 예전엔 0.2℃ 차이로 20점 절벽
+
+
+def test_v15_지면_임계50_절벽제거():
+    lo = calculate_walk_risk(GOLDEN, _ground_only(49.9)).score
+    hi = calculate_walk_risk(GOLDEN, _ground_only(50.1)).score
+    assert abs(lo - hi) <= 2
+
+
+def test_v15_지면_단조감소():
+    prev = 101
+    for a in [36, 38, 40, 42, 45, 48, 50, 52, 55]:
+        s = calculate_walk_risk(GOLDEN, _ground_only(a)).score
+        assert s <= prev, (a, s, prev)
+        prev = s
+
+
+def test_v15_체감_임계33_절벽제거():
+    def w(f):
+        return WeatherInfo(temperature=19, feels_like=f, humidity=50,
+                           ground_temperature=20, pm10=30, uv_index=0)
+    lo = calculate_walk_risk(GOLDEN, w(32.9)).score
+    hi = calculate_walk_risk(GOLDEN, w(33.1)).score
+    assert abs(lo - hi) <= 2
+
+
+def test_v15_체감_앵커_보존():
+    # 체감 33℃ → -20 (기존 값 유지)
+    w = WeatherInfo(temperature=19, feels_like=33, humidity=50,
+                    ground_temperature=20, pm10=30, uv_index=0)
+    assert calculate_walk_risk(GOLDEN, w).score == 80
+
+
+def test_v15_미세먼지_경계81_절벽제거():
+    def w(pm):
+        return WeatherInfo(temperature=18, feels_like=18,
+                           ground_temperature=20, pm10=pm, pm25=10, uv_index=0)
+    lo = calculate_walk_risk(GOLDEN, w(80)).score
+    hi = calculate_walk_risk(GOLDEN, w(82)).score
+    assert abs(lo - hi) <= 5  # 예전엔 81에서 -15 절벽
+
+
+def test_v15_미세먼지_존감점_유지():
+    # 나쁨 평탄대(-15) / 매우나쁨(-30) 값 보존
+    def w(pm):
+        return WeatherInfo(temperature=18, feels_like=18,
+                           ground_temperature=20, pm10=pm, pm25=10, uv_index=0)
+    assert calculate_walk_risk(GOLDEN, w(120)).score == 85   # 나쁨 평탄 -15
+    assert calculate_walk_risk(GOLDEN, w(200)).score == 70   # 매우나쁨 -30
 
 
 # ============================================================

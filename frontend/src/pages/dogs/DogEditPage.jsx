@@ -336,18 +336,18 @@ function DogEditPage() {
       <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]"/>
 
 
-      <div className="flex gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
         {/* 이미지 */}
-        <div className="relative flex flex-col gap-3">
+        <div className="relative flex flex-col gap-3 w-full md:w-[350px] shrink-0">
           {previewImg ? (
             <img
               src={previewImg}
-              className="w-[350px] h-[470px] rounded-xl object-cover shadow"
+              className="w-full h-[470px] rounded-xl object-cover shadow"
             />
           ) : (
             <div
               className="
-                w-[350px] h-[470px]
+                w-full h-[470px]
                 rounded-xl shadow
                 bg-txtcolor-100/25
                 flex flex-col items-center justify-center

@@ -4,6 +4,11 @@
 날씨 + 반려견 특성을 종합해 산책 위험도(0~100)와 등급(안전/주의/위험), 사유를 산출한다.
 
 변경 이력
+- v1.5 (2026-07-01): 하드 임계 절벽 완화 — 노이즈 민감도 큰 핵심 3축(지면·체감
+  고온·미세먼지)의 감점을 구간 선형(piecewise-linear)으로 연속화. 잠정 지면값 등
+  입력 노이즈가 임계(40/50/33℃) 근처에서 점수·등급을 절벽처럼(±20점) 흔들던 문제
+  완화. 앵커(40→20·50→40·33→20)와 미세먼지 존 감점(15/30)은 보존, 경계만 부드럽게.
+  등급 최소보장(LEVEL_OVERRIDES)은 안전장치라 그대로 둔다(등급은 categorical).
 - v1.4 (2026-06-29): 지면(발바닥 화상) 룰 입력을 'ASOS 측정 맨땅 온도'에서
   '기온+일사(자외선 프록시) 기반 아스팔트 추정 온도'로 전환. 측정 지면(TS)은
   햇볕에 달궈진 아스팔트보다 낮게 읽혀 화상 위험을 과소평가하던 문제 보정
@@ -134,30 +139,117 @@ def estimate_asphalt_temp(weather: "WeatherInfo") -> float:
 # ============================================================
 @dataclass
 class Rule:
-    code: str                                  # 룰 식별 코드
-    penalty: int                               # 감점 (양수)
+    # code·penalty 는 정적(str·int)이거나, 입력에 따라 값이 달라지는 콜러블일 수 있다.
+    # 콜러블 감점(그라데이션)은 하드 임계 절벽 완화에 쓴다(_lerp_steps 참고).
+    code: "str | Callable[[DogInfo, WeatherInfo], str]"        # 룰 식별 코드
+    penalty: "int | Callable[[DogInfo, WeatherInfo], float]"   # 감점 (양수, 0이면 미발화)
     predicate: Callable[[DogInfo, WeatherInfo], bool]
     reason: Callable[[DogInfo, WeatherInfo], str]
+    # 동적 code 를 쓰는 룰이 낼 수 있는 모든 코드(레지스트리·정합 검증용). 비면 (code,).
+    codes: tuple = ()
+
+    def code_for(self, dog: DogInfo, weather: WeatherInfo) -> str:
+        return self.code(dog, weather) if callable(self.code) else self.code
+
+    def penalty_for(self, dog: DogInfo, weather: WeatherInfo) -> float:
+        p = self.penalty
+        return float(p(dog, weather)) if callable(p) else float(p)
+
+    def all_codes(self) -> tuple:
+        return self.codes if self.codes else (self.code,)
+
+
+# ============================================================
+# 연속(그라데이션) 감점 — 하드 임계 절벽 완화 (v1.5)
+# ============================================================
+# 기존 룰은 임계에서 감점이 0→전액으로 점프해, 잠정 지면값 등 입력 노이즈가
+# 임계(예: 40℃) 근처면 점수·등급이 절벽처럼 튀었다(0.1℃ 차이로 ±20점).
+# 노이즈 민감도가 큰 핵심 3축(지면·체감고온·미세먼지)만 구간 선형으로 완화한다.
+#   - 지면/체감: 앵커(40→20·50→40 / 33→20) 보존 + 연속화(절벽 제거)
+#   - 미세먼지 : 존 감점(나쁨15·매우나쁨30) 평탄 유지 + 경계만 소프트밴드(±5)
+# 카테고리성 룰(강수·단두종·나이·자외선·풍속 등)은 성격상 그대로 둔다.
+
+
+def _lerp_steps(x: float, pts: list[tuple[float, float]]) -> float:
+    """오름차순 (입력, 감점) 꼭짓점 사이를 선형보간. 양끝 밖은 클램프."""
+    if x <= pts[0][0]:
+        return float(pts[0][1])
+    if x >= pts[-1][0]:
+        return float(pts[-1][1])
+    for (x0, p0), (x1, p1) in zip(pts, pts[1:]):
+        if x0 <= x <= x1:
+            return p0 + (p1 - p0) * (x - x0) / (x1 - x0)
+    return float(pts[-1][1])
+
+
+# --- 지면(발바닥 화상): 37℃부터 40→-20, 50→-40 로 연속 상승 ---
+_GROUND_PTS = [(37.0, 0.0), (40.0, 20.0), (50.0, 40.0)]
+
+
+def _ground_penalty(d: DogInfo, w: WeatherInfo) -> float:
+    return _lerp_steps(estimate_asphalt_temp(w), _GROUND_PTS)
+
+
+def _ground_is_severe(w: WeatherInfo) -> bool:
+    # 코드·등급오버라이드와 일관: 추정 노면 ≥50℃ 를 '화상(SEVERE)' 경계로 본다.
+    return estimate_asphalt_temp(w) >= 50
+
+
+def _ground_code(d: DogInfo, w: WeatherInfo) -> str:
+    return "GROUND_TEMP_SEVERE" if _ground_is_severe(w) else "GROUND_TEMP_HIGH"
+
+
+def _ground_reason(d: DogInfo, w: WeatherInfo) -> str:
+    return (
+        "지면이 매우 뜨거워 발바닥 화상 위험이 큽니다"
+        if _ground_is_severe(w)
+        else "지면이 뜨거워요. 짧은 산책을 권장합니다"
+    )
+
+
+# --- 체감 고온: 30℃부터 33→-20 로 연속 상승(33 이상 평탄) ---
+_FEELS_HOT_PTS = [(30.0, 0.0), (33.0, 20.0)]
+
+
+def _feels_hot_penalty(d: DogInfo, w: WeatherInfo) -> float:
+    return _lerp_steps(w.feels_like, _FEELS_HOT_PTS)
+
+
+# --- 미세먼지: 나쁨(-15)/매우나쁨(-30) 평탄 + 경계 소프트밴드(±5). pm10·pm25 중 큰 감점 ---
+_PM10_PTS = [(76.0, 0.0), (86.0, 15.0), (146.0, 15.0), (156.0, 30.0)]
+_PM25_PTS = [(31.0, 0.0), (41.0, 15.0), (71.0, 15.0), (81.0, 30.0)]
+
+
+def _pm_penalty(d: DogInfo, w: WeatherInfo) -> float:
+    return max(_lerp_steps(w.pm10, _PM10_PTS), _lerp_steps(w.pm25, _PM25_PTS))
+
+
+def _pm_is_very_bad(w: WeatherInfo) -> bool:
+    return w.pm10 >= 151 or w.pm25 >= 76
+
+
+def _pm_code(d: DogInfo, w: WeatherInfo) -> str:
+    return "PM_VERY_BAD" if _pm_is_very_bad(w) else "PM_BAD"
+
+
+def _pm_reason(d: DogInfo, w: WeatherInfo) -> str:
+    return "미세먼지가 매우 나쁨 수준입니다" if _pm_is_very_bad(w) else "미세먼지가 나쁨 수준입니다"
 
 
 # --- 룰 목록 (가중치는 여기서 조정) ---
 RULES: list[Rule] = [
-    # ── 지면온도 (발바닥 화상) ──
+    # ── 지면온도 (발바닥 화상) — 연속 램프(37→40→50℃), 코드는 50℃ 경계로 HIGH/SEVERE ──
     Rule(
-        "GROUND_TEMP_SEVERE", 40,
-        lambda d, w: estimate_asphalt_temp(w) >= 50,
-        lambda d, w: "지면이 매우 뜨거워 발바닥 화상 위험이 큽니다",
-    ),
-    Rule(
-        "GROUND_TEMP_HIGH", 20,
-        lambda d, w: 40 <= estimate_asphalt_temp(w) < 50,
-        lambda d, w: "지면이 뜨거워요. 짧은 산책을 권장합니다",
+        _ground_code, _ground_penalty,
+        lambda d, w: _ground_penalty(d, w) > 0,
+        _ground_reason,
+        codes=("GROUND_TEMP_SEVERE", "GROUND_TEMP_HIGH"),
     ),
 
-    # ── 고온 ──
+    # ── 고온 — 체감 30→33℃ 연속 램프(33 이상 -20 평탄) ──
     Rule(
-        "FEELS_HOT", 20,
-        lambda d, w: w.feels_like >= 33,
+        "FEELS_HOT", _feels_hot_penalty,
+        lambda d, w: _feels_hot_penalty(d, w) > 0,
         lambda d, w: f"체감온도가 {w.feels_like:.0f}℃로 높습니다",
     ),
     Rule(
@@ -198,16 +290,12 @@ RULES: list[Rule] = [
         lambda d, w: "소형 단모종은 추위에 약해요. 옷을 입혀주세요",
     ),
 
-    # ── 미세먼지 ──
+    # ── 미세먼지 — 존 감점 평탄(나쁨15/매우나쁨30) + 경계 소프트밴드(±5) ──
     Rule(
-        "PM_VERY_BAD", 30,
-        lambda d, w: w.pm10 >= 151 or w.pm25 >= 76,
-        lambda d, w: "미세먼지가 매우 나쁨 수준입니다",
-    ),
-    Rule(
-        "PM_BAD", 15,
-        lambda d, w: (81 <= w.pm10 < 151) or (36 <= w.pm25 < 76),
-        lambda d, w: "미세먼지가 나쁨 수준입니다",
+        _pm_code, _pm_penalty,
+        lambda d, w: _pm_penalty(d, w) > 0,
+        _pm_reason,
+        codes=("PM_VERY_BAD", "PM_BAD"),
     ),
 
     # ── 강수 ──
@@ -331,17 +419,18 @@ def _score_to_level(score: int) -> RiskLevel:
 # ============================================================
 def calculate_walk_risk(dog: DogInfo, weather: WeatherInfo) -> RiskResult:
     """반려견 + 날씨로 산책 위험도를 계산한다."""
-    score = 100
+    total_penalty = 0.0
     reasons: list[str] = []
     reason_codes: list[str] = []
 
     for rule in RULES:
         if rule.predicate(dog, weather):
-            score -= rule.penalty
+            total_penalty += rule.penalty_for(dog, weather)  # 정적 int·연속 float 모두 지원
             reasons.append(rule.reason(dog, weather))
-            reason_codes.append(rule.code)
+            reason_codes.append(rule.code_for(dog, weather))
 
-    score = max(0, min(100, score))  # 0~100 클램프
+    # 연속 감점이 섞이므로 마지막에 한 번만 반올림해 정수 점수로(중간 반올림 오차 방지).
+    score = max(0, min(100, round(100 - total_penalty)))
     level = _score_to_level(score)
     level = _apply_level_overrides(level, dog, weather)  # 치명 요인 최소 등급 보장
 

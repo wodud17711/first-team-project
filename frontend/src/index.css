@@ -69,11 +69,18 @@
     /* 스크롤바 자리를 항상 예약 → 긴 페이지(스크롤바 O)와 짧은 페이지(스크롤바 X)
        사이를 오갈 때 가운데 콘텐츠가 좌우로 들썩이는 레이아웃 시프트 방지. */
     scrollbar-gutter: stable;
+    /* 히어로 배경 띠(홈 w-[1920px])는 뷰포트 양옆까지 풀블리드로 깔리되,
+       뷰포트를 넘는 가로 오버플로우로 가로 스크롤이 생기지는 않도록 뷰포트
+       레벨에서 잘라낸다. (hidden 대신 clip → position:sticky 헤더 안 깨짐) */
+    overflow-x: clip;
   }
   html, body, #root {
     height: 100%;
   }
   body {
+    /* html 과 함께 clip → 히어로 풀블리드 띠가 뷰포트 밖으로 넘쳐도 가로 스크롤
+       (특히 모바일)이 생기지 않는다. 루트 뷰포트 전파 특성상 둘 다 필요. */
+    overflow-x: clip;
     @apply bg-[#F7F7F7] text-gray-900 antialiased;
     font-family: "Pretendard", sans-serif, -apple-system, 'Segoe UI', Roboto, 'Apple SD Gothic Neo',
       'Noto Sans KR', sans-serif;
