@@ -44,7 +44,7 @@ function Home() {
   }
 
   return (
-    <div className='relative animate-fadeIn overflow-x-hidden'>
+    <div className='relative animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
       <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[510px] bg-txtcolor-100/55 z-6">
         {/* <img src='/testimg.png' alt='테스트이미지' className='w-full h-full object-cover'/> */}
