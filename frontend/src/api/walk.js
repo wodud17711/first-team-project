@@ -75,6 +75,16 @@ export async function getWalkHistory(dogId) {
 }
 
 /**
+ * 산책 기록 삭제. DELETE /api/walks/{walkId}
+ * 소유자만 가능(위반 403 / 없으면 404). 연결된 점수·위치는 BE 에서 함께 정리된다.
+ * @param {number} walkId
+ * @returns {Promise<null>}
+ */
+export async function deleteWalk(walkId) {
+  return apiClient.delete(`/walks/${walkId}`)
+}
+
+/**
  * 산책 통계 (주/월). GET /api/walks/statistics?dogId=&period=
  *
  * 응답 (docs/06-api-spec.md 산책 통계):
