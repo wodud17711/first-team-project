@@ -219,31 +219,45 @@ public class WalkScoreService {
             WeatherSnapshot snapshot
     ) {
 
+        // AI(WeatherIn Pydantic) 검증 범위로 정규화한다.
+        // 부분 수집으로 PM·UV 가 null 이거나(→ DTO primitive 언박싱 NPE), provisional ASOS
+        // 이상치가 범위를 벗어나면(→ AI 422) walk-score 가 500 으로 번지던 문제 방지.
+        // 점수는 항상 나오도록 한다.
+        Double ground = snapshot.getGroundTemperature();
+        Integer pm10 = snapshot.getPm10();
+        Integer pm25 = snapshot.getPm25();
+        Integer uv = snapshot.getUvIndex();
+
         return new WalkScoreRequest.WeatherInfo(
 
-                snapshot.getTemperature(),
+                clamp(snapshot.getTemperature(), -50, 60),
 
-                snapshot.getFeelsLikeTemperature(),
+                clamp(snapshot.getFeelsLikeTemperature(), -60, 70),
 
-                (int) snapshot.getHumidity(),
+                clamp((int) snapshot.getHumidity(), 0, 100),
 
-                snapshot.getWindSpeed(),
+                clamp(snapshot.getWindSpeed(), 0, 80),
 
-                snapshot.getGroundTemperature() != null
-                        ? snapshot.getGroundTemperature()
-                        : 25.0,
+                clamp(ground != null ? ground : 25.0, -50, 90),
 
-                snapshot.getPm10(),
+                clamp(pm10 != null ? pm10 : 0, 0, 1000),
 
-                snapshot.getPm25(),
+                clamp(pm25 != null ? pm25 : 0, 0, 1000),
 
                 // TODO: AirKorea 연동 후 대기질 등급 실제 값 적용
                 // 현재는 외부 연동 전 단계 -> 나중에 채워넣어야 함
 
-                snapshot.getUvIndex() != null
-                        ? snapshot.getUvIndex()
-                        : 0
+                clamp(uv != null ? uv : 0, 0, 20)
         );
+    }
+
+    /** AI 검증 범위로 값을 가둔다(이상치·범위초과 방어). */
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private void saveWalkScore(
