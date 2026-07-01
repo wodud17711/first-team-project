@@ -16,6 +16,7 @@ import { useWalkScore } from '../hooks/useWalkScore'
 
 import { onImgError, HUMAN_FALLBACK } from '../utils/imageFallback'
 import { useState } from 'react'
+import HomeWalk from '../components/Home/HomeWalk'
 
 
 function Home() {
@@ -38,7 +39,7 @@ function Home() {
   }
 
   return (
-    <div className='relative animate-fadeIn'>
+    <div className='relative px-4 animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
       <div className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
         {/* <div className='bg-brand-100 mx-auto w-[1920px] h-full object-cover'/> */}
@@ -156,8 +157,6 @@ function Home() {
             hasDog={firstDogId != null}
             weather={walk?.weather}
           />
-
-          {/* <WeatherCard /> */}
         </section>
         
 
@@ -197,37 +196,8 @@ function Home() {
           </p>
         </section> */}
 
-        <div className='px-4 grid grid-cols-[1fr_2fr]'>
-          <div className='flex flex-col'>
-            <p className="gap-2 mb-3 text-[30px] text-txtcolor-700 font-extrabold">
-              반려견과의<br/>슬기로운 산책 라이프
-            </p>
-            <span className="text-[16px] text-txtcolor-500">
-              산책 기록부터 통계 분석까지,<br/>산책 활동을 쉽고 편하게 체계적으로 관리해보세요.
-            </span>
-          </div>
-          
-          <section className="flex justify-end gap-4">
-            <div onClick={() => navigate(`/walk`)}
-                 className="w-[200px] bg-white rounded-xl p-4 shadow-sm cursor-pointer">
-              <p className="text-[18px] text-txtcolor-700 font-extrabold">산책 기록</p>
-              <p className="text-[13px] text-txtcolor-500 mt-1">반려견과 함께 <br/>오늘의 산책을 시작해볼까요?</p>
-              <img src="/walkicon.png" alt="산책" className="w-[90px] h-[90px] relative z-10"/>
-            </div>
-
-            <div onClick={() => navigate(`/walk/calendar`)}
-                 className="w-[200px] bg-white rounded-xl p-4 shadow-sm cursor-pointer">
-              <p className="text-[18px] text-txtcolor-700 font-extrabold">산책 캘린더</p>
-              <p className="text-[13px] text-txtcolor-500 mt-1">반려견과 산책한 날들을 돌아볼 수 있어요!</p>
-            </div>
-
-            <div onClick={() => navigate(`/walk/report`)}
-                 className="w-[200px] bg-white rounded-xl p-4 shadow-sm cursor-pointer">
-              <p className="text-xs text-gray-500">주간/월간 리포트</p>
-              <p className="text-lg font-semibold mt-1">3회 · 2시간</p>
-            </div>
-          </section>
-        </div>
+        {/* 산책 페이지들 */}
+        <HomeWalk/>
 
         {/* 커뮤니티 */}
         <HomeCommunity/>
