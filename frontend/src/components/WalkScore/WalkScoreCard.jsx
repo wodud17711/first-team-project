@@ -6,12 +6,10 @@ function WalkScoreCard({
   weatherItems
 }) {
   return (
-    <div className="bg-white rounded-xl px-5 py-4 shadow-sm w-full">
-
-      <span className="
-        inline-flex px-3 py-1 mb-5 rounded-full
-        text-[13px] font-bold text-brand-700 bg-brand-100
-      ">
+    <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-5 py-4 w-full">
+      <span className="inline-flex px-3 py-1 mb-5 rounded-full
+                      text-[13px] font-bold text-brand-700 bg-brand-100"
+      >
         오늘의 산책지수
       </span>
 
