@@ -25,6 +25,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
     // =========================
     // 회원가입
@@ -58,6 +59,9 @@ public class AuthService {
                     ErrorCode.NICKNAME_DUPLICATED
             );
         }
+
+        // 이메일 소유 확인(인증 코드 검증 완료) 없이는 가입 불가 — 검증 레코드는 여기서 소비된다.
+        emailVerificationService.consumeVerified(normalizedEmail);
 
         User user = new User();
         user.setEmail(normalizedEmail);

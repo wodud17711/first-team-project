@@ -49,6 +49,20 @@ export async function login({ email, password }) {
 }
 
 /**
+ * 회원가입 이메일 인증 코드 발송 (6자리, 10분 유효, 재발송 60초 쿨다운).
+ */
+export async function sendEmailCode(email) {
+  await apiClient.post('/auth/email/send-code', { email })
+}
+
+/**
+ * 이메일 인증 코드 검증. 성공 후 30분 내 가입해야 함.
+ */
+export async function verifyEmailCode(email, code) {
+  await apiClient.post('/auth/email/verify-code', { email, code })
+}
+
+/**
  * 로그아웃 — RT 쿠키 만료 + AT 제거.
  * 서버 호출 실패해도 클라이언트 상태는 정리한다.
  */

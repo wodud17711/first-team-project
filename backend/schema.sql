@@ -1,9 +1,16 @@
 -- ============================================================
--- 반려견 산책 라이프 플랫폼 ERD v1.7
--- 작성일: 2026-05-19 (v1.7: 2026-06-11)
+-- 반려견 산책 라이프 플랫폼 ERD v1.8
+-- 작성일: 2026-05-19 (v1.8: 2026-07-02)
 -- MySQL 8.0 기준
 -- 저장 위치: backend/schema.sql (현재) / 또는 backend/src/main/resources/schema.sql (Spring Boot 자동 실행 시)
--- 테이블: 25개
+-- 테이블: 26개
+--
+-- 변경 사항 (v1.7 → v1.8) — 회원가입 이메일 인증 + 소셜 로그인 드리프트 정리 (2026-07-02)
+--  • email_verifications 테이블 신규 — 가입 이메일 인증 코드 (6자리, 10분 유효, 검증 후 30분 내 가입)
+--  • users: provider VARCHAR(20) NOT NULL DEFAULT 'LOCAL' + provider_id VARCHAR(255) NULL 반영
+--    (카카오 소셜 로그인 때 엔티티에만 추가되고 schema 가 따라오지 않았던 드리프트 정리.
+--     v1.8에서 구글·네이버 확장 — UNIQUE(provider, provider_id) 로 소셜 계정 식별)
+--  • users: password NULL 허용 (소셜 가입자는 비밀번호 없음)
 --
 -- 변경 사항 (v1.6 → v1.7) — 보호자 연차 (2026-06-11 PM·FE 협의 결정)
 --  • users: guardian_level VARCHAR(20) NULL 추가 — 자기신고 선택형 (BEGINNER/JUNIOR/SENIOR/VETERAN)
@@ -70,6 +77,7 @@ DROP TABLE IF EXISTS walk_routes;
 DROP TABLE IF EXISTS weather_snapshots;
 DROP TABLE IF EXISTS dogs;
 DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS email_verifications;
 DROP TABLE IF EXISTS dog_breeds;
 DROP TABLE IF EXISTS users;
 
@@ -79,16 +87,36 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '사용자 ID',
     email VARCHAR(100) NOT NULL UNIQUE COMMENT '이메일 (로그인 ID)',
-    password VARCHAR(255) NOT NULL COMMENT '비밀번호 (BCrypt 해시)',
+    password VARCHAR(255) NULL COMMENT '비밀번호 (BCrypt 해시, 소셜 가입자는 NULL) v1.8',
     nickname VARCHAR(50) NOT NULL COMMENT '닉네임',
     profile_image_url VARCHAR(500) COMMENT '프로필 이미지 URL',
     role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '권한 (USER / ADMIN)',
     guardian_level VARCHAR(20) NULL COMMENT '보호자 연차 자기신고 (BEGINNER/JUNIOR/SENIOR/VETERAN, NULL=미설정) v1.7',
+    provider VARCHAR(20) NOT NULL DEFAULT 'LOCAL' COMMENT '인증 제공자 (LOCAL/KAKAO/GOOGLE/NAVER) v1.8',
+    provider_id VARCHAR(255) NULL COMMENT '소셜 고유 ID (LOCAL=NULL) v1.8',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL COMMENT '탈퇴일시 (소프트 삭제)',
-    INDEX idx_users_email (email)
+    INDEX idx_users_email (email),
+    UNIQUE KEY uk_users_provider (provider, provider_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 계정';
+
+-- ============================================================
+-- 1-0. 이메일 인증 (email_verifications)  ⭐ v1.8 신규
+-- ============================================================
+-- 회원가입 이메일 소유 확인용 6자리 코드. 이메일당 최신 1건만 유효(재발송 시 삭제 후 재생성).
+-- 코드 10분 유효 / 입력 5회 실패 시 폐기 / 검증(verified) 후 30분 내 가입 → 가입 시 레코드 소비(삭제).
+CREATE TABLE email_verifications (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '인증 ID',
+    email VARCHAR(100) NOT NULL COMMENT '인증 대상 이메일 (정규화)',
+    code VARCHAR(6) NOT NULL COMMENT '6자리 인증 코드',
+    expires_at DATETIME(6) NOT NULL COMMENT '코드 만료 시각 (발송 +10분)',
+    verified BIT(1) NOT NULL DEFAULT 0 COMMENT '검증 완료 여부',
+    verified_at DATETIME(6) NULL COMMENT '검증 완료 시각 (30분 가입 창 판단)',
+    attempts INT NOT NULL DEFAULT 0 COMMENT '코드 입력 실패 횟수 (5회 초과 폐기)',
+    created_at DATETIME(6) NOT NULL COMMENT '발송 시각 (재발송 쿨다운 60초 판단)',
+    INDEX idx_email_verifications_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원가입 이메일 인증 코드';
 
 -- ============================================================
 -- 1-1. Refresh Token (refresh_tokens)  ⭐ v1.4 신규

@@ -1,10 +1,13 @@
 package com.example.demo.auth.controller;
 
 import com.example.demo.auth.dto.AuthResponse;
+import com.example.demo.auth.dto.EmailSendCodeRequest;
+import com.example.demo.auth.dto.EmailVerifyCodeRequest;
 import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.dto.OAuthUserInfo;
 import com.example.demo.auth.dto.SignupRequest;
 import com.example.demo.auth.service.AuthService;
+import com.example.demo.auth.service.EmailVerificationService;
 import com.example.demo.auth.service.OAuthService;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.user.type.AuthProvider;
@@ -25,6 +28,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final OAuthService oAuthService;
+    private final EmailVerificationService emailVerificationService;
 
     /**
      * 소셜 로그인 성공 후 리다이렉트할 FE 주소.
@@ -52,6 +56,39 @@ public class AuthController {
      */
     @Value("${app.cookie.same-site:Lax}")
     private String cookieSameSite;
+
+    // =========================
+    // 이메일 인증 (회원가입 선행)
+    // =========================
+    @PostMapping("/email/send-code")
+    public ResponseEntity<ApiResponse<Void>> sendEmailCode(
+            @Valid @RequestBody EmailSendCodeRequest request
+    ) {
+
+        emailVerificationService.sendCode(request.email());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Verification code sent"
+                )
+        );
+    }
+
+    @PostMapping("/email/verify-code")
+    public ResponseEntity<ApiResponse<Void>> verifyEmailCode(
+            @Valid @RequestBody EmailVerifyCodeRequest request
+    ) {
+
+        emailVerificationService.verifyCode(request.email(), request.code());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        null,
+                        "Email verified"
+                )
+        );
+    }
 
     // =========================
     // 회원가입

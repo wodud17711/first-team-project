@@ -5,8 +5,8 @@
 - **DBMS**: MySQL 8.0
 - **문자셋**: utf8mb4 (이모지 지원)
 - **타임존**: Asia/Seoul
-- **테이블 수**: 25개
-- **버전**: v1.7 (2026-06-11) — users.guardian_level 추가(보호자 연차 자기신고) / post_likes: 복합 PK → id PK + UNIQUE
+- **테이블 수**: 26개
+- **버전**: v1.8 (2026-07-02) — email_verifications 신규(가입 이메일 인증) / users: provider·provider_id·password NULL 드리프트 정리(소셜 로그인)
 
 ---
 
@@ -20,14 +20,15 @@
 
 ---
 
-## 🗂️ 테이블 한눈에 보기 (25개)
+## 🗂️ 테이블 한눈에 보기 (26개)
 
-### 👤 사용자 / 인증 / 반려견 (5)
+### 👤 사용자 / 인증 / 반려견 (6)
 
 | 테이블 | 설명 |
 | --- | --- |
-| `users` | 사용자 계정 (이메일/BCrypt 비밀번호 / `role`: USER·ADMIN / `guardian_level`: 보호자 연차 자기신고 ⭐ v1.7) |
+| `users` | 사용자 계정 (이메일/BCrypt 비밀번호(소셜=NULL) / `provider`·`provider_id`: LOCAL·KAKAO·GOOGLE·NAVER ⭐ v1.8 / `role`: USER·ADMIN / `guardian_level`: 보호자 연차 자기신고 ⭐ v1.7) |
 | `refresh_tokens` | Refresh Token 관리 (해시 저장, HttpOnly 쿠키 인증 / 단일 세션) ⭐ v1.4 |
+| `email_verifications` | 가입 이메일 인증 코드 (6자리·10분 유효·5회 실패 폐기·검증 후 30분 내 가입) ⭐ v1.8 |
 | `dog_breeds` | 견종 마스터 (Kaggle 시드 데이터) |
 | `dogs` | 반려견 프로필 (`is_main` 대표견 1마리 강제 / `favor_walk_time` 선호 산책시간 0~23시 CSV) |
 | `user_walk_stats` | 사용자 산책 통계 (배치 집계 - 견주 유형 분석) |
