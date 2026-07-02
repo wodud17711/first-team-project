@@ -41,7 +41,7 @@ function Home() {
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
         {/* 헤더 */}
-        <section className="relative flex flex-col md:justify-between gap-[60px] mt-6">
+        <section className="relative flex flex-col md:justify-between gap-[68px] mt-6">
           <WalkScoreHeader
             title="오늘의 산책지수"
             desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
