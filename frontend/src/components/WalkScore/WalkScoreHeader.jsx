@@ -9,16 +9,16 @@ function WalkScoreHeader({ title, desc, location = '부산광역시' }) {
 
       <div className='flex items-center gap-2'>
         <img src={locationIcon} className='w-4 h-4' />
-        <span className="text-[14px] text-txtcolor-500 font-bold">
+        <span className="text-[14px] text-txtcolor-700 font-medium">
           {location}
         </span>
       </div>
 
       <div className='mt-2'>
-        <h2 className="text-[36px] font-extrabold">
+        <h2 className="text-[36px] text-txtcolor-700 font-extrabold">
           {title}
         </h2>
-        <p className="text-[14px] text-txtcolor-500 mt-1">
+        <p className="text-[14px] text-txtcolor-400 mt-1">
           {desc}
         </p>
       </div>

@@ -33,22 +33,25 @@ function Home() {
   return (
     <div className='relative px-4 animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
-      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
+      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen 
+                          h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
         <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/>
         {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
       </section>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
         {/* 헤더 */}
-        <section className="relative flex flex-col md:flex-row md:justify-between gap-6 mt-6">
+        <section className="relative flex flex-col md:justify-between gap-[60px] mt-6">
           <WalkScoreHeader
             title="오늘의 산책지수"
             desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
           />
+          {/* 유저 패널 */}
+          <HomeUserpanel/>
         </section>
 
         {/* 산책지수 + 유저패널 */}
-        <section className="mb-6 mt-[365px] border border-black">
+        <section className="mb-6 mt-[60px] border border-black">
           <div className='flex gap-4'>
             <div className='flex flex-col mb-4 pb-2 gap-3'>
               <button
@@ -73,8 +76,7 @@ function Home() {
               {/* <WeatherCard /> */}
             </div>
 
-            {/* 유저 패널 */}
-            <HomeUserpanel/>
+            
           </div>
         </section>
 

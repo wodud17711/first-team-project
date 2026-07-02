@@ -27,31 +27,30 @@ function HomeUserpanel() {
   }
 
   return (
-    <div className="w-full max-w-[320px] md:w-[300px] shrink-0">
-      <div className="flex flex-col bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-4 overflow-hidden">
-        <div className="mb-3">
-          <p className="text-[14px] uppercase tracking-wider font-thin">MY PROFILE</p>
-          <p className="text-[20px] font-bold">오늘도 즐거운 산책 되세요</p>
-        </div>
-        <div className='flex items-center justify-center gap-3'>
+    <div className="w-full max-w-[300px] md:w-[270px] shrink-0">
+      <div className="flex flex-col justify-center p-4 gap-4 border border-txtcolor-100/80
+                      bg-white/70 backdrop-blur-sm rounded-xl shadow-md">
+
+        <div className="flex items-center justify-center gap-6 py-3 bg-txtcolor-100/30 rounded-lg">
           {/* 유저 */}
-          <div className="flex-1 flex flex-col p-3 gap-2 border rounded-lg">
-            <p className="mb-[5px] text-[14px] font-bold text-center">보호자</p>
-              <div className='h-[70px] flex justify-center flex flex-col items-center justify-center'>
+          <div className='flex flex-col gap-2'>
+            <p className="mb-[5px] text-[14px] text-txtcolor-700 font-extrabold text-center">보호자</p>
+            <div className='h-[70px] flex justify-center flex flex-col items-center justify-center'>
               <img src={me?.profileImageUrl || "/userpanel/humanProfile.png"} alt='프로필사진'
                   onError={onImgError(HUMAN_FALLBACK)}
                   className='w-[60px] h-[60px] rounded-[43%] object-cover object-center'/>
-              <p className="mt-[5px] text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
+              <p className="mt-[5px] text-[14px] text-txtcolor-700 font-medium">{me?.nickname ?? '게스트'}</p>
               </div>
           </div>
 
-          {/* 대표 강아지 */}
-          <div className="flex-1 flex flex-col p-3 gap-2 border rounded-lg">
-            <p className="mb-1 text-[14px] font-bold text-center">대표 강아지</p>
+          <div className="w-px h-10 bg-txtcolor-100"/>
 
+          {/* 대표 강아지 */}
+          <div className='flex flex-col gap-2'>
+            <p className="mb-1 text-[14px] text-txtcolor-700 font-extrabold text-center">대표 강아지</p>
             <div className='h-[70px] flex justify-center'>
                 {!mainDog ? (
-                <p className="text-[13px] text-gray-500 py-4 text-center">
+                <p className="text-[13px] text-txtcolor-400 py-4 text-center">
                     아직 등록된
                     <br />
                     반려견이 없어요
@@ -68,11 +67,11 @@ function HomeUserpanel() {
                         />
                       ) : (
                         <div className="flex items-center justify-center w-[60px] h-[60px]
-                                        bg-white shadow rounded-[43%] object-cover object-center">
+                                        bg-txtcolor-100/80 shadow rounded-[43%] object-cover object-center">
                           <div className="text-[30px]">🐶</div>
                         </div>
                       )}
-                      <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
+                      <p className="mt-[5px] text-[14px] font-medium">{mainDog.name}</p>
                   </div>
                 </div>
                 )}
@@ -81,10 +80,11 @@ function HomeUserpanel() {
         </div>
 
         {/* 로그아웃 */}
-        <div className="mt-auto pt-3">
+        <div className="mt-auto">
           <button onClick={handleLogout}
-                  className="flex justify-center items-center w-full gap-4 font-medium
-                              rounded-lg p-2 bg-brand-300/80 cursor-pointer"
+                  className="flex justify-center items-center w-full gap-4 font-bold
+                              rounded-lg p-2 bg-txtcolor-100 text-txtcolor-700
+                              shadow-sm hover:bg-[#DDDAD8] transition"
           >
             <div className='flex items-center gap-2'>
               <img src='/userpanel/logout.png' alt='로그아웃' className='w-[17px] h-[17px]'/>
