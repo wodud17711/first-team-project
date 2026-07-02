@@ -48,8 +48,11 @@ public class WalkScoreService {
             Long dogId
     ) {
 
+        // breed 를 fetch join 으로 함께 로딩 — buildDogInfo 가 지연 프록시를 밟지 않게 한다.
+        // (날씨 즉석 재수집이 외부 API 오류로 실패하면 세션이 무효화될 수 있는데,
+        //  그 뒤 breed 지연 로딩이 LazyInitializationException → 500 으로 번지던 문제 방지)
         Dog dog =
-                dogRepository.findByIdAndUserId(
+                dogRepository.findWithBreedByIdAndUserId(
                                 dogId,
                                 userId
                         )
