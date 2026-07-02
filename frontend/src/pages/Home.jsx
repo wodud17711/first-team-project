@@ -33,9 +33,8 @@ function Home() {
   return (
     <div className='relative px-4 animate-fadeIn'>
       {/* 배너 */}
-      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen 
-                          h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
-        <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/>
+      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-[#F7F7F7] z-6">
+        <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full border-b shadow-sm object-cover'/>
         {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
       </section>
 
@@ -52,7 +51,7 @@ function Home() {
 
         {/* 산책지수 */}
         <section className="mb-6 mt-[75px] border border-black">
-          <div className='flex gap-4'>
+
             <div className='flex flex-col mb-4 pb-2 gap-3'>
               <button
                 onClick={() => navigate('/walkscore-detail')}
@@ -77,7 +76,6 @@ function Home() {
             </div>
 
             
-          </div>
         </section>
 
 
