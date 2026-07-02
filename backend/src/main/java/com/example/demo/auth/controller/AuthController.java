@@ -126,30 +126,122 @@ public class AuthController {
     }
 
     // =========================
-    // 소셜 로그인 (카카오)
+    // 소셜 로그인 (카카오/구글/네이버)
     // =========================
-    // 1) FE "카카오로 시작" → 여기로 진입 → 카카오 인가 페이지로 302.
+    // 1) FE "소셜로 시작" → /oauth/{provider}/authorize → 제공자 인가 페이지로 302.
+    // 2) 제공자가 인가코드(code)와 함께 콜백 → 토큰교환·사용자조회 → RT 쿠키 set → FE 로 302.
+    //    FE 는 랜딩 후 /api/auth/refresh 로 AT 를 받아 로그인 완료(AT 를 URL 에 노출하지 않음).
+    //    콜백은 브라우저 리다이렉트 흐름이라 실패 시 JSON 대신 FE 로그인 페이지로 돌려보낸다.
     @GetMapping("/oauth/kakao/authorize")
     public void kakaoAuthorize(HttpServletResponse response) throws IOException {
         response.sendRedirect(oAuthService.kakaoAuthorizeUrl());
     }
 
-    // 2) 카카오가 인가코드(code)와 함께 콜백 → 토큰교환·사용자조회 → RT 쿠키 set → FE 로 302.
-    //    FE 는 랜딩 후 /api/auth/refresh 로 AT 를 받아 로그인 완료(AT 를 URL 에 노출하지 않음).
     @GetMapping("/oauth/kakao/callback")
     public void kakaoCallback(
             @RequestParam("code") String code,
             HttpServletResponse response
     ) throws IOException {
 
-        OAuthUserInfo info = oAuthService.kakaoLogin(code);
+        try {
+            OAuthUserInfo info = oAuthService.kakaoLogin(code);
 
-        AuthResponse tokens =
-                authService.loginWithOAuth(AuthProvider.KAKAO, info);
+            AuthResponse tokens =
+                    authService.loginWithOAuth(AuthProvider.KAKAO, info);
 
-        setRefreshCookie(response, tokens.refreshToken());
+            setRefreshCookie(response, tokens.refreshToken());
 
-        response.sendRedirect(oauthSuccessRedirect);
+            response.sendRedirect(oauthSuccessRedirect);
+
+        } catch (Exception e) {
+            response.sendRedirect(oauthFailureRedirect());
+        }
+    }
+
+    @GetMapping("/oauth/google/authorize")
+    public void googleAuthorize(HttpServletResponse response) throws IOException {
+        response.sendRedirect(oAuthService.googleAuthorizeUrl());
+    }
+
+    @GetMapping("/oauth/google/callback")
+    public void googleCallback(
+            @RequestParam(name = "code", required = false) String code,
+            HttpServletResponse response
+    ) throws IOException {
+
+        // 사용자가 구글 동의 화면에서 취소하면 code 없이 error 파라미터로 돌아온다.
+        if (code == null) {
+            response.sendRedirect(oauthFailureRedirect());
+            return;
+        }
+
+        try {
+            OAuthUserInfo info = oAuthService.googleLogin(code);
+
+            AuthResponse tokens =
+                    authService.loginWithOAuth(AuthProvider.GOOGLE, info);
+
+            setRefreshCookie(response, tokens.refreshToken());
+
+            response.sendRedirect(oauthSuccessRedirect);
+
+        } catch (Exception e) {
+            response.sendRedirect(oauthFailureRedirect());
+        }
+    }
+
+    // 네이버는 state 필수 — CSRF 방지용 난수를 쿠키에 심고 콜백에서 대조.
+    @GetMapping("/oauth/naver/authorize")
+    public void naverAuthorize(HttpServletResponse response) throws IOException {
+
+        String state = java.util.UUID.randomUUID().toString();
+
+        ResponseCookie stateCookie = ResponseCookie
+                .from("oauthState", state)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/api/auth/oauth/naver")
+                .maxAge(60 * 5)
+                .build();
+        response.addHeader("Set-Cookie", stateCookie.toString());
+
+        response.sendRedirect(oAuthService.naverAuthorizeUrl(state));
+    }
+
+    @GetMapping("/oauth/naver/callback")
+    public void naverCallback(
+            @RequestParam(name = "code", required = false) String code,
+            @RequestParam(name = "state", required = false) String state,
+            @CookieValue(name = "oauthState", required = false) String stateCookie,
+            HttpServletResponse response
+    ) throws IOException {
+
+        if (code == null || state == null || !state.equals(stateCookie)) {
+            response.sendRedirect(oauthFailureRedirect());
+            return;
+        }
+
+        try {
+            OAuthUserInfo info = oAuthService.naverLogin(code, state);
+
+            AuthResponse tokens =
+                    authService.loginWithOAuth(AuthProvider.NAVER, info);
+
+            setRefreshCookie(response, tokens.refreshToken());
+
+            response.sendRedirect(oauthSuccessRedirect);
+
+        } catch (Exception e) {
+            response.sendRedirect(oauthFailureRedirect());
+        }
+    }
+
+    // 소셜 실패 랜딩: FE 로그인 페이지 (?error=social 로 안내 문구 표시).
+    // success-redirect(…/oauth/callback)에서 FE origin 만 잘라 재사용 — 별도 env 불필요.
+    private String oauthFailureRedirect() {
+        String base = oauthSuccessRedirect.replace("/oauth/callback", "");
+        return base + "/login?error=social";
     }
 
     // =========================

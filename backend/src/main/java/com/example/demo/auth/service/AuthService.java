@@ -148,16 +148,28 @@ public class AuthService {
     }
 
     // =========================
-    // 소셜 로그인 (카카오/구글 공통)
+    // 소셜 로그인 (카카오/구글/네이버 공통)
     // =========================
     // 기존 회원이면 로그인, 없으면 자동 가입 후 동일하게 토큰 발급(기존 RT 플로우 재활용).
     public AuthResponse loginWithOAuth(AuthProvider provider, OAuthUserInfo info) {
 
         User user = userRepository
                 .findByProviderAndProviderId(provider, info.providerId())
-                .orElseGet(() -> createOAuthUser(provider, info));
+                .orElseGet(() -> linkOrCreateOAuthUser(provider, info));
 
         return issueTokens(user);
+    }
+
+    // 제공자가 검증한 이메일이 기존 계정과 일치하면 그 계정으로 로그인(자동 연동).
+    // provider/provider_id 는 덮어쓰지 않는다 — LOCAL 비번 로그인과 다른 소셜 연동을 깨지 않기 위함.
+    // (OAuthUserInfo.email 은 검증된 이메일만 담기는 계약 → 미검증 이메일로 계정 탈취 불가)
+    private User linkOrCreateOAuthUser(AuthProvider provider, OAuthUserInfo info) {
+
+        if (info.email() != null) {
+            return userRepository.findByEmail(normalizeEmail(info.email()))
+                    .orElseGet(() -> createOAuthUser(provider, info));
+        }
+        return createOAuthUser(provider, info);
     }
 
     private User createOAuthUser(AuthProvider provider, OAuthUserInfo info) {
@@ -166,10 +178,14 @@ public class AuthService {
         user.setProvider(provider);
         user.setProviderId(info.providerId());
 
-        // 소셜은 이메일을 못 받을 수 있어(카카오 비즈앱 제약) 더미 이메일로 NOT NULL/UNIQUE 충족.
-        // provider_id 가 유일하므로 더미 이메일도 자동으로 유일.
-        String key = provider.name().toLowerCase();
-        user.setEmail(key + "_" + info.providerId() + "@" + key + ".local");
+        // 검증된 실제 이메일이 있으면(구글·네이버) 사용, 없으면(카카오 비즈앱 제약) 더미 이메일로
+        // NOT NULL/UNIQUE 충족. provider_id 가 유일하므로 더미 이메일도 자동으로 유일.
+        if (info.email() != null) {
+            user.setEmail(normalizeEmail(info.email()));
+        } else {
+            String key = provider.name().toLowerCase();
+            user.setEmail(key + "_" + info.providerId() + "@" + key + ".local");
+        }
 
         user.setPassword(null); // 소셜은 비번 없음 (password NULL 허용)
         user.setNickname(resolveOAuthNickname(info.nickname()));

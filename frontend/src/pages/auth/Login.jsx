@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { useLogin } from "../../hooks/useLogin"
 
 
@@ -11,10 +11,16 @@ function Login() {
     // 비밀번호 표시 여부
     const [showPw, setShowPw] = useState(false)
 
-    // 카카오 소셜 로그인: BE authorize 엔드포인트로 이동 → 카카오 인증 → BE 콜백 → /oauth/callback 랜딩
-    const handleKakaoLogin = () => {
+    // 소셜 콜백 실패 시 BE 가 /login?error=social 로 돌려보냄
+    const [searchParams] = useSearchParams()
+    const socialError = searchParams.get("error") === "social"
+        ? "소셜 로그인에 실패했어요. 다시 시도해주세요."
+        : null
+
+    // 소셜 로그인: BE authorize 엔드포인트로 이동 → 제공자 인증 → BE 콜백 → /oauth/callback 랜딩
+    const handleSocialLogin = (provider) => {
         const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api"
-        window.location.href = `${base}/auth/oauth/kakao/authorize`
+        window.location.href = `${base}/auth/oauth/${provider}/authorize`
     }
 
   return (
@@ -63,7 +69,7 @@ function Login() {
                   </label>
               </div>
 
-              {error && <p className="mt-6 text-[12px] text-danger">{error}</p>}
+              {(error || socialError) && <p className="mt-6 text-[12px] text-danger">{error || socialError}</p>}
 
               {/* 로그인 버튼 */}
               <div className="w-full mt-6 flex flex-col gap-2">
@@ -95,16 +101,18 @@ function Login() {
 
               {/* SNS 계정 로그인 */}
               <div className="flex gap-6">
-                  <button>
+                  <button type="button" onClick={() => handleSocialLogin("naver")}
+                          aria-label="네이버로 로그인">
                       <img src="/loginIcon/naver.png" className="w-[60px] h-[60px]"/>
                   </button>
-                  <button type="button" onClick={handleKakaoLogin}
+                  <button type="button" onClick={() => handleSocialLogin("kakao")}
                           aria-label="카카오로 로그인"
                           className="flex items-center justify-center
                                     bg-[#FEE500] w-[60px] h-[60px] rounded-full">
                       <img src="/loginIcon/kakao.png" className="w-[30px] h-[30px] mt-1"/>
                   </button>
-                  <button>
+                  <button type="button" onClick={() => handleSocialLogin("google")}
+                          aria-label="구글로 로그인">
                       <img src="/loginIcon/google.png" className="w-[60px] h-[60px]"/>
                   </button>
               </div>
