@@ -50,7 +50,7 @@ function WalkScoreCard({
                   {/* 여기에서 바로 렌더링 */}
                   <div className="flex flex-col items-center px-4 sm:px-[28px]">
 
-                      <p className="text-[12px] text-gray-400">
+                      <p className="text-[12px] text-txtcolor-300">
                       {item.label}
                       </p>
 

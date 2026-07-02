@@ -32,7 +32,7 @@ function Home() {
 
   return (
     <div className='relative px-4 animate-fadeIn'>
-      {/* 상단 배경(산책지수 배경) */}
+      {/* 배너 */}
       <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen 
                           h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
         <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/>
@@ -50,8 +50,8 @@ function Home() {
           <HomeUserpanel/>
         </section>
 
-        {/* 산책지수 + 유저패널 */}
-        <section className="mb-6 mt-[60px] border border-black">
+        {/* 산책지수 */}
+        <section className="mb-6 mt-[75px] border border-black">
           <div className='flex gap-4'>
             <div className='flex flex-col mb-4 pb-2 gap-3'>
               <button
@@ -80,32 +80,6 @@ function Home() {
           </div>
         </section>
 
-
-        {/* <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
-          <p className="text-sm text-brand-600 font-medium mb-1">오늘의 산책</p>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            오늘의 산책지수
-          </h2>
-          <div className="flex items-baseline gap-2 mt-4">
-            <span className="text-5xl font-bold text-brand-600">{walk?.score ?? '--'}</span>
-            <span className="text-gray-600">/ 100점</span>
-          </div>
-          <p className="text-sm text-gray-700 mt-2">
-            {walk?.topReasons?.[0]
-              ?? (walkNotReady ? '날씨 데이터를 준비하고 있어요' : '산책하기 좋은 날을 알려드릴게요')}
-          </p>
-        </section> */}
-
-        {/* <section className="px-4 grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <p className="text-xs text-gray-500">최적 산책 시간</p>
-            <p className="text-lg font-semibold mt-1">오후 5시 - 7시</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <p className="text-xs text-gray-500">이번 주 산책</p>
-            <p className="text-lg font-semibold mt-1">3회 · 2시간</p>
-          </div>
-        </section> */}
 
         {/* <section className="bg-white rounded-xl p-5 shadow-sm">
           <h3 className="font-semibold mb-3">💡 오늘의 팁</h3>
