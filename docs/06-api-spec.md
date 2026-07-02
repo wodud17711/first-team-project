@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.8 (2026-06-15, 64개 엔드포인트, schema v1.7 매핑)
+- **버전**: v3.9 (2026-07-02, 70개 엔드포인트 — 소셜 OAuth 6개 명세화(카카오 기존+구글·네이버 신규), schema v1.7 매핑)
 
 ---
 
@@ -87,7 +87,7 @@
 
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
-| 인증 | 4 | MVP | users, refresh_tokens |
+| 인증 | 10 | MVP | users, refresh_tokens |
 | 회원 | 4 | MVP | users |
 | 반려견 | 5 | MVP | dogs |
 | 견종 | 2 | MVP | dog_breeds |
@@ -105,11 +105,11 @@
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
 | 업로드 | 1 | MVP | - (로컬 디스크) |
-| **합계** | **64** | MVP 41 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **70** | MVP 47 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
-### 🔐 Auth (인증) - 4개
+### 🔐 Auth (인증) - 10개
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
@@ -117,8 +117,17 @@
 | POST | `/api/auth/login` | 로그인 (RT는 Set-Cookie) | ❌ |
 | POST | `/api/auth/logout` | 로그아웃 (쿠키 만료 + DB RT 삭제) | ✅ |
 | POST | `/api/auth/refresh` | 액세스 토큰 갱신 (쿠키 RT 사용) | ❌ (쿠키 필요) |
+| GET | `/api/auth/oauth/kakao/authorize` | 카카오 인가 페이지로 302 | ❌ |
+| GET | `/api/auth/oauth/kakao/callback` | 카카오 콜백 → RT 쿠키 set → FE `/oauth/callback` 302 | ❌ |
+| GET | `/api/auth/oauth/google/authorize` | 구글 인가 페이지로 302 | ❌ |
+| GET | `/api/auth/oauth/google/callback` | 구글 콜백 (동일 플로우) | ❌ |
+| GET | `/api/auth/oauth/naver/authorize` | 네이버 인가 페이지로 302 (state 쿠키 set) | ❌ |
+| GET | `/api/auth/oauth/naver/callback` | 네이버 콜백 (state 대조, 동일 플로우) | ❌ |
 
 > 내 정보 조회는 `GET /api/users/me` 사용 (v3.1에서 `/api/auth/me` 삭제, 회원 영역과 통합)
+>
+> **소셜 로그인 공통**: 콜백 성공 시 RT 쿠키만 심고 FE `/oauth/callback` 으로 302 → FE 가 `POST /api/auth/refresh` 로 AT 획득 (AT를 URL에 노출하지 않음). 실패 시 FE `/login?error=social` 로 302.
+> 신규 소셜 사용자는 자동 가입. **제공자가 검증한 이메일**(구글 `email_verified`, 네이버)이 기존 계정과 일치하면 그 계정으로 로그인(자동 연동). 카카오는 이메일 미제공(비즈앱 아님) → 더미 이메일 가입.
 
 ### 👤 User (회원) - 4개
 
