@@ -1,10 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
 // 컴포넌트
 import WeatherCard from '../components/WeatherCard'
 import WalkScore from '../components/WalkScore/WalkScore'
 import WalkScoreHeader from '../components/WalkScore/WalkScoreHeader'
 
+import HomeUserpanel from '../components/Home/HomeUserpanel'
+import HomeWalk from '../components/Home/HomeWalk'
 import HomeCommunity from '../components/Home/HomeCommunity'
 
 // hooks (실 API 연결)
@@ -14,176 +17,69 @@ import { useAuth } from '../hooks/useAuth'
 import { useWalkScore } from '../hooks/useWalkScore'
 
 
-import { onImgError, HUMAN_FALLBACK } from '../utils/imageFallback'
-import { useState } from 'react'
-import HomeWalk from '../components/Home/HomeWalk'
-
 
 function Home() {
 
   const navigate = useNavigate()
   const { me } = useMe()
   const { dogs } = useDogs()
-  const { logout } = useAuth()
 
-  // 유저패널에 대표 강아지만 보이게
-  const mainDog = dogs.find(dog => dog.isMain);
 
   // 산책지수: 첫 번째 반려견 기준으로 실 API 조회 (dogId 없으면 미호출)
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
 
   return (
     <div className='relative px-4 animate-fadeIn'>
       {/* 상단 배경(산책지수 배경) */}
-      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-txtcolor-100/55 z-6">
-        {/* <div className='bg-brand-100 mx-auto w-[1920px] h-full object-cover'/> */}
+      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen 
+                          h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
         <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/>
         {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
       </section>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
-        {/* 헤더 + 유저패널 */}
-        <section className="relative flex flex-col md:flex-row md:justify-between gap-6 mt-6">
-          {/* 헤더 */}
-          <div>
-            <WalkScoreHeader
-              title="오늘의 산책지수"
-              desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
-            />
-          </div>
-        </section>
-
-        
-
-  
-
-        {/* 산책지수 + 시간별 날씨 */}
-        <section className="flex px-4 gap-4 mt-[72px]">
-          <div>
-            <p className='font-bold text-[24px]'>오늘의 산책지수</p>
-            <button className='text-[14px]'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
-          </div>
-          <WalkScore
-            score={walk?.score}
-            level={walk?.level}
-            reasons={walk?.topReasons ?? []}
-            loading={walkLoading}
-            notReady={walkNotReady}
-            hasDog={firstDogId != null}
-            weather={walk?.weather}
+        {/* 헤더 */}
+        <section className="relative flex flex-col md:justify-between gap-[68px] mt-6">
+          <WalkScoreHeader
+            title="오늘의 산책지수"
+            desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
           />
-
           {/* 유저 패널 */}
-          <div className="w-full max-w-[320px] md:w-[300px] mt-2 md:mt-[94px] shrink-0">
-            <div className="flex flex-col bg-black/20 backdrop-blur rounded-xl shadow p-4 overflow-hidden">
-              <div className="mb-3">
-                <p className="text-[14px] uppercase tracking-wider text-white font-thin">
-                  MY PROFILE
-                </p>
-                <p className="text-[20px] font-bold text-white">
-                  오늘도 즐거운 산책 되세요
-                </p>
-              </div>
-              <div className='flex items-center justify-center gap-3'>
-                {/* 유저 */}
-                <div className="flex-1 flex flex-col p-3 gap-2 bg-white/55 rounded-lg">
-                  <p className="mb-[5px] text-[14px] font-bold text-center">보호자</p>
-                    <div className='h-[70px] flex justify-center flex flex-col items-center justify-center'>
-                      <img src={me?.profileImageUrl || "/userpanel/humanProfile.png"} alt='프로필사진'
-                        onError={onImgError(HUMAN_FALLBACK)}
-                        className='w-[60px] h-[60px] rounded-[43%] object-cover object-center'/>
-                      <p className="mt-[5px] text-[14px] font-bold">{me?.nickname ?? '게스트'}</p>
-                    </div>
-                  <div className='w-full mt-2 h-px bg-black/20'/>
-                  <button onClick={() => navigate("/mypage")} className="text-[14px]">마이페이지</button>
-                </div>
+          <HomeUserpanel/>
+        </section>
 
-                {/* 대표 강아지 */}
-                <div className="flex-1 flex flex-col p-3 gap-2 bg-white/55 rounded-lg">
-                  <p className="mb-1 text-[14px] font-bold text-center">대표 강아지</p>
-      
-                  <div className='h-[70px] flex justify-center'>
-                    {!mainDog ? (
-                      <p className="text-[13px] text-gray-500 py-4 text-center">
-                        아직 등록된
-                        <br />
-                        반려견이 없어요
-                      </p>
-                        ) : (
-                          <div key={mainDog.dogId} className="flex items-center gap-3">    
-                            <div className='flex flex-col items-center justify-center'>
-                              {mainDog.profileImageUrl ? (
-                        <img
-                          src={mainDog.profileImageUrl}
-                          onError={onImgError()}
-                          className="w-[60px] h-[60px] shadow rounded-[43%] object-cover object-center"
-                          alt={mainDog.name}
-                        />
-                      ) : (
-                        <div
-                          className="flex items-center justify-center w-[60px] h-[60px] bg-white shadow rounded-[43%] object-cover object-center">
-                          <div className="text-[30px]">🐶</div>
-                        </div>
-                      )}
-                        <p className="mt-[5px] text-[14px] font-bold">{mainDog.name}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className='w-full mt-2 h-px bg-black/20'/>
+        {/* 산책지수 + 유저패널 */}
+        <section className="mb-6 mt-[60px] border border-black">
+          <div className='flex gap-4'>
+            <div className='flex flex-col mb-4 pb-2 gap-3'>
+              <button
+                onClick={() => navigate('/walkscore-detail')}
+                className="group flex items-center gap-2 text-[30px] font-extrabold text-txtcolor-700"
+              >
+                산책 컨디션을 확인해볼까요?
+                <span className="text-[20px] font-medium transition-transform duration-200 group-hover:translate-x-1">
+                  ›
+                </span>
+              </button>
 
-                  <button
-                    onClick={() => navigate("/dog-profile-list")}
-                    className="text-[14px] font-medium"
-                  >
-                    반려견 프로필
-                  </button>
-                </div>
-              </div>
-
-              {/* 로그아웃 */}
-              <div className="mt-auto pt-3">
-                <div className="flex justify-center items-center gap-4 font-medium
-                                rounded-lg p-2 bg-brand-300/80">
-                  <div className='flex items-center gap-2'>
-                    <img src='/userpanel/logout.png' alt='로그아웃'
-                         className='w-[17px] h-[17px]'/>
-                    <button onClick={handleLogout} className="text-[14px]">로그아웃</button>
-                  </div>
-                </div>
-              </div>
+              <WalkScore
+                score={walk?.score}
+                level={walk?.level}
+                reasons={walk?.topReasons ?? []}
+                loading={walkLoading}
+                notReady={walkNotReady}
+                hasDog={firstDogId != null}
+                weather={walk?.weather}
+              />
+              {/* <WeatherCard /> */}
             </div>
+
+            
           </div>
         </section>
 
-        {/* 산책지수 + 시간별 날씨 */}
-        <section className="flex flex-col lg:flex-row gap-4 mt-10 md:mt-[72px]">
-          <div className="lg:w-[180px] shrink-0">
-            <p className='font-bold text-[24px]'>오늘의 산책지수</p>
-            <button onClick={() => navigate('/walkscore-detail')} className='text-[14px] text-txtcolor-400 hover:text-brand-700 transition'>자세히 보기<span className="ml-4 text-lg leading-none">›</span></button>
-          </div>
-          <WalkScore
-            score={walk?.score}
-            level={walk?.level}
-            reasons={walk?.topReasons ?? []}
-            loading={walkLoading}
-            notReady={walkNotReady}
-            hasDog={firstDogId != null}
-            weather={walk?.weather}
-          />
-
-          {/* <WeatherCard /> */}
-        </section>
-        
-
-        {/* (코스 추천) + 코스 미리보기 + 산책 시작 + 오늘의 산책 지수 (이거는 2차긴 한데 일딴 보류)*/}
 
         {/* <section className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-2xl p-6 shadow-sm">
           <p className="text-sm text-brand-600 font-medium mb-1">오늘의 산책</p>

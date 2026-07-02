@@ -8,10 +8,10 @@ function HomeWalk() {
   return (
     <section className='grid grid-cols-[1fr_2fr] my-6 bg-brand-100/40 rounded-xl p-6'>
       <div className='flex flex-col'>
-        <p className="text-[30px] text-txtcolor-700 font-extrabold">
+        <p className="text-[24px] text-txtcolor-700 font-extrabold">
           반려견과의<br/><span>슬기로운 산책 라이프</span>
         </p>
-        <div className="w-16 h-1 bg-brand-500 rounded-full my-4" />
+        <div className="w-14 h-1 bg-brand-500 rounded-full my-4" />
         <span className="text-[14px] text-txtcolor-500">
           산책 기록부터 통계 분석까지,<br/>산책 활동을 쉽고 편하게 체계적으로 관리해보세요.
         </span>
