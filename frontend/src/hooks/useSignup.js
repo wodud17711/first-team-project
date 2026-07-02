@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signup } from '../api/auth'
+import { signup, sendEmailCode, verifyEmailCode } from '../api/auth'
 
 /**
  * 회원가입 폼 로직 hook.
@@ -35,9 +35,72 @@ export function useSignup({ redirectTo = '/', onSuccess } = {}) {
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
+  // 이메일 인증 상태 (sent → code 입력 → verified 후에만 가입 가능)
+  const [emailAuth, setEmailAuth] = useState({
+    sent: false,
+    verified: false,
+    sending: false,
+    verifying: false,
+    code: '',
+    notice: null,
+    error: null,
+  })
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
+    // 이메일을 바꾸면 기존 인증 무효 — 새 주소로 다시 인증해야 함.
+    if (name === 'email') {
+      setEmailAuth({
+        sent: false, verified: false, sending: false, verifying: false,
+        code: '', notice: null, error: null,
+      })
+    }
+  }
+
+  const handleCodeChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+    setEmailAuth((prev) => ({ ...prev, code: value, error: null }))
+  }
+
+  const handleSendCode = async () => {
+    if (!form.email) {
+      setEmailAuth((prev) => ({ ...prev, error: '이메일을 먼저 입력해 주세요.' }))
+      return
+    }
+    setEmailAuth((prev) => ({ ...prev, sending: true, notice: null, error: null }))
+    try {
+      await sendEmailCode(form.email)
+      setEmailAuth((prev) => ({
+        ...prev, sent: true, sending: false,
+        notice: '인증 코드를 보냈어요. 메일함을 확인해 주세요. (10분 유효)',
+      }))
+    } catch (err) {
+      setEmailAuth((prev) => ({
+        ...prev, sending: false,
+        error: err.message || '인증 메일 발송에 실패했습니다.',
+      }))
+    }
+  }
+
+  const handleVerifyCode = async () => {
+    if (emailAuth.code.length !== 6) {
+      setEmailAuth((prev) => ({ ...prev, error: '인증 코드 6자리를 입력해 주세요.' }))
+      return
+    }
+    setEmailAuth((prev) => ({ ...prev, verifying: true, notice: null, error: null }))
+    try {
+      await verifyEmailCode(form.email, emailAuth.code)
+      setEmailAuth((prev) => ({
+        ...prev, verified: true, verifying: false,
+        notice: '이메일 인증이 완료됐어요!',
+      }))
+    } catch (err) {
+      setEmailAuth((prev) => ({
+        ...prev, verifying: false,
+        error: err.message || '인증 코드 확인에 실패했습니다.',
+      }))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -61,6 +124,10 @@ export function useSignup({ redirectTo = '/', onSuccess } = {}) {
       setError('닉네임은 2~20자여야 합니다.')
       return
     }
+    if (!emailAuth.verified) {
+      setError('이메일 인증을 완료해 주세요.')
+      return
+    }
 
     setLoading(true)
     try {
@@ -82,5 +149,8 @@ export function useSignup({ redirectTo = '/', onSuccess } = {}) {
     }
   }
 
-  return { form, handleChange, handleSubmit, loading, error }
+  return {
+    form, handleChange, handleSubmit, loading, error,
+    emailAuth, handleSendCode, handleVerifyCode, handleCodeChange,
+  }
 }

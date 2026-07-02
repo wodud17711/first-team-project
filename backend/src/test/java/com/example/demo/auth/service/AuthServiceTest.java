@@ -40,6 +40,10 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    // 기본 no-op(mock) = 인증 완료 취급. 미인증 케이스는 개별 테스트에서 throw 스텁.
+    @Mock
+    private EmailVerificationService emailVerificationService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -141,6 +145,65 @@ class AuthServiceTest {
                 ErrorCode.NICKNAME_DUPLICATED,
                 exception.getErrorCode()
         );
+    }
+
+    @Test
+    @DisplayName("회원가입 - 이메일 미인증이면 EMAIL_NOT_VERIFIED")
+    void signup_email_not_verified() {
+
+        when(userRepository.existsByEmail(any()))
+                .thenReturn(false);
+
+        when(userRepository.existsByNickname(any()))
+                .thenReturn(false);
+
+        doThrow(new BusinessException(ErrorCode.EMAIL_NOT_VERIFIED))
+                .when(emailVerificationService)
+                .consumeVerified(any());
+
+        BusinessException exception =
+                assertThrows(
+                        BusinessException.class,
+                        () -> authService.signup(
+                                "test@example.com",
+                                "password123",
+                                "테스트유저",
+                                null
+                        )
+                );
+
+        assertEquals(
+                ErrorCode.EMAIL_NOT_VERIFIED,
+                exception.getErrorCode()
+        );
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("회원가입 - 인증 소비는 정규화된 이메일로 호출")
+    void signup_consumes_verification_with_normalized_email() {
+
+        when(userRepository.existsByEmail(any()))
+                .thenReturn(false);
+
+        when(userRepository.existsByNickname(any()))
+                .thenReturn(false);
+
+        when(passwordEncoder.encode(any()))
+                .thenReturn("encodedPassword");
+
+        when(jwtProvider.generateAccessToken(any()))
+                .thenReturn("access-token");
+
+        authService.signup(
+                "  A@B.com  ",
+                "password123",
+                "테스트유저",
+                null
+        );
+
+        verify(emailVerificationService).consumeVerified(eq("a@b.com"));
     }
 
     @Test

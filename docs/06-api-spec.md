@@ -6,7 +6,7 @@
 - **인증**: JWT (Access Token: Authorization 헤더 / Refresh Token: HttpOnly 쿠키)
 - **Content-Type**: `application/json`
 - **응답 포맷**: 공통 응답 구조 사용
-- **버전**: v3.9 (2026-07-02, 70개 엔드포인트 — 소셜 OAuth 6개 명세화(카카오 기존+구글·네이버 신규), schema v1.7 매핑)
+- **버전**: v3.9 (2026-07-02, 72개 엔드포인트 — 소셜 OAuth 6개 명세화(카카오 기존+구글·네이버 신규) + 가입 이메일 인증 2개, schema v1.8 매핑)
 
 ---
 
@@ -87,7 +87,7 @@
 
 | 카테고리 | 개수 | Phase | 관련 테이블 |
 | --- | --- | --- | --- |
-| 인증 | 10 | MVP | users, refresh_tokens |
+| 인증 | 12 | MVP | users, refresh_tokens, email_verifications |
 | 회원 | 4 | MVP | users |
 | 반려견 | 5 | MVP | dogs |
 | 견종 | 2 | MVP | dog_breeds |
@@ -105,15 +105,17 @@
 | 견주 유형 | 1 | Phase 2 | user_walk_stats |
 | 랭킹 | 2 | Phase 2 | user_walk_stats |
 | 업로드 | 1 | MVP | - (로컬 디스크) |
-| **합계** | **70** | MVP 47 / Phase 2 21 / Phase 3 2 | - |
+| **합계** | **72** | MVP 49 / Phase 2 21 / Phase 3 2 | - |
 
 ---
 
-### 🔐 Auth (인증) - 10개
+### 🔐 Auth (인증) - 12개
 
 | 메서드 | URL | 설명 | 인증 |
 | --- | --- | --- | --- |
-| POST | `/api/auth/signup` | 회원가입 | ❌ |
+| POST | `/api/auth/email/send-code` | 가입 이메일 인증 코드 발송 (6자리, 10분 유효, 재발송 60초 쿨다운) | ❌ |
+| POST | `/api/auth/email/verify-code` | 인증 코드 검증 (5회 실패 시 폐기, 검증 후 30분 내 가입) | ❌ |
+| POST | `/api/auth/signup` | 회원가입 (**이메일 인증 완료 필수** — 미인증 시 `EMAIL_NOT_VERIFIED`) | ❌ |
 | POST | `/api/auth/login` | 로그인 (RT는 Set-Cookie) | ❌ |
 | POST | `/api/auth/logout` | 로그아웃 (쿠키 만료 + DB RT 삭제) | ✅ |
 | POST | `/api/auth/refresh` | 액세스 토큰 갱신 (쿠키 RT 사용) | ❌ (쿠키 필요) |

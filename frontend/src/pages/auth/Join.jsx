@@ -7,7 +7,10 @@ import { useSignup } from "../../hooks/useSignup"
 function Join() {
 
     // 회원가입 훅 연결(반려견 프로필 등록 버튼 눌렀을 때 '/dog-profile' 페이지로 넘어가도록)
-    const { form, handleChange, handleSubmit, loading, error } = useSignup({ redirectTo: '/dog-profile'})
+    const {
+      form, handleChange, handleSubmit, loading, error,
+      emailAuth, handleSendCode, handleVerifyCode, handleCodeChange,
+    } = useSignup({ redirectTo: '/dog-profile'})
 
     // 비밀번호 표시 여부 (필드명별 토글)
     const [visible, setVisible] = useState({})
@@ -86,6 +89,7 @@ function Join() {
               <div className="w-full mt-4 flex flex-col gap-4">
                   {inputs.map((item) => {
                     const isPassword = item.type === "password"
+                    const isEmail = item.name === "email"
                     const shown = !!visible[item.name]
                     return (
                       <div key={item.name}>
@@ -94,17 +98,32 @@ function Join() {
                           <span className="text-red-500"> *</span>
                         </label>
 
-                        <div className="relative">
+                        <div className={isEmail ? "flex gap-2" : "relative"}>
                           <input
                             type={isPassword && shown ? "text" : item.type}
                             name={item.name}
                             placeholder={item.placeholder}
                             value={form[item.name]}
                             onChange={handleChange}
-                            className={`w-full px-3 py-3 ${isPassword ? "pr-11" : ""} bg-txtcolor-50/50 rounded-xl border border-txtcolor-50 
+                            disabled={isEmail && emailAuth.verified}
+                            className={`w-full px-3 py-3 ${isPassword ? "pr-11" : ""} bg-txtcolor-50/50 rounded-xl border border-txtcolor-50
                               text-txtcolor-700 text-[14px]
-                              focus:outline-brand-300 hover:bg-txtcolor-100/40 transition`}
+                              focus:outline-brand-300 hover:bg-txtcolor-100/40 transition
+                              ${isEmail ? "flex-1 disabled:opacity-60" : ""}`}
                           />
+
+                          {isEmail && (
+                            <button
+                              type="button"
+                              onClick={handleSendCode}
+                              disabled={emailAuth.sending || emailAuth.verified}
+                              className="shrink-0 px-3 rounded-xl bg-brand-300 text-txtcolor-700
+                                        text-[13px] font-semibold shadow-sm hover:bg-brand-400
+                                        transition disabled:opacity-60"
+                            >
+                              {emailAuth.verified ? "인증 완료" : emailAuth.sending ? "발송 중..." : emailAuth.sent ? "재발송" : "인증코드 발송"}
+                            </button>
+                          )}
 
                           {isPassword && (
                             <button
@@ -118,6 +137,39 @@ function Join() {
                             </button>
                           )}
                         </div>
+
+                        {/* 인증 코드 입력 (발송 후 ~ 인증 완료 전) */}
+                        {isEmail && emailAuth.sent && !emailAuth.verified && (
+                          <div className="mt-2 flex gap-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              placeholder="인증 코드 6자리"
+                              value={emailAuth.code}
+                              onChange={handleCodeChange}
+                              className="flex-1 px-3 py-3 bg-txtcolor-50/50 rounded-xl border border-txtcolor-50
+                                        text-txtcolor-700 text-[14px] tracking-widest
+                                        focus:outline-brand-300 hover:bg-txtcolor-100/40 transition"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleVerifyCode}
+                              disabled={emailAuth.verifying}
+                              className="shrink-0 px-4 rounded-xl bg-txtcolor-700 text-white
+                                        text-[13px] font-semibold shadow-sm hover:bg-txtcolor-900
+                                        transition disabled:opacity-60"
+                            >
+                              {emailAuth.verifying ? "확인 중..." : "확인"}
+                            </button>
+                          </div>
+                        )}
+
+                        {isEmail && emailAuth.notice && (
+                          <p className="mt-1 text-[12px] text-txtcolor-400">{emailAuth.notice}</p>
+                        )}
+                        {isEmail && emailAuth.error && (
+                          <p className="mt-1 text-[12px] text-danger">{emailAuth.error}</p>
+                        )}
                       </div>
                     )
                   })}
