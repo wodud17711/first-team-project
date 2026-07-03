@@ -1,41 +1,12 @@
 
 
 // 아이콘 및 일러스트
-import locationIcon from '../../assets/locationIcon.png'
 import weatherTest from '../../assets/weatherTest.png'
 
 // WalkScore 요소
-import WalkScoreHeader from './WalkScoreHeader'
 import WalkScoreCardD from './WalkScoreCardD'
 import { buildWeatherItems } from './weatherDisplay'
 
-
-
-// 날씨요소 코드 줄이는 컴포넌트
-function WeatherItem({ label, value, icon }) {
-  return (
-    <div className="flex flex-col items-center px-[24px]">
-
-      <p className="text-[12px] text-gray-400">
-        {label}
-      </p>
-
-      <div className="h-[35px] flex items-center justify-center">
-        {icon ? (
-          <img
-            src={icon}
-            className="w-[20px] h-[20px] object-contain"
-          />
-        ) : (
-          <p className="text-[16px] font-bold">
-            {value}
-          </p>
-        )}
-      </div>
-
-    </div>
-  )
-}
 
 function getWalkTip(score) {
   if (score >= 70) {

@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 function getTempStatus(temp) {
   if (temp == null) {
     return {
@@ -8,7 +6,10 @@ function getTempStatus(temp) {
     }
   }
 
-  const t = Number(String(temp).replace(/[^0-9.-]/g, ""))
+  // '–'(값 없음) 등 숫자 아닌 문자만 있으면 빈 문자열이 되는데, Number('')는 0이라
+  // "0℃ 위험"으로 오판된다 → 빈 문자열은 NaN 취급해 "정보 없음"으로.
+  const s = String(temp).replace(/[^0-9.-]/g, "")
+  const t = s === "" ? NaN : Number(s)
 
   if (Number.isNaN(t)) {
     return {
@@ -71,7 +72,9 @@ function getGroundTempStatus(temp) {
     }
   }
 
-  const t = Number(String(temp).replace(/[^0-9.-]/g, ""))
+  // 위 getTempStatus 와 동일 — 빈 문자열(값 없음)을 0 으로 오판하지 않도록.
+  const s = String(temp).replace(/[^0-9.-]/g, "")
+  const t = s === "" ? NaN : Number(s)
 
   if (Number.isNaN(t)) {
     return {
@@ -115,19 +118,16 @@ function getGroundTempStatus(temp) {
 }
 
 
-function CircularScore({ scoreText, clamped, label, color, dogName, profileImageUrl, loading }) {
+function CircularScore({ scoreText, clamped, label, color }) {
   const size = 160;
   const stroke = 10;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const isInactive = loading || scoreText === "--" || clamped === 0; 
+  const isInactive = scoreText === "--" || clamped === 0;
 
   const progress = (clamped / 100) * circumference;
   const offset = circumference - progress;
-
-  const [imgError, setImgError] = useState(false)
-  
 
   return (
     <div className="flex flex-col items-center justify-center mt-2">
@@ -219,7 +219,8 @@ function WalkScoreCardD({
 
   return (
     <div>
-      <div className="grid grid-cols-[1.2fr_1.8fr] gap-4 items-stretch">
+      {/* 모바일(<md)은 2열이 짓눌려(날씨 서브카드 ~34px) 세로 스택 (#185~191 반응형 패턴) */}
+      <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1.8fr] gap-4 items-stretch">
         {/* 점수(왼쪽) */}
         <div className="bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-5 py-4 w-full">
           
@@ -254,8 +255,13 @@ function WalkScoreCardD({
               clamped={clamped}
               label={label}
               color={color}
-              dogName={dogName}
             />
+            {/* BE 등급 사유(topReasons[0]) — 홈 카드와 동일하게 근거를 표시 */}
+            {desc && (
+              <p className="mt-3 text-[13px] text-txtcolor-400 leading-snug">
+                {desc}
+              </p>
+            )}
           </div>
         </div>
             
@@ -267,8 +273,8 @@ function WalkScoreCardD({
             <div
               key={rowIndex}
               className={rowIndex === 0
-                ? "grid grid-cols-2 gap-3"
-                : "grid grid-cols-4 gap-3"
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-3"
+                : "grid grid-cols-2 md:grid-cols-4 gap-3"
               }
             >
               {row.map((cell, i) => (
