@@ -40,8 +40,15 @@ function Home() {
     }
   }
 
-  function getMeta(score, level) {
-    if (!score) return {
+  // score 0 도 유효한 점수(위험)라 truthy 검사 대신 null 검사.
+  // hasDog=false 면 조회 자체를 안 하므로 로딩 문구 대신 등록 안내를 보여준다.
+  function getMeta(score, level, hasDog) {
+    if (!hasDog) return {
+      title: "오늘의 산책지수",
+      desc: "반려견을 등록하면 맞춤 산책지수를 알려드려요"
+    }
+
+    if (score == null) return {
       title: "산책지수를 불러오는 중",
       desc: "잠시만 기다려 주세요"
     }
@@ -52,12 +59,12 @@ function Home() {
     if (score >= 40) return LEVEL_META['주의']
     return LEVEL_META['위험']
   }
-  
+
   // 산책지수: 첫 번째 반려견 기준으로 실 API 조회 (dogId 없으면 미호출)
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
 
-  const meta = getMeta(walk?.score, walk?.level)
+  const meta = getMeta(walk?.score, walk?.level, !!firstDogId)
 
   return (
     <div className='relative px-4 animate-fadeIn'>
