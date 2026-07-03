@@ -151,7 +151,8 @@ function CommunityWrite() {
       <div className="flex flex-col gap-4">
         {/* 카테고리 + 서브태그 */}
         <Section title="📂 카테고리">
-          <div className="grid grid-cols-5 gap-3">
+          {/* 좁은 화면에서 5열 고정이면 pill 텍스트가 잘려서 단계적으로 늘린다 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {categories.map((c) => (
               <button
                 key={c.categoryId}
