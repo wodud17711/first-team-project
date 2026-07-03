@@ -36,6 +36,15 @@ function WeatherItem({ label, value, icon }) {
   )
 }
 
+function getWalkTip(score) {
+  if (score >= 70) {
+    return "오늘은 산책하기 최적의 날이에요. 40~90분 정도 충분히 활동해도 좋아요.";
+  }
+  if (score >= 40) {
+    return "짧은 산책은 괜찮아요. 더운 시간대는 피하고 20~40분 정도 추천해요.";
+  }
+  return "실내 활동을 추천해요. 외출 시에는 짧은 배변 산책만 하고 빠르게 들어오세요.";
+}
 
 // 날씨 적합도 점수(막대 그래프)
 // score: BE /api/walk/score 실값(0~100). 없을 때(미등록/로딩/날씨준비중/오류)는
@@ -57,23 +66,23 @@ function WalkScore(props) {
   const ready = typeof score === 'number'
   const clamped = ready ? Math.max(0, Math.min(score, 100)) : 0
 
-  // 등급별 표시 메타 (색·문구는 디자인 영역 — 정선혜 확정).
+  // 등급별 표시 메타
   const LEVEL_META = {
     '안전': {
       color: "bg-success",
-      label: "안전해요🟢",
+      label: "안전해요",
       title: "산책하기 좋은 날이에요 ☀️",
       desc: "대부분 견종이 편안하게 산책할 수 있어요"
     },
     '주의': {
       color: "bg-warning",
-      label: "주의가 필요해요🟡",
+      label: "주의가 필요해요",
       title: "짧은 산책을 추천드려요 🌥️",
       desc: "더위에 약한 반려견은 주의가 필요해요"
     },
     '위험': {
       color: "bg-danger",
-      label: "위험해요🔴",
+      label: "위험해요",
       title: "산책을 되도록 피해주세요 🌧️",
       desc: "지면온도와 날씨 상태가 산책하기 위험해요"
     }
@@ -124,6 +133,7 @@ function WalkScore(props) {
         color={color}
         clamped={clamped}
         weatherItems={weatherItems}
+        tipText={ready ? getWalkTip(clamped) : null}
       />
     </div>
   )

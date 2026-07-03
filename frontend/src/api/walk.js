@@ -16,11 +16,13 @@ import apiClient from './client'
 
 /**
  * 산책 위험도 점수 조회. GET /api/walk/score?dogId=
+ * BE 가 시간당 첫 요청에서 날씨 스냅샷을 재수집(기상청 호출)하면 10초를 넘길 수 있어
+ * 전역 타임아웃(10s) 대신 이 요청만 30초를 허용한다. (첫 로드 점수 에러 방지)
  * @param {number} dogId
  * @returns {Promise<{score:number, level:string, reasons:string[], topReasons:string[]}>}
  */
 export async function getWalkScore(dogId) {
-  return apiClient.get('/walk/score', { params: { dogId } })
+  return apiClient.get('/walk/score', { params: { dogId }, timeout: 30000 })
 }
 
 /**
@@ -39,7 +41,8 @@ export async function getWalkScore(dogId) {
  * @returns {Promise<{slots:Array, best:Array}>}
  */
 export async function getOptimalTime(dogId) {
-  return apiClient.get('/walk/optimal-time', { params: { dogId } })
+  // /score 와 동일한 날씨 재수집 경로 — 전역 10s 대신 30s 허용.
+  return apiClient.get('/walk/optimal-time', { params: { dogId }, timeout: 30000 })
 }
 
 /**
