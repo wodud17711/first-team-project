@@ -244,7 +244,7 @@ function CommunityDetail() {
     <div className="p-4 animate-fadeIn">
 
       {/* 상단 */}
-      <div className="relative flex justify-between items-start mb-4">
+      <div className="relative flex justify-between items-start gap-3 mb-4">
         <div>
           <h1 className="text-[32px] font-extrabold text-txtcolor-700">커뮤니티</h1>
           <div className="flex items-center gap-3 mt-2">
@@ -254,10 +254,10 @@ function CommunityDetail() {
             </p>
           </div>
         </div>
-        {/* 목록 */}
+        {/* 목록 — 모바일은 absolute 가 설명 문구를 덮어서 플로우 배치(self-end), md 이상 기존 유지 */}
         <button
           onClick={() => navigate(backPath)}
-          className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 
+          className="flex items-center gap-2 shrink-0 self-end md:absolute md:right-0 md:bottom-0 px-4 py-2
                      rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
                      shadow-sm transition hover:bg-txtcolor-900"
         >
@@ -293,8 +293,9 @@ function CommunityDetail() {
               </span>
             )}
           </div>
-          {/* 메타 */}
-          <div className="flex items-center justify-between w-full mb-3 pt-3 border-t border-dashed border-txtcolor-100">
+          {/* 메타 — 좁은 화면에서 한 줄에 안 들어가면 오른쪽 그룹이 다음 줄로 내려가게 wrap.
+              닉네임·연차가 글자 단위로 세로 꺾이지 않게 nowrap */}
+          <div className="flex flex-wrap items-center justify-between gap-y-2 w-full mb-3 pt-3 border-t border-dashed border-txtcolor-100">
             {/* 왼쪽 */}
             <div className="flex items-center gap-3">
               <div className="w-[42px] h-[42px] shrink-0">
@@ -315,19 +316,19 @@ function CommunityDetail() {
                 )}
               </div>
               
-              <span className="font-semibold text-[14px] text-txtcolor-700">
+              <span className="font-semibold text-[14px] text-txtcolor-700 whitespace-nowrap">
                 {post.author ?? "익명"}
               </span>
 
               <div className="w-px h-3 bg-txtcolor-200" />
 
-              <span className="text-[14px] text-txtcolor-300">
+              <span className="text-[14px] text-txtcolor-300 whitespace-nowrap">
                 {guardianLevelIcon[post.authorLevel]}
               </span>
             </div>
 
             {/* 오른쪽 */}
-            <div className="flex items-center gap-5 text-[14px]">
+            <div className="flex items-center gap-5 text-[14px] ml-auto shrink-0 whitespace-nowrap">
               <div className="flex gap-2">
                 <MetaCount icon="💬" count={post.commentCount} />
                 <MetaCount icon="❤️" count={post.likeCount} />

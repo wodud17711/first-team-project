@@ -89,7 +89,7 @@ function Community() {
     <div className="p-4 animate-fadeIn">
 
       {/* 상단 */}
-      <div className="relative flex justify-between items-start mb-4">
+      <div className="relative flex justify-between items-start gap-3 mb-4">
         <div>
           <h1 className="text-[32px] font-extrabold text-txtcolor-700">커뮤니티</h1>
           <div className="flex items-center gap-3 mt-2">
@@ -99,10 +99,10 @@ function Community() {
             </p>
           </div>
         </div>
-        {/* 글쓰기 */}
+        {/* 글쓰기 — 모바일은 absolute 가 설명 문구를 덮어서 플로우 배치(self-end), md 이상 기존 유지 */}
         <button
           onClick={() => navigate(`${base}/write`)}
-          className="flex items-center gap-2 absolute right-0 bottom-0 px-4 py-2 
+          className="flex items-center gap-2 shrink-0 self-end md:absolute md:right-0 md:bottom-0 px-4 py-2
                      rounded-xl bg-txtcolor-700 text-white text-[14px] font-bold
                      shadow-sm transition hover:bg-txtcolor-900"
         >
