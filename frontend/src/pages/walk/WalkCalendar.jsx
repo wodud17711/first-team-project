@@ -237,8 +237,9 @@ function WalkCalendar() {
       </div>
       <div className='w-full h-[1px] bg-txtcolor-400/40 mb-[20px]'/>
 
-      {/* 산책 캘린더 (강아지 사진 스티커) */}
-      <div className="flex gap-4">
+      {/* 산책 캘린더 (강아지 사진 스티커) — 모바일(<md)은 사이드 패널 고정폭(320px) 탓에
+          달력이 찌부러지므로 세로 스택, md 이상은 기존 나란히 배치 */}
+      <div className="flex flex-col md:flex-row gap-4">
         <section ref={calRef} className="relative flex-1 min-w-0 bg-white rounded-xl border border-txtcolor-100/50 shadow-sm px-6 py-6">
           <div className="flex items-center justify-center gap-4 text-[24px] mb-2">
             <button onClick={() => shiftMonth(-1)} className="text-txtcolor-300 hover:text-txtcolor-700">‹</button>
@@ -311,7 +312,7 @@ function WalkCalendar() {
           </div>
         </section>
 
-        <aside className="w-[320px] min-h-[600px] flex flex-col flex-shrink-0 p-4
+        <aside className="w-full md:w-[320px] min-h-[280px] md:min-h-[600px] flex flex-col flex-shrink-0 p-4
                   bg-white rounded-xl border border-txtcolor-100/50 shadow-sm">
 
           {/* 1) 기본 상태 (날짜 선택 X) */}
