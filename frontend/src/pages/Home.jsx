@@ -68,9 +68,10 @@ function Home() {
 
   return (
     <div className='relative px-4 animate-fadeIn'>
-      {/* 배너 */}
-      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[510px] bg-[#F7F7F7] z-6">
-        <img src='/testimg.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full border-b shadow-sm object-cover'/>
+      {/* 배너 — lg 미만은 일러스트가 잘리지 않게 원본 비율(1920×510)로 축소해 하단 정렬,
+          lg 이상은 기존처럼 1920px 고정폭 + cover */}
+      <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[340px] sm:h-[440px] lg:h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
+        <img src='/testimg.png' alt='산책 일러스트' className='absolute bottom-0 left-1/2 -translate-x-1/2 w-full lg:w-[1920px] h-auto lg:h-full object-contain lg:object-cover'/>
         {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
       </section>
 
