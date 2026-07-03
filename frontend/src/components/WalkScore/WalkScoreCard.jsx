@@ -21,12 +21,15 @@ function WalkScoreCard({
                 /100
               </span>
             </div>
+            {/* 빨강은 '위험해요' 전용 — 로딩·미등록 라벨(측정 중/준비 중/–)이 빨강으로 보이면 안 됨 */}
             <span className={`inline-flex items-center px-4 py-1 rounded-full text-[14px] font-semibold
               ${label === '안전해요'
                 ? 'bg-green-100 text-green-600'
                 : label === '주의가 필요해요'
                 ? 'bg-brand-100 text-orange-700/90'
-                : 'bg-red-100 text-red-600'
+                : label === '위험해요'
+                ? 'bg-red-100 text-red-600'
+                : 'bg-gray-100 text-gray-500'
               }`}
             >
               {label}
@@ -44,8 +47,9 @@ function WalkScoreCard({
             />
           </div>
 
-          {/* 날씨 */}
-          <div className="flex items-center justify-center mt-4 overflow-x-auto">
+          {/* 날씨 — overflow 컨테이너에 justify-center 를 주면 모바일에서 왼쪽 항목이
+              잘린 채 스크롤로도 못 가는 CSS 함정이 있어, 좁은 화면은 start 로 시작한다 */}
+          <div className="flex items-center justify-start sm:justify-center mt-4 overflow-x-auto">
           {weatherItems.map((item, index) => (
               <div key={index} className="flex items-center shrink-0">
 
@@ -82,11 +86,13 @@ function WalkScoreCard({
         </div>
       </div>
 
-      {/* 오늘의 팁 */}
-      <div className="mt-4 px-4 py-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 text-[16px] leading-relaxed">
-        <span className="font-bold">💡 오늘의 산책 TIP</span>
-        <p className="mt-1 text-[14px]">{tipText}</p>
-      </div>
+      {/* 오늘의 팁 — 점수가 없으면(로딩·미등록·오류) 팁도 없음 */}
+      {tipText && (
+        <div className="mt-4 px-4 py-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 text-[16px] leading-relaxed">
+          <span className="font-bold">💡 오늘의 산책 TIP</span>
+          <p className="mt-1 text-[14px]">{tipText}</p>
+        </div>
+      )}
     </div>
   )
 }

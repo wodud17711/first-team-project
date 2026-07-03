@@ -133,7 +133,7 @@ function WalkScore(props) {
         color={color}
         clamped={clamped}
         weatherItems={weatherItems}
-        tipText={getWalkTip(score)}
+        tipText={ready ? getWalkTip(clamped) : null}
       />
     </div>
   )
