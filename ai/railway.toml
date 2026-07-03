@@ -1,0 +1,5 @@
+# Railway 배포 설정 (AI FastAPI)
+# 빌드: Nixpacks 가 requirements.txt 자동 감지 · 파이썬 버전은 runtime.txt(3.12) 사용
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+restartPolicyType = "ON_FAILURE"
