@@ -85,31 +85,32 @@ function DogListPage() {
 
       {/* 프로필 목록 */}
       <div className='flex flex-col gap-[20px]'>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 justify-items-center">
+        {/* 모바일도 2열 — 카드가 350px 고정이면 못 들어가서 유동폭(aspect 비율 유지)으로 */}
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 justify-items-center">
           {sortedDogs.map((dog) => (
 
             <div
               key={dog.dogId}
               onClick={() => navigate(`/dog-profile-detail/${dog.dogId}`)}
-              className="group relative flex w-[350px] h-[470px] gap-2
+              className="group relative flex w-full max-w-[350px] aspect-[35/47] gap-2
               overflow-hidden rounded-xl shadow
               cursor-pointer transition-all duration-200
               hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className='relative'>
+              <div className='relative w-full h-full'>
                 {/* 강아지 이미지 */}
-                <div className="relative shrink-0">
+                <div className="relative shrink-0 w-full h-full">
                   {dog.profileImageUrl ? (
                     <img
                       src={dog.profileImageUrl}
                       onError={onImgError()}
-                      className="w-[350px] h-[470px] rounded-xl object-cover shadow-md"
+                      className="w-full h-full rounded-xl object-cover shadow-md"
                       alt={dog.name}
                     />
                   ) : (
                     <div
                       className="
-                        w-[350px] h-[470px]
+                        w-full h-full
                         rounded-xl shadow
                         bg-txtcolor-100/25
                         flex flex-col items-center justify-center
@@ -128,40 +129,40 @@ function DogListPage() {
                       to-transparent"/>
 
                   {/* 프로필 등록일 (createdAt → YYYY/MM/DD) */}
-                  <p className='absolute top-4 right-4
-                      px-3 py-1 rounded-full
+                  <p className='absolute top-2 right-2 md:top-4 md:right-4
+                      px-2 md:px-3 py-1 rounded-full
                       bg-white/80 backdrop-blur
-                      text-[12px] font-medium text-txtcolor-800'>
+                      text-[10px] md:text-[12px] font-medium text-txtcolor-800'>
                     프로필 등록일 · {dog.createdAt ? dog.createdAt.slice(0, 10).replaceAll("-", "/") : "—"}
                   </p>
 
                   {/* 이름 + 간단정보 + 성향 */}
-                  <div className='absolute bottom-4 left-4 flex flex-col gap-3'>
-                    <div className='flex flex-col ml-1 mb-[20px]'>
+                  <div className='absolute bottom-2 left-2 md:bottom-4 md:left-4 flex flex-col gap-3'>
+                    <div className='flex flex-col ml-1 mb-2 md:mb-[20px]'>
                       <div className='flex items-center gap-2'>
-                        <p className=" text-[32px] text-white font-bold">{dog.name}</p>
+                        <p className="text-[20px] md:text-[32px] text-white font-bold">{dog.name}</p>
 
                         {/* 대표 강아지 표시 (dog.isMain) */}
                         {dog.isMain && (
-                          <span className="mt-[3px] text-[20px] font-semibold">⭐</span>
+                          <span className="mt-[3px] text-[14px] md:text-[20px] font-semibold">⭐</span>
                         )}
                       </div>
 
                       {/* birthDate(널 가드) · breed.nameKr(괄호 앞만) */}
                       <p className="ml-1 mb-2
-                        text-white/90 text-[12px]">
+                        text-white/90 text-[10px] md:text-[12px]">
                         {dog.birthDate ? dog.birthDate.replaceAll("-", "/") : "생일 미등록"} · {dog.breed?.nameKr?.split("(")[0].trim() ?? "믹스"}
                       </p>
 
-                      <div className="flex gap-[6px]">
+                      <div className="flex flex-wrap gap-[6px]">
                         {dog.activityLevel && (
-                          <span className="px-3 py-[2px]
+                          <span className="px-2 md:px-3 py-[2px]
                                 rounded-full bg-white/20 backdrop-blur
-                                text-[12px] text-white/90"> {activityMap[dog.activityLevel]}</span>
+                                text-[10px] md:text-[12px] text-white/90"> {activityMap[dog.activityLevel]}</span>
                         )}
 
                         {dog.favorWalkTime?.length > 0 && (
-                          <span className="px-3 py-[2px] rounded-full bg-white/20 backdrop-blur text-[12px] text-white/90">
+                          <span className="px-2 md:px-3 py-[2px] rounded-full bg-white/20 backdrop-blur text-[10px] md:text-[12px] text-white/90">
                             {getWalkType(dog.favorWalkTime)}
                           </span>
                         )}
@@ -178,7 +179,7 @@ function DogListPage() {
             onClick={() => navigate("/dog-profile-create")}
             className="
               flex items-center justify-center
-              w-[350px] h-[470px] rounded-xl
+              w-full max-w-[350px] aspect-[35/47] rounded-xl
               border-2 border-dashed border-txtcolor-100
               cursor-pointer transition group hover:bg-txtcolor-100/25
             "

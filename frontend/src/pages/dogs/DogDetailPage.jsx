@@ -140,7 +140,7 @@ function DogDetailPage() {
 
           <div className="flex-1 mx-3 border-b border-dashed border-txtcolor-200" />
 
-          <span className="text-txtcolor-500 min-w-0 break-words text-right">
+          <span className="text-txtcolor-500 min-w-0 break-keep text-right">
             {info.value}
           </span>
 
@@ -242,11 +242,13 @@ function DogDetailPage() {
                 )}
               </div>
                 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* 이미지(350px 고정) 옆 정보칸이 좁은 태블릿에선 2열이 붕괴 → lg부터 2열 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {renderSection("📋 기본 정보", basicInfo)}
                 {renderSection("🔎 상세 정보", detailInfo)}
 
-                <div className="col-span-2">
+                {/* col-span-2 를 1열 모드에 그대로 두면 암시적 2열이 생겨 기본/상세가 찌부러짐 */}
+                <div className="lg:col-span-2">
                   {renderSection("🏡 생활 정보", lifeInfo)}
                 </div>
               </div>
