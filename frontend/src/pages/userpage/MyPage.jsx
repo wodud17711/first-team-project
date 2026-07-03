@@ -103,12 +103,13 @@ function MyPage() {
       <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]"/>
 
       <div className="flex flex-col items-center space-y-6">        
-        <div className="flex items-stretch gap-6 w-full">
+        {/* 모바일(<md)은 왼쪽 열 350px 고정 탓에 오른쪽 정보 카드가 폭 0으로 붕괴 → 세로 스택 */}
+        <div className="flex flex-col md:flex-row items-stretch gap-6 w-full">
             {/* 유저 프로필 + 메뉴(왼쪽) */}
-            <div className="relative shrink-0 w-[350px] flex flex-col gap-3">
+            <div className="relative shrink-0 w-full md:w-[350px] flex flex-col gap-3">
               {/* 유저 프로필 */}
-              <div className="flex flex-col items-center justify-center pt-[10px] 
-                              w-[350px] h-[290px]">
+              <div className="flex flex-col items-center justify-center pt-[10px]
+                              w-full md:w-[350px] h-[290px]">
                   <img
                   src={me?.profileImageUrl || "/userpanel/humanProfile.png"}
                   className="w-[180px] h-[180px] mb-2 rounded-full object-cover shadow-md"

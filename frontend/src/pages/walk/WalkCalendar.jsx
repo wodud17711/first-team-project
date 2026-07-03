@@ -270,7 +270,7 @@ function WalkCalendar() {
               return (
                 <div
                   key={idx}
-                  className={`relative aspect-square bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-2 flex flex-col overflow-y-auto ${
+                  className={`relative aspect-square bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-1 md:p-2 flex flex-col overflow-hidden md:overflow-y-auto ${
                     count > 0 ? 'cursor-pointer' : ''
                   } ${isToday ? 'bg-[#FFF6CC]/40 border border-[#FFE066] hover:bg-[#FFF6CC]/80 transition' 
                               : 'bg-white hover:bg-txtcolor-50/40 transition'}`}
@@ -285,24 +285,32 @@ function WalkCalendar() {
                         {cell.day}
                       </span>
 
-                      {/* 산책 표시: 강아지 사진(산책 횟수 상관 X, 산책하면 생김) — 셀 가운데 정렬 */}
+                      {/* 산책 표시 — md 이상: 강아지 사진 스티커 / 모바일: 셀이 작아 사진이 잘리고
+                          스크롤바가 생기므로 강아지 수만큼 점(dot)으로 표시 */}
                       {dogsInDay.length > 0 && (
-                      <div className="flex-1 flex items-center justify-center gap-[5px] flex-wrap mt-1.5">
-                        {dogsInDay.map((dog) => (
-                          dog?.profileImageUrl ? (
-                            <img
-                              key={dog.dogId}
-                              src={dog.profileImageUrl}
-                              onError={onImgError()}
-                              className="w-7 h-7 rounded-full object-cover shadow"
-                            />
-                          ) : (
-                            <div key={dog.dogId} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                              🐶
-                            </div>
-                          )
-                        ))}
-                      </div>
+                      <>
+                        <div className="hidden md:flex flex-1 items-center justify-center gap-[5px] flex-wrap mt-1.5">
+                          {dogsInDay.map((dog) => (
+                            dog?.profileImageUrl ? (
+                              <img
+                                key={dog.dogId}
+                                src={dog.profileImageUrl}
+                                onError={onImgError()}
+                                className="w-7 h-7 rounded-full object-cover shadow"
+                              />
+                            ) : (
+                              <div key={dog.dogId} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                                🐶
+                              </div>
+                            )
+                          ))}
+                        </div>
+                        <div className="flex md:hidden flex-1 items-center justify-center gap-[3px]">
+                          {dogsInDay.slice(0, 3).map((dog) => (
+                            <span key={dog.dogId} className="w-[6px] h-[6px] rounded-full bg-brand-500" />
+                          ))}
+                        </div>
+                      </>
                     )}
                     </>
                   )}
