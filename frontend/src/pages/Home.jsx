@@ -24,11 +24,40 @@ function Home() {
   const { me } = useMe()
   const { dogs } = useDogs()
 
+  // 배너 상단 멘트
+  const LEVEL_META = {
+    '안전': {
+      title: "산책하기 좋은 날이에요 ☀️",
+      desc: "대부분 견종이 편안하게 산책할 수 있어요"
+    },
+    '주의': {
+      title: "짧은 산책을 추천드려요 🌥️",
+      desc: "더위에 약한 반려견은 주의가 필요해요"
+    },
+    '위험': {
+      title: "산책을 되도록 피해주세요 🌧️",
+      desc: "지면온도와 날씨 상태가 위험해요"
+    }
+  }
 
+  function getMeta(score, level) {
+    if (!score) return {
+      title: "산책지수를 불러오는 중",
+      desc: "잠시만 기다려 주세요"
+    }
+
+    if (level && LEVEL_META[level]) return LEVEL_META[level]
+
+    if (score >= 70) return LEVEL_META['안전']
+    if (score >= 40) return LEVEL_META['주의']
+    return LEVEL_META['위험']
+  }
+  
   // 산책지수: 첫 번째 반려견 기준으로 실 API 조회 (dogId 없으면 미호출)
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
 
+  const meta = getMeta(walk?.score, walk?.level)
 
   return (
     <div className='relative px-4 animate-fadeIn'>
@@ -42,22 +71,21 @@ function Home() {
         {/* 헤더 */}
         <section className="relative flex flex-col md:justify-between gap-[68px] mt-6">
           <WalkScoreHeader
-            title="오늘의 산책지수"
-            desc="우리 강아지와 산책하기 좋은 날인지 확인해보세요"
+            title={meta.title}
+            desc={meta.desc}
           />
           {/* 유저 패널 */}
           <HomeUserpanel/>
         </section>
 
         {/* 산책지수 */}
-        <section className="mb-6 mt-[75px] border border-black">
-
-            <div className='flex flex-col mb-4 pb-2 gap-3'>
+        <section className="mb-6 mt-[65px]">
+            <div className='flex flex-col gap-3'>
               <button
                 onClick={() => navigate('/walkscore-detail')}
                 className="group flex items-center gap-2 text-[30px] font-extrabold text-txtcolor-700"
               >
-                산책 컨디션을 확인해볼까요?
+                오늘의 산책지수를 확인해볼까요?
                 <span className="text-[20px] font-medium transition-transform duration-200 group-hover:translate-x-1">
                   ›
                 </span>
@@ -74,18 +102,7 @@ function Home() {
               />
               {/* <WeatherCard /> */}
             </div>
-
-            
         </section>
-
-
-        {/* <section className="bg-white rounded-xl p-5 shadow-sm">
-          <h3 className="font-semibold mb-3">💡 오늘의 팁</h3>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            오후 시간대에는 지면 온도가 떨어져 산책하기 좋습니다.
-            물을 충분히 챙겨가세요.
-          </p>
-        </section> */}
 
         {/* 산책 페이지들 */}
         <HomeWalk/>
