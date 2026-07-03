@@ -88,7 +88,8 @@ function WalkScoreDetail() {
       <div className="w-full h-[1px] bg-txtcolor-400/40 mb-[20px]" />
 
       {/* 강아지 선택 드롭다운 */}
-      <div className="flex justify-end items-center mb-2">
+      <div className="flex justify-end items-center gap-2 mb-2">
+        <p className="text-[13px] text-txtcolor-400">반려견을 선택하면 각 아이에게 맞는 산책지수를 확인할 수 있어요.</p>
         <select
           value={selectedDogId || ''}
           onChange={(e) => setSelectedDogId(Number(e.target.value))}
@@ -111,6 +112,8 @@ function WalkScoreDetail() {
         notReady={walkNotReady}
         hasDog={!!selectedDogId}
         weather={walk?.weather ?? null}
+        dogName={selectedDog?.name}
+        profileImageUrl={selectedDog?.profileImageUrl}
       />
     </div>
   )
