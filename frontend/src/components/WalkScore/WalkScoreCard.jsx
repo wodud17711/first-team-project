@@ -61,16 +61,17 @@ function WalkScoreCard({
                     </p>
 
                     <div className="h-[35px] flex items-center justify-center">
-                    {item.icon ? (
+                      {item.label === '날씨' ? (
                         <img
-                        src={item.icon}
-                        className="w-[20px] h-[20px] object-contain"
+                          src={item.icon}
+                          className="w-[20px] h-[20px] object-contain"
+                          alt=""
                         />
-                    ) : (
+                      ) : (
                         <p className="text-[18px] font-bold text-txtcolor-700">
-                        {item.value}
+                          {item.value}
                         </p>
-                    )}
+                      )}
                     </div>
 
                 </div>

@@ -63,13 +63,40 @@ export function uvLabel(v) {
  */
 export function buildWeatherItems(weather, icon) {
   const w = weather ?? {}
+
   return [
-    { label: '날씨', icon },
-    { label: '기온', value: formatTemp(w.temperature) },
-    { label: '지면온도', value: formatTemp(w.groundTemperature) },
-    { label: '습도', value: formatHumidity(w.humidity) },
-    { label: '미세먼지', value: pm10Label(w.pm10) },
-    { label: '바람', value: windLabel(w.windSpeed) },
-    { label: '자외선', value: uvLabel(w.uvIndex) },
+    {
+      label: '날씨',
+      icon,
+    },
+    {
+      label: '기온',
+      value: formatTemp(w.temperature),
+    },
+    {
+      label: '지면온도',
+      value: formatTemp(w.groundTemperature),
+      icon: '/walkscoreD/groundtemperature.png'
+    },
+    {
+      label: '습도',
+      value: formatHumidity(w.humidity),
+      icon: '/walkscoreD/humidity.png'
+    },
+    {
+      label: '미세먼지',
+      value: pm10Label(w.pm10),
+      icon: '/walkscoreD/finedust.png'
+    },
+    {
+      label: '바람',
+      value: windLabel(w.windSpeed),
+      icon: '/walkscoreD/wind.png'
+    },
+    {
+      label: '자외선',
+      value: uvLabel(w.uvIndex),
+      icon: '/walkscoreD/uv.png'
+    },
   ]
 }
