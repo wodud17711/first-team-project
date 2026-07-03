@@ -6,7 +6,8 @@ function HomeWalk() {
   const navigate = useNavigate()
 
   return (
-    <section className='grid grid-cols-[1fr_2fr] my-6 bg-brand-100/40 rounded-xl p-6'>
+    // 모바일(<md)은 좌측 열이 좁아져 제목이 한 글자씩 세로로 꺾이고 카드가 잘리므로 세로 스택 + 카드 가로 스크롤
+    <section className='grid grid-cols-1 gap-6 md:gap-0 md:grid-cols-[1fr_2fr] my-6 bg-brand-100/40 rounded-xl p-6'>
       <div className='flex flex-col'>
         <p className="text-[24px] text-txtcolor-700 font-extrabold">
           반려견과의<br/><span>슬기로운 산책 라이프</span>
@@ -17,11 +18,11 @@ function HomeWalk() {
         </span>
       </div>
 
-      <div className='relative'>
-        <div className="flex justify-end gap-4">
+      <div className='relative min-w-0'>
+        <div className="flex md:justify-end gap-4 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
           {/* 산책기록 */}
           <div onClick={() => navigate(`/walk`)}
-                className="w-[200px] h-[200px] bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-5 cursor-pointer
+                className="w-[200px] h-[200px] shrink-0 bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-5 cursor-pointer
                           group relative transition-all duration-200 hover:-translate-y-[2px] hover:shadow">
             <p className="text-[20px] text-txtcolor-700 font-extrabold">산책 기록</p>
             <p className="text-[12px] text-txtcolor-500 mt-1">반려견과 함께<br/>오늘의 산책을 시작해볼까요?</p>
@@ -41,7 +42,7 @@ function HomeWalk() {
 
           {/* 산책 캘린더 */}
           <div onClick={() => navigate(`/walk/calendar`)}
-                className="w-[200px] h-[200px] bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-4 cursor-pointer
+                className="w-[200px] h-[200px] shrink-0 bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-4 cursor-pointer
                           group relative transition-all duration-200 hover:-translate-y-[2px] hover:shadow">
             <p className="text-[20px] text-txtcolor-700 font-extrabold">산책 캘린더</p>
             <p className="text-[12px] text-txtcolor-500 mt-1">반려견과 산책한<br/>날들을 돌아볼 수 있어요!</p>
@@ -61,7 +62,7 @@ function HomeWalk() {
 
           {/* 주간/월간 리포트 */}
           <div onClick={() => navigate(`/walk/report`)}
-                className="w-[200px] h-[200px] bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-4 cursor-pointer
+                className="w-[200px] h-[200px] shrink-0 bg-white rounded-xl border border-txtcolor-100/50 shadow-sm p-4 cursor-pointer
                           group relative transition-all duration-200 hover:-translate-y-[2px] hover:shadow">
             <p className="text-[20px] text-txtcolor-700 font-extrabold">주간/월간 리포트</p>
             <p className="text-[12px] text-txtcolor-500 mt-1">반려견의 산책 패턴을<br/>한눈에 확인해보세요</p>
