@@ -27,7 +27,7 @@ function HomeUserpanel() {
   }
 
   return (
-    <div className="w-full max-w-[300px] md:w-[270px] shrink-0">
+    <div className="w-full max-w-[300px] md:w-[270px] shrink-0 mx-auto md:mx-0">
       <div className="flex flex-col justify-center p-4 gap-4 border border-txtcolor-100/80
                       bg-white/70 backdrop-blur-sm rounded-xl shadow-md">
 

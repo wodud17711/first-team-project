@@ -145,7 +145,9 @@ useEffect(() => {
                           }
                         `}
                       >
-                        <span className="px-2 py-[2px] rounded-full bg-sky-100 text-sky-600 text-[12px] font-medium">
+                        {/* 카드가 이미 카테고리별이라 뱃지는 중복 정보 — 좁은 화면(<sm)에선
+                            뱃지가 폭을 다 차지해 제목이 안 보이므로 숨긴다 */}
+                        <span className="hidden sm:inline-flex shrink-0 px-2 py-[2px] rounded-full bg-sky-100 text-sky-600 text-[12px] font-medium">
                           {p.category}
                         </span>
 
