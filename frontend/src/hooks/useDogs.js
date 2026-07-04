@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { listDogs } from '../api/dogs'
 import { useAuth } from './useAuth'
+import { createSwrCache } from './swrCache'
+
+// 페이지 재방문 시 "불러오는 중" 제거용 SWR 캐시 (swrCache.js 참조).
+const _dogsCache = createSwrCache()
 
 /**
  * 내 반려견 목록 fetch hook.
@@ -25,16 +29,20 @@ import { useAuth } from './useAuth'
  */
 export function useDogs() {
   const { isAuthenticated } = useAuth()
-  const [dogs, setDogs] = useState([])
+  const cached = _dogsCache.get('dogs')
+  const [dogs, setDogs] = useState(cached ?? [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const refetch = useCallback(async () => {
-    setLoading(true)
+  // background=true 면 캐시를 보여둔 채 조용히 재검증 (스피너 X).
+  // 등록/수정/삭제 후 호출부의 refetch() 는 기존대로 loading 을 켠다.
+  const refetch = useCallback(async (background = false) => {
+    if (!background) setLoading(true)
     setError(null)
     try {
       const data = await listDogs()
       setDogs(data ?? [])
+      _dogsCache.set('dogs', data ?? [])
     } catch (e) {
       setError(e)
       setDogs([])
@@ -44,9 +52,10 @@ export function useDogs() {
   }, [])
 
   // fetch-on-mount + isAuthenticated 변경 시 재조회/초기화.
+  // 캐시가 있으면 즉시 표시하고 백그라운드 재검증 (SWR).
   useEffect(() => {
     if (isAuthenticated) {
-      refetch()
+      refetch(_dogsCache.has('dogs'))
     } else {
       setDogs([])
       setError(null)

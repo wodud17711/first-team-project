@@ -160,10 +160,10 @@ function Community() {
         
       </div>
 
-      {/* 목록 */}
-      {loading ? (
+      {/* 목록 — 재조회 중엔 기존 목록을 dim 상태로 유지(SWR), 스피너는 보여줄 데이터가 없을 때만 */}
+      {loading && posts.length === 0 ? (
         <div className="p-4 text-txtcolor-300">불러오는 중...</div>
-      ) : error ? (
+      ) : error && posts.length === 0 ? (
         <div className="p-4 text-danger">목록을 불러오지 못했습니다.</div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 text-txtcolor-300">
@@ -171,7 +171,7 @@ function Community() {
           <p className="text-[14px]">아직 글이 없어요. 첫 글을 남겨보세요!</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className={`flex flex-col gap-3 transition-opacity duration-150 ${loading ? "opacity-60" : ""}`}>
           {posts.map((post) => (
             <PostCard
               key={post.postId}

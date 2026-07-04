@@ -21,9 +21,15 @@ import {
   createCommentMock,
 } from '../mocks/community.mock'
 import { getMyPosts } from "../api/community"
+import { createSwrCache } from './swrCache'
 
 // 카테고리·게시글 CRUD(#68) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
 const USE_MOCK_POSTS = false
+
+// 재방문·카테고리 전환 시 "불러오는 중" 제거용 SWR 캐시 (swrCache.js 참조).
+// 캐시가 있으면 즉시 표시하고 항상 백그라운드 재조회로 갱신한다.
+const _categoriesCache = createSwrCache()
+const _postsCache = createSwrCache()
 // 댓글 CRUD(#84) develop 머지 → 실연동. 문제 시 true 로 즉시 롤백.
 const USE_MOCK_COMMENTS = false
 // 좋아요 토글(#89) develop 머지 → 실연동 (단일 POST 토글). 문제 시 true 로 즉시 롤백.
@@ -53,17 +59,21 @@ function flattenCommentTree(nodes, parentCommentId = null) {
  * @returns {{categories: Array, loading: boolean, error: Error|null}}
  */
 export function useCategories() {
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const cached = _categoriesCache.get('all')
+  const [categories, setCategories] = useState(cached ?? [])
+  const [loading, setLoading] = useState(!cached)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     let alive = true
     ;(async () => {
-      setLoading(true)
+      // 캐시가 있으면 그대로 보여주며 백그라운드 재조회 (스피너 X)
       try {
         const data = USE_MOCK_POSTS ? CATEGORIES_MOCK : await getCategories()
-        if (alive) setCategories(data ?? [])
+        if (alive) {
+          setCategories(data ?? [])
+          _categoriesCache.set('all', data ?? [])
+        }
       } catch (e) {
         if (alive) setError(e)
       } finally {
@@ -90,17 +100,34 @@ export function usePosts({ categoryId, subTag, sort = 'latest', page = 0 } = {})
 
   useEffect(() => {
     let alive = true
+    const key = `${categoryId ?? ''}|${subTag ?? ''}|${sort}|${page}`
+
+    // 캐시 히트 → 즉시 표시(스피너 X), 아래에서 백그라운드 재조회로 갱신 (SWR).
+    // 캐시 미스 → loading 만 켜고 기존 목록은 유지(호출부가 dim 처리).
+    const cached = _postsCache.get(key)
+    if (cached) {
+      setPosts(cached.posts)
+      setTotal(cached.total)
+      setTotalPages(cached.totalPages)
+    }
+    setLoading(!cached)
+    setError(null)
+
     ;(async () => {
-      setLoading(true)
-      setError(null)
       try {
         const data = USE_MOCK_POSTS
           ? getPostsMock({ categoryId, subTag, sort })
           : await getPosts({ categoryId, subTag, sort, page, size:10 })
         if (alive) {
-          setPosts(data?.content ?? [])
-          setTotal(data?.totalElements ?? 0)
-          setTotalPages(data?.totalPages ?? 0)
+          const fresh = {
+            posts: data?.content ?? [],
+            total: data?.totalElements ?? 0,
+            totalPages: data?.totalPages ?? 0,
+          }
+          setPosts(fresh.posts)
+          setTotal(fresh.total)
+          setTotalPages(fresh.totalPages)
+          _postsCache.set(key, fresh)
         }
       } catch (e) {
         if (alive) setError(e)

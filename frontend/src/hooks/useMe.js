@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getMe } from '../api/users'
 import { useAuth } from './useAuth'
+import { createSwrCache } from './swrCache'
+
+// 페이지 재방문 시 "불러오는 중" 제거용 SWR 캐시 (swrCache.js 참조).
+const _meCache = createSwrCache()
 
 /**
  * 내 정보 fetch hook.
@@ -20,16 +24,20 @@ import { useAuth } from './useAuth'
  */
 export function useMe() {
   const { isAuthenticated } = useAuth()
-  const [me, setMe] = useState(null)
+  const cached = _meCache.get('me')
+  const [me, setMe] = useState(cached ?? null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const refetch = useCallback(async () => {
-    setLoading(true)
+  // background=true 면 캐시를 보여둔 채 조용히 재검증 (스피너 X).
+  // 닉네임 수정 후 호출부의 refetch() 는 기존대로 loading 을 켠다.
+  const refetch = useCallback(async (background = false) => {
+    if (!background) setLoading(true)
     setError(null)
     try {
       const data = await getMe()
       setMe(data)
+      _meCache.set('me', data)
     } catch (e) {
       setError(e)
       setMe(null)
@@ -39,9 +47,10 @@ export function useMe() {
   }, [])
 
   // fetch-on-mount + isAuthenticated 변경 시 재조회/초기화.
+  // 캐시가 있으면 즉시 표시하고 백그라운드 재검증 (SWR).
   useEffect(() => {
     if (isAuthenticated) {
-      refetch()
+      refetch(_meCache.has('me'))
     } else {
       setMe(null)
       setError(null)
