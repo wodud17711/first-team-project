@@ -200,21 +200,22 @@ function AccountEdit() {
 
 
       {/* 유저 정보 */}
-        <div className="flex flex-col items-center space-y-6">        
-            <div className="flex items-stretch gap-6 w-full">
+        <div className="flex flex-col items-center space-y-6">
+            {/* 모바일(<md)은 왼쪽 열 350px 고정 탓에 오른쪽 폼이 폭 0으로 붕괴 → 세로 스택 (MyPage #191 패턴) */}
+            <div className="flex flex-col md:flex-row items-stretch gap-6 w-full">
                 {/* 유저 프로필 + 계정 설정(왼쪽) */}
-                <div className="relative shrink-0 w-[350px] flex flex-col mt-[20px]">
+                <div className="relative shrink-0 w-full md:w-[350px] flex flex-col mt-[20px]">
                   <div className="flex flex-col items-center justify-center pt-[10px]
-                                  w-[350px] h-[290px]" ref={menuRef}>
+                                  w-full md:w-[350px] h-[290px]" ref={menuRef}>
                     <img
                         src={previewImg || "/userpanel/humanProfile.png"}
                         alt="프로필"
                         className="w-[180px] h-[180px] rounded-full object-cover shadow-md"
                     />
 
-                    {/* 카메라 버튼 */}
+                    {/* 카메라 버튼 — 컨테이너 폭이 아닌 아바타(180px, 중앙) 기준으로 고정 (모바일 w-full에서도 위치 유지) */}
                     <button onClick={() => setMenuOpen((prev) => !prev)}
-                            className="group absolute bottom-[85px] right-[100px]
+                            className="group absolute bottom-[85px] right-[calc(50%-75px)]
                                       w-10 h-10 rounded-full bg-txtcolor-50 shadow-md
                                       flex items-center justify-center
                                       hover:bg-txtcolor-700 transition"
@@ -229,7 +230,7 @@ function AccountEdit() {
 
                     {/* 드롭다운 */}
                     {menuOpen && (
-                      <div className="absolute -bottom-[15px] right-[70px]
+                      <div className="absolute -bottom-[15px] right-[calc(50%-105px)]
                                       w-[100px] bg-white rounded-xl shadow-md
                                       border border-txtcolor-100 overflow-hidden z-50">
                         
@@ -298,7 +299,8 @@ function AccountEdit() {
                                 보호자 연차 <span className="text-red-500">*</span>
                             </label>
 
-                            <div className="flex gap-2">
+                            {/* 모바일은 4버튼 한 줄이 짓눌림 → 2열 그리드 (반려견 목록 #190 패턴) */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                 {guardianLevels.map((level) => (
                                     <button
                                     key={level.label}
@@ -316,7 +318,7 @@ function AccountEdit() {
                                         : "bg-white border-txtcolor-100 text-txtcolor-300 hover:bg-txtcolor-100/40 transition"
                                     }`}
                                     >   
-                                    <div className="flex items-center">
+                                    <div className="flex flex-wrap items-center justify-center">
                                       <div className="text-[13px] font-semibold">
                                           {level.label}
                                       </div>
