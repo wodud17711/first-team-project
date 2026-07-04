@@ -187,9 +187,10 @@ function AccountDelete() {
 
 
       <div className="flex flex-col items-center space-y-6">
-          <div className="flex items-stretch gap-6 w-full">
-              {/* 회원탈퇴 경고문구(오른쪽) */}
-              <div className="relative shrink-0 w-[350px] flex flex-col px-[10px]">
+          {/* 모바일(<md)은 왼쪽 열 350px 고정 탓에 오른쪽 폼이 폭 0으로 붕괴 → 세로 스택 (MyPage #191 패턴) */}
+          <div className="flex flex-col md:flex-row items-stretch gap-6 w-full">
+              {/* 회원탈퇴 경고문구(왼쪽) */}
+              <div className="relative shrink-0 w-full md:w-[350px] flex flex-col px-[10px]">
                 <h3 className="text-[20px] font-bold text-red-500 mb-4">
                 ⚠️ 탈퇴 전 꼭 확인해주세요!
                 </h3>
