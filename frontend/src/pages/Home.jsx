@@ -73,8 +73,7 @@ function Home() {
       <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[390px] sm:h-[440px] lg:h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
         {/* 모바일(<sm)은 양옆 여백(구름)을 잘라 사람+강아지를 크게(cover, 가로 62% 지점 기준),
             sm~lg 는 전체 비율 유지(contain), lg 이상은 기존 1920px cover */}
-        <img src='/testimg.png' alt='산책 일러스트' className='absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[200px] object-cover object-[62%_100%] sm:h-auto sm:object-contain lg:w-[1920px] lg:h-full lg:object-cover'/>
-        {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
+        <img src='/bannerimg1.png' alt='산책 일러스트' className='absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[200px] object-cover object-[62%_100%] sm:h-auto sm:object-contain lg:w-[1920px] lg:h-full lg:object-cover'/>
       </section>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
