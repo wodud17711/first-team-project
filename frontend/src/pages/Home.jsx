@@ -60,11 +60,35 @@ function Home() {
     return LEVEL_META['위험']
   }
 
+  // 점수에 따라 배너이미지 다르게
+  function getBannerImage(score, level, hasDog) {
+    if (!hasDog || score == null) {
+      return '/bannerimg/bannerimg1.png'
+    }
+
+    // level 우선
+    if (level === '안전') return '/bannerimg/bannerimg1.png'
+    if (level === '주의') return '/bannerimg/bannerimg2.png'
+    if (level === '위험') return '/bannerimg/bannerimg3.png'
+
+    // fallback
+    if (score >= 70) return '/bannerimg/bannerimg1.png'
+    if (score >= 40) return '/bannerimg/bannerimg2.png'
+
+    return '/bannerimg/bannerimg3.png'
+  }
+
   // 산책지수: 첫 번째 반려견 기준으로 실 API 조회 (dogId 없으면 미호출)
   const firstDogId = dogs[0]?.dogId
   const { data: walk, loading: walkLoading, notReady: walkNotReady } = useWalkScore(firstDogId)
 
   const meta = getMeta(walk?.score, walk?.level, !!firstDogId)
+
+  const bannerImage = getBannerImage(
+    walk?.score,
+    walk?.level,
+    !!firstDogId
+  )
 
   return (
     <div className='relative px-4 animate-fadeIn'>
@@ -73,8 +97,11 @@ function Home() {
       <section className="absolute -mt-6 top-0 left-1/2 -translate-x-1/2 w-screen h-[390px] sm:h-[440px] lg:h-[510px] bg-[#F7F7F7] border-b shadow-sm z-6">
         {/* 모바일(<sm)은 양옆 여백(구름)을 잘라 사람+강아지를 크게(cover, 가로 62% 지점 기준),
             sm~lg 는 전체 비율 유지(contain), lg 이상은 기존 1920px cover */}
-        <img src='/testimg.png' alt='산책 일러스트' className='absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[200px] object-cover object-[62%_100%] sm:h-auto sm:object-contain lg:w-[1920px] lg:h-full lg:object-cover'/>
-        {/* <img src='/testimg2.png' alt='테스트이미지' className='mx-auto w-[1920px] h-full object-cover'/> */}
+        <img
+          src={bannerImage}
+          alt='산책 일러스트'
+          className='absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[200px] object-cover object-[62%_100%] sm:h-auto sm:object-contain lg:w-[1920px] lg:h-full lg:object-cover'
+        />
       </section>
 
       <div className="relative z-5 flex flex-col gap-6 overflow-x-hidden">
